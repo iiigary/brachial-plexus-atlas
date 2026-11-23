@@ -1,9 +1,9 @@
 export const STAGES = [
-  { key: 'root', x: 70, title: '根 Roots', sub: '脊神经前支 (5)' },
-  { key: 'trunk', x: 255, title: '干 Trunks', sub: '斜角肌间隙 (3)' },
-  { key: 'division', x: 450, title: '股 Divisions', sub: '锁骨后方 (前3/后3)' },
-  { key: 'cord', x: 655, title: '束 Cords', sub: '腋动脉周围 (3)' },
-  { key: 'branch', x: 885, title: '终末支 Branches', sub: '上肢五大主干 (5)' },
+  { key: 'root', x: 70, title: '根 Roots', sub: '脊神经前支' },
+  { key: 'trunk', x: 255, title: '干 Trunks', sub: '斜角肌间隙' },
+  { key: 'division', x: 450, title: '股 Divisions', sub: '锁骨后方' },
+  { key: 'cord', x: 655, title: '束 Cords', sub: '腋动脉周围' },
+  { key: 'branch', x: 885, title: '终末支 Branches', sub: '上肢主干' },
 ];
 
 export const NODES = [

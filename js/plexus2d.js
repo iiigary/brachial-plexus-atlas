@@ -3,6 +3,7 @@ import { PlexusModel } from './model.js';
 import { STAGES, NODES, EDGES, nodeMap } from './data/nodes.js';
 import { state } from './state.js';
 import { onNodeHover, onNodeClick, onBackgroundClick, labelsHidden } from './app.js';
+import { sweep, columnsIn } from './motion.js';
 
 const svg = document.getElementById('plexus');
 const VIEW_W = 1060, VIEW_H = 620;
@@ -14,6 +15,15 @@ export function createSvgEl(tag, attrs = {}) {
 }
 
 const isSmall = n => n.stage === 'collateral' || n.stage === 'subbranch';
+// 动效排序用的列号；旁支按其起点所在列算
+const COL = { root: 0, trunk: 1, division: 2, cord: 3, branch: 4, subbranch: 5 };
+const colOf = id => COL[nodeMap[id].stage] ?? 0;
+// 根和股的第二行与列标题、颜色重复，不再画
+const showSub = n => n.stage !== 'root' && n.stage !== 'division';
+const shortLabel = n => n.stage === 'root' ? n.label.replace(' 神经根', '') : n.label;
+
+let traceMap = new Map();  // 'from>to' -> 传导波描线
+let litPrev = new Set();   // 上一次已点亮的连线，只对新点亮的播放传导波
 
 function nodeColor(n) {
   if (n.stage === 'root') return 'var(--root-color)';
@@ -78,7 +88,10 @@ export function renderPlexusSVG() {
   });
 
   const edgeLayer = createSvgEl('g');
+  const traceLayer = createSvgEl('g');
   const pulseLayer = createSvgEl('g');
+  traceMap = new Map();
+  litPrev = new Set();
   EDGES.forEach(e => {
     if (e.type === 'collateral' && !state.showCollaterals) return;
     const d = buildCurve(nodeMap[e.from], nodeMap[e.to], e.type === 'collateral');
@@ -87,9 +100,13 @@ export function renderPlexusSVG() {
       class: `edge ${e.type === 'post' ? 'posterior' : ''} ${e.type === 'collateral' ? 'collateral-edge' : ''}`,
       stroke: edgeColor(e), 'data-from': e.from, 'data-to': e.to,
     }));
+    const trace = createSvgEl('path', { d, class: 'trace-edge', pathLength: 1 });
+    traceMap.set(e.from + '>' + e.to, trace);
+    traceLayer.appendChild(trace);
     pulseLayer.appendChild(createSvgEl('path', { d, class: 'pulse-edge', 'data-from': e.from, 'data-to': e.to }));
   });
   svg.appendChild(edgeLayer);
+  svg.appendChild(traceLayer);
   svg.appendChild(pulseLayer);
 
   const hideLabel = labelsHidden();
@@ -105,14 +122,19 @@ export function renderPlexusSVG() {
     }));
 
     // 旁支和前臂分支的第二行是节段，由模型推导
-    const subText = small ? PlexusModel.segLabel(n.id) : n.sub;
-    const label = createSvgEl('text', { x: n.x, y: n.y - (small ? 2 : 4), 'text-anchor': 'middle', class: small ? 'collateral-label' : 'node-label' });
-    label.textContent = hideLabel ? '？' : n.label;
+    const twoLines = small || showSub(n);
+    const label = createSvgEl('text', {
+      x: n.x, y: n.y + (!twoLines ? 4.5 : small ? -2 : -4), 'text-anchor': 'middle',
+      class: small ? 'collateral-label' : 'node-label',
+    });
+    label.textContent = hideLabel ? '？' : shortLabel(n);
     g.appendChild(label);
 
-    const sub = createSvgEl('text', { x: n.x, y: n.y + (small ? 11 : 13), 'text-anchor': 'middle', class: 'node-sub' });
-    sub.textContent = hideLabel ? (small ? '分支' : n.stage.toUpperCase()) : subText;
-    g.appendChild(sub);
+    if (twoLines) {
+      const sub = createSvgEl('text', { x: n.x, y: n.y + (small ? 11 : 13), 'text-anchor': 'middle', class: 'node-sub' });
+      sub.textContent = small ? (hideLabel ? '分支' : PlexusModel.segLabel(n.id)) : (hideLabel ? n.stage.toUpperCase() : n.sub);
+      g.appendChild(sub);
+    }
 
     // 切断标记（自由切断模式）
     const cx = n.x + n.w / 2 - 2, cy = n.y - n.h / 2 + 2;
@@ -144,6 +166,7 @@ export function applyPlexusHighlights(ctx) {
     nodeEls.forEach(el => el.classList.remove('dim', 'selected', 'lesion-site'));
     edgeEls.forEach(el => el.classList.remove('dim', 'highlight', 'lesion-downstream'));
     pulseEls.forEach(el => el.classList.add('active-pulse'));
+    litPrev = new Set();
     return;
   }
 
@@ -172,4 +195,39 @@ export function applyPlexusHighlights(ctx) {
     });
     pulseEls.forEach(el => el.classList.toggle('active-pulse', ctx.edges.has(keyOf(el))));
   }
+  playSweep(edgeEls, keyOf);
+}
+
+// 新点亮的连线按「近端→远端」依次扫过一道传导波；损伤下游用红色
+function playSweep(edgeEls, keyOf) {
+  const lit = new Set();
+  const items = [];
+  edgeEls.forEach(el => {
+    const down = el.classList.contains('lesion-downstream');
+    if (!down && !el.classList.contains('highlight')) return;
+    const key = keyOf(el);
+    lit.add(key);
+    if (litPrev.has(key) || !traceMap.has(key)) return;
+    items.push({
+      el: traceMap.get(key),
+      col: colOf(el.getAttribute('data-from')),
+      color: down ? 'var(--lesion-color)' : el.getAttribute('stroke'),
+    });
+  });
+  litPrev = lit;
+  sweep(items);
+}
+
+// 首屏：各列依次出现，随后整丛扫过一道传导波
+export function introPlexus() {
+  const items = [];
+  svg.querySelectorAll('.node-group').forEach(el => items.push({ el, col: colOf(el.getAttribute('data-id')) }));
+  svg.querySelectorAll('.edge').forEach(el => items.push({ el, col: colOf(el.getAttribute('data-from')) + 0.5 }));
+  columnsIn(items);
+  if (litPrev.size) return; // 网址里已带选中状态时，交给正常的高亮动效
+  setTimeout(() => sweep([...svg.querySelectorAll('.edge')].map(el => ({
+    el: traceMap.get(el.getAttribute('data-from') + '>' + el.getAttribute('data-to')),
+    col: colOf(el.getAttribute('data-from')),
+    color: el.getAttribute('stroke'),
+  })).filter(i => i.el)), 520);
 }

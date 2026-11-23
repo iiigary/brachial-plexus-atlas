@@ -54,9 +54,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans", "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   transition: background 0.25s, color 0.25s;
 }
 
@@ -65,12 +67,11 @@ header {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 22px;
+  gap: 10px 16px;
+  padding: 8px 18px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
 }
 
@@ -81,9 +82,9 @@ header {
 }
 
 .brand-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #2563eb, #0891b2);
   display: grid;
   place-items: center;
@@ -92,16 +93,16 @@ header {
   font-size: 14px;
 }
 
-.brand h1 { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
+.brand h1 { font-size: 15px; font-weight: 700; line-height: 1.25; }
 
-.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 
 .btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text);
-  padding: 6px 11px;
-  border-radius: 8px;
+  padding: 5px 9px;
+  border-radius: 5px;
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
@@ -111,82 +112,83 @@ header {
   gap: 5px;
 }
 
-.btn:hover { border-color: var(--accent); background: var(--surface-2); }
-.btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:hover { background: var(--surface-2); }
+.btn.active { background: var(--accent-soft); color: var(--accent); }
+.quiz-box .btn, .cut-bar .btn { border-color: var(--border); }
 
-.main-grid {
-  flex: 1;
+/* ---------- 工作台骨架：主舞台 | 上肢窗格，底部停靠详情 ---------- */
+.workbench {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) 460px;
-  align-items: start;
-  gap: 16px;
-  padding: 16px 22px 24px;
-  max-width: 1680px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-@media (max-width: 1240px) {
-  .main-grid { grid-template-columns: 1fr; }
-}
-
-.card {
+  grid-template-columns: minmax(0, 1fr) clamp(330px, 28vw, 470px);
+  min-height: 0;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+}
+
+.stage {
+  position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
 }
 
-.subbar {
+.stage-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 6px 14px;
+  padding: 7px 14px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface-2);
 }
 
-.lesion-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.lesion-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.lesion-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.lesion-label {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  letter-spacing: 0.4px; margin-right: 6px;
+}
 
 .pill {
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: none;
+  background: transparent;
   color: var(--text);
-  padding: 4px 10px;
-  border-radius: 999px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
+  box-shadow: inset 0 -2px 0 transparent;
   transition: all 0.16s;
 }
 
-.pill:hover { border-color: var(--lesion-color); color: var(--lesion-color); }
-.pill.active { background: var(--lesion-color); border-color: var(--lesion-color); color: #fff; }
+.pill:hover { color: var(--lesion-color); background: var(--surface-2); }
+.pill.active {
+  color: var(--lesion-color);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lesion-color) 10%, transparent);
+  box-shadow: inset 0 -2px 0 var(--lesion-color);
+}
 
-.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); }
+.legend {
+  position: absolute; left: 14px; bottom: 8px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+  font-size: 11px; color: var(--muted); pointer-events: none;
+}
+.svg-wrap.is-hidden ~ .legend { display: none; }
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
 .svg-wrap {
   position: relative;
   flex: 1;
-  overflow-x: auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  padding: 10px;
+  padding: 6px 10px 28px;
 }
 
 svg#plexus {
   width: 100%;
-  min-width: 820px;
-  margin: 0 auto;
-  height: auto;
-  max-height: 660px;
+  height: 100%;
+  min-width: 0;
   user-select: none;
 }
 
@@ -195,7 +197,8 @@ svg#plexus {
 /* 3D 视图：舞台颜色随主题变化，见 extra.css */
 .viewport3d {
   position: relative;
-  height: clamp(520px, 66vh, 700px);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
@@ -245,6 +248,19 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
 .edge.highlight { opacity: 1; stroke-width: 4.8; filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.35)); }
 .edge.lesion-downstream { stroke: var(--lesion-color) !important; opacity: 1; stroke-width: 4.4; }
 
+/* 传导波：高亮时从近端到远端扫过一次（见 motion.js），平时不可见 */
+.trace-edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
 .pulse-edge {
   fill: none;
   stroke: #ffffff;
@@ -279,16 +295,14 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
 .collateral-label { font-size: 10.3px; font-weight: 500; fill: var(--text); pointer-events: none; }
 
 
-/* Right Column: Limb Atlas + Inspector */
-.side-col {
+/* ---------- 上肢窗格 ---------- */
+.limb-pane {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.limb-card {
-  padding: 14px;
-  gap: 10px;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 14px 12px;
+  border-left: 1px solid var(--border);
 }
 
 .limb-header {
@@ -300,16 +314,12 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
 }
 
 .limb-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .seg-group {
   display: inline-flex;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 2px;
   gap: 2px;
 }
 
@@ -319,30 +329,29 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
   color: var(--muted);
   font-size: 11.5px;
   font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 7px;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
+  box-shadow: inset 0 -2px 0 transparent;
   transition: all 0.16s;
 }
 
+.seg-btn:hover { color: var(--text); }
 .seg-btn.active {
-  background: var(--surface);
   color: var(--accent);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 -2px 0 currentColor;
 }
 
 .limb-svg-box {
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 8px 6px 4px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
   position: relative;
 }
 
 svg#limbSvg {
   width: 100%;
-  max-width: 540px;
-  margin: 0 auto;
-  height: auto;
+  height: 100%;
   display: block;
   user-select: none;
 }
@@ -412,14 +421,16 @@ svg#limbSvg {
 .chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 2px;
+  gap: 4px;
+  max-height: 84px;
+  overflow-y: auto;
 }
+.chip-list:empty { display: none; }
 
 .mini-chip {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 2px 7px;
+  border-radius: 4px;
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;
@@ -428,48 +439,76 @@ svg#limbSvg {
 }
 
 .mini-chip:hover { border-color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .mini-chip { animation: chipIn 0.26s cubic-bezier(.22, .8, .24, 1) backwards; }
+  .mini-chip:nth-child(2) { animation-delay: 30ms; }
+  .mini-chip:nth-child(3) { animation-delay: 60ms; }
+  .mini-chip:nth-child(4) { animation-delay: 90ms; }
+  .mini-chip:nth-child(n+5) { animation-delay: 120ms; }
+}
+@keyframes chipIn { from { opacity: 0; transform: translateY(4px) scale(0.96); } }
 .mini-chip.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
 
-/* Inspector Card */
-.inspector {
-  padding: 16px;
-  gap: 10px;
+/* ---------- 底部停靠栏：横向分栏的结构详情 ---------- */
+.dock {
+  position: relative;
+  display: flex;
+  height: clamp(190px, 30vh, 310px);
+  min-height: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+#detailContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
 }
 
 .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 4px;
   background: var(--accent-soft);
   color: var(--accent);
 }
 .tag.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
 
-.inspector h2 { font-size: 18px; font-weight: 700; line-height: 1.3; margin-top: 2px; }
-.inspector .en-name { font-size: 12px; color: var(--muted); }
+.dock h2 { font-size: 18px; font-weight: 700; line-height: 1.3; margin-top: 6px; }
+.dock .en-name { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
 
 .info-block {
-  background: var(--surface-2);
-  border-radius: 10px;
-  padding: 9px 11px;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 12px 16px 26px;
+  border-left: 1px solid var(--border);
 }
+.info-block:first-child { border-left: none; }
+.dock-head { flex-grow: 1.25; }
 
 .info-block h3 {
   font-size: 11px;
-  letter-spacing: 0.4px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.info-block p { font-size: 12.6px; line-height: 1.52; color: var(--text); }
+.info-block p { font-size: 12.8px; line-height: 1.6; color: var(--text); }
+.info-block p:empty { display: none; }
+.tag-row:empty { display: none; }
+.dock-head p { color: var(--muted); }
 
 .quiz-box {
-  border: 1.5px dashed var(--accent);
+  flex: 0 0 clamp(320px, 30vw, 420px);
+  overflow-y: auto;
+  padding: 12px 16px;
   background: var(--accent-soft);
-  border-radius: 12px;
-  padding: 11px;
+  border-right: 1px solid var(--border);
+  box-shadow: inset 3px 0 0 var(--accent);
   display: none;
   flex-direction: column;
   gap: 7px;
@@ -492,7 +531,7 @@ svg#limbSvg {
 .limb-mark { fill: none; stroke: var(--skin-stroke); stroke-width: 1; stroke-dasharray: 3 2.5; opacity: 0.85; pointer-events: none; }
 .zone-label {
   font-size: 10.5px; font-weight: 600; fill: var(--text); pointer-events: none;
-  paint-order: stroke; stroke: var(--surface-2); stroke-width: 2.6px; stroke-linejoin: round;
+  paint-order: stroke; stroke: var(--surface); stroke-width: 2.6px; stroke-linejoin: round;
 }
 .zone-label.big { font-size: 12.5px; font-weight: 800; }
 .zone-label.on { fill: var(--accent); font-weight: 800; }
@@ -516,13 +555,13 @@ kbd {
   border: 1px solid var(--border); background: var(--surface-2);
 }
 
-/* ---------- 投影模式：放大字号，图撑满窗口高度 ---------- */
+/* ---------- 投影模式：放大字号，停靠栏加高 ---------- */
 @media screen {
-  body.present .brand p, body.present .hint-footer, body.present .legend { display: none; }
+  body.present .legend { display: none; }
   body.present .brand h1 { font-size: 19px; }
-  body.present .btn, body.present .pill { font-size: 14.5px; padding: 7px 13px; }
+  body.present .btn, body.present .pill { font-size: 14.5px; padding: 7px 12px; }
   body.present .seg-btn { font-size: 14px; padding: 6px 12px; }
-  body.present .lesion-label { font-size: 14.5px; }
+  body.present .lesion-label { font-size: 13px; }
   body.present .node-label { font-size: 14.5px; }
   body.present .node-sub { font-size: 11.5px; }
   body.present .collateral-label { font-size: 12px; }
@@ -534,26 +573,43 @@ kbd {
   body.present .zone-label { font-size: 11.5px; }
   body.present .zone-label.big { font-size: 13.5px; }
   body.present .tag { font-size: 13.5px; }
-  body.present .inspector h2 { font-size: 23px; }
-  body.present .inspector .en-name { font-size: 14.5px; }
+  body.present .dock { height: clamp(220px, 34vh, 380px); }
+  body.present .dock h2 { font-size: 23px; }
+  body.present .dock .en-name { font-size: 14.5px; }
   body.present .info-block h3 { font-size: 13.5px; }
   body.present .info-block p { font-size: 16px; }
   body.present .quiz-q { font-size: 16.5px; }
   body.present .quiz-meta, body.present .quiz-feedback { font-size: 14.5px; }
   body.present .hud-pill, body.present .hud-bottom { font-size: 13.5px; }
 }
-@media screen and (min-width: 1241px) {
-  body.present { height: 100vh; overflow: hidden; }
-  body.present .main-grid {
-    min-height: 0; max-width: none; padding: 10px 14px 12px; align-items: stretch;
-    grid-template-columns: minmax(0, 1.5fr) minmax(460px, 0.85fr);
-  }
-  body.present .main-grid > .card { min-height: 0; }
-  body.present .side-col { min-height: 0; overflow-y: auto; }
-  body.present .side-col > .card { flex-shrink: 0; }
-  body.present .svg-wrap { min-height: 0; overflow: hidden; padding: 6px; }
-  body.present svg#plexus { min-width: 0; max-height: none; width: 100%; height: 100%; }
-  body.present .viewport3d { height: auto; flex: 1; min-height: 0; }
+
+/* ---------- 窄屏：解除整屏锁定，窗格纵向堆叠 ---------- */
+@media screen and (max-width: 1100px) {
+  .workbench { grid-template-columns: minmax(0, 1fr) 320px; }
+  .dock { height: clamp(200px, 32vh, 300px); }
+}
+@media screen and (max-width: 860px) {
+  body { height: auto; min-height: 100dvh; overflow: visible; display: flex; flex-direction: column; }
+  .workbench { grid-template-columns: 1fr; }
+  .stage { height: min(62vh, 560px); border-bottom: 1px solid var(--border); }
+  .limb-pane { border-left: none; }
+  .limb-svg-box { flex: none; }
+  svg#limbSvg { height: auto; max-width: 520px; margin: 0 auto; }
+  .dock { height: auto; flex-direction: column; }
+  #detailContent { flex-direction: column; }
+  .info-block { border-left: none; border-top: 1px solid var(--border); overflow: visible; padding-bottom: 12px; }
+  .info-block:first-child { border-top: none; }
+  .quiz-box { flex-basis: auto; border-right: none; border-bottom: 1px solid var(--border); }
+}
+@media screen and (max-width: 640px) {
+  header { padding: 8px 12px; }
+  .brand h1 { font-size: 13.5px; }
+  .stage { height: auto; }
+  .svg-wrap { overflow-x: auto; height: 340px; flex: none; }
+  .viewport3d { height: 60vh; flex: none; }
+  svg#plexus { min-width: 640px; }
+  .legend { position: static; padding: 4px 14px 8px; }
+  .svg-wrap { padding-bottom: 6px; }
 }
 
 /* ---------- 打印讲义：浅色、单栏通路图 + 上肢图与说明并排 ---------- */
@@ -569,14 +625,19 @@ kbd {
   }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body, body.present { display: block; min-height: 0; height: auto; overflow: visible; background: #fff; }
-  header { position: static; padding: 0 0 8px; border-bottom: 1px solid var(--border); }
-  .toolbar, #viewTabs, .legend, .hint-footer, .viewport3d, .quiz-box, #limbModeTabs, .level-hint, .pulse-edge,
+  header { padding: 0 0 8px; border-bottom: 1px solid var(--border); }
+  .toolbar, #viewTabs, .legend, .viewport3d, .quiz-box, #limbModeTabs, .pulse-edge,
   .pill:not(.active), #levelBar .seg-btn:not(.active), body:not(.has-lesion) .lesion-bar { display: none !important; }
-  .main-grid { display: block; padding: 10px 0 0; max-width: none; }
-  .card { box-shadow: none; break-inside: avoid; margin-bottom: 10px; }
-  .subbar { background: none; }
+  .workbench { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 10px; }
+  .stage { grid-column: 1 / -1; break-inside: avoid; }
+  .stage-bar { border-bottom: none; }
   .svg-wrap, .svg-wrap.is-hidden { display: flex !important; min-height: 0; overflow: visible; padding: 4px; }
-  svg#plexus { min-width: 0; max-height: none; }
-  .side-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  svg#plexus { height: auto; }
+  .limb-pane { border-left: none; break-inside: avoid; }
+  .limb-svg-box { flex: none; }
+  svg#limbSvg { height: auto; }
+  .dock { display: block; height: auto; border-top: 1px solid var(--border); background: none; }
+  #detailContent { display: grid; grid-template-columns: 1fr 1fr; }
+  .info-block { overflow: visible; border-left: none; padding: 8px 0; break-inside: avoid; }
   .mini-chip { border-color: var(--border); }
 }

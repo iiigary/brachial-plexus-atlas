@@ -9,7 +9,8 @@ import { CLINICAL } from './data/clinical.js';
 import { generateMCQ, MCQ_TYPES } from './quizgen.js';
 import { state, DEFAULT_3D } from './state.js';
 import { store } from './store.js';
-import { renderPlexusSVG, applyPlexusHighlights } from './plexus2d.js';
+import { renderPlexusSVG, applyPlexusHighlights, introPlexus } from './plexus2d.js';
+import { riseIn } from './motion.js';
 import { renderLimbSVG, applyLimbHighlights } from './limb.js';
 import * as view3d from './view3d.js';
 import { initSearch } from './search.js';
@@ -215,10 +216,9 @@ function renderClinicalCard(id) {
   const card = CLINICAL[id];
   $('dCard').classList.toggle('is-hidden', !card);
   if (!card) return;
-  const rows = [['查体试验', card.tests], ['典型体征', card.signs], ['口诀', card.mnemonic && [card.mnemonic]], ['常见病因', card.causes]];
+  const rows = [['试验', card.tests], ['体征', card.signs], ['口诀', card.mnemonic && [card.mnemonic]], ['病因', card.causes]];
   $('dCardBody').innerHTML = rows.filter(([, v]) => v && v.length)
     .map(([k, v]) => `<dt>${k}</dt><dd>${v.map(x => `<span>${x}</span>`).join('')}</dd>`).join('');
-  $('dCard').querySelector('h3').textContent = `查体与体征 · ${label(id)}`;
 }
 
 function setText(f) {
@@ -234,7 +234,8 @@ function updateInspector(ctx) {
     if (state.lesionKey) {
       const L = LESIONS[state.lesionKey];
       const T = L.levels[ctx.level];
-      tags.innerHTML = `<span class="tag lesion">临床损伤模拟</span><span class="tag lesion">部位：${ctx.levelName}</span>` + plexusTags;
+      // 部位已在部位条和节段说明里，这里只留节前/节后与 Horner
+      tags.innerHTML = plexusTags;
       setText({ dTitle: L.title, dSub: L.sub, dSegments: T.segments, dMotor: T.motor, dSensory: T.sensory, dClinical: T.clinical, dSpatial: L.spatial });
     } else {
       const cuts = [...ctx.sites];
@@ -244,8 +245,8 @@ function updateInspector(ctx) {
       if (ctx.preganglionic) notes.push('全部切断点都在根部，属节前损伤：感觉神经动作电位保留，不能自行恢复。');
       if (ctx.spared.length) notes.push(`同一神经上未受累的分支：${s.spared}。`);
       if (!notes.length) notes.push('切断点都在节后（干、股、束或周围神经）。');
-      tags.innerHTML = `<span class="tag lesion">${ctx.isCut && state.quizMode ? '答案演示' : '自由切断'}</span>`
-        + cuts.map(id => `<span class="tag lesion">✂ ${label(id)}</span>`).join('') + plexusTags;
+      // 切断点已在标题和节段里列出，标签只留判断性信息
+      tags.innerHTML = (ctx.isCut && state.quizMode ? '<span class="tag lesion">答案演示</span>' : '') + plexusTags;
       setText({
         dTitle: `切断：${ctx.levelName}`,
         dSub: cuts.map(id => nodeMap[id].en).join(' + '),
@@ -259,14 +260,14 @@ function updateInspector(ctx) {
   }
 
   if (!state.selectedId) {
-    tags.innerHTML = `<span class="tag">总览模式</span><span class="tag">C5–T1</span>`;
+    tags.innerHTML = '';
     setText({
-      dTitle: '臂丛神经总览',
-      dSub: 'Brachial Plexus · 腕神経叢 (C5–T1)',
+      dTitle: '臂丛神经',
+      dSub: 'Brachial Plexus',
       dSegments: '由 C5–C8 及 T1 脊神经前支组成，经前、中斜角肌间隙穿出，跨越第 1 肋进入腋窝。',
       dMotor: '前股系统（外侧束、内侧束）主要支配屈肌群；后股系统全部汇合为后束，支配伸肌群。',
       dSensory: '皮节：C5 肩及臂外侧，C6 前臂外侧与拇指，C7 中指，C8 小指与前臂内侧远端，T1 臂内侧。',
-      dClinical: '上臂丛损伤（Erb）累及肩外展与屈肘；下臂丛损伤（Klumpke）累及手内在肌。试试顶部搜索框，或用「✂ 自由切断」切任意结构。',
+      dClinical: '上臂丛损伤（Erb）累及肩外展与屈肘；下臂丛损伤（Klumpke）累及手内在肌。',
       dSpatial: '三干的后股向深面汇合于腋动脉后方形成后束；前股居于动脉前方形成外侧束与内侧束，并在动脉前方合成“M”形正中神经。',
     });
     $('dCard').classList.add('is-hidden');
@@ -274,9 +275,9 @@ function updateInspector(ctx) {
   }
 
   const n = nodeMap[state.selectedId];
-  tags.innerHTML = `<span class="tag">${STAGE_NAMES[n.stage]}</span><span class="tag">节段：${PlexusModel.segLabel(n.id)}</span>`;
+  tags.innerHTML = `<span class="tag">${STAGE_NAMES[n.stage]}</span><span class="tag">${PlexusModel.segLabel(n.id)}</span>`;
   setText({
-    dTitle: n.label, dSub: n.en, dSegments: `脊髓节段来源：${PlexusModel.segLabel(n.id)}`,
+    dTitle: n.label, dSub: n.en, dSegments: '',
     dMotor: n.motor, dSensory: n.sensory, dClinical: n.clinical, dSpatial: SPATIAL[n.id],
   });
   renderClinicalCard(n.id);
@@ -289,7 +290,7 @@ function updateLevelBar() {
   bar.classList.toggle('is-hidden', !show);
   if (!show) { bar.innerHTML = ''; return; }
   const cur = currentLevel();
-  bar.innerHTML = '<span class="lesion-label">损伤部位：</span><div class="seg-group">'
+  bar.innerHTML = '<span class="lesion-label">部位</span><div class="seg-group">'
     + def.levels.map(l => `<button class="seg-btn${l.key === cur ? ' active' : ''}" data-level="${l.key}">${l.name}</button>`).join('')
     + '</div>';
 }
@@ -300,11 +301,11 @@ function updateCutBar() {
   bar.classList.toggle('is-hidden', !show);
   if (!show) { bar.innerHTML = ''; return; }
   const cuts = [...state.cuts];
-  bar.innerHTML = '<span class="lesion-label">✂ 自由切断：</span>'
+  bar.innerHTML = '<span class="lesion-label">已切断</span>'
     + (cuts.length
       ? cuts.map(id => `<button class="pill active" data-uncut="${id}" title="恢复">${label(id)} ✕</button>`).join('')
         + '<button class="btn btn-quiet" data-uncut="*">全部恢复</button>'
-      : '<span class="cut-hint">点击通路图（或 3D 视图）中的根、干、股、束、分支即可切断，可切多处</span>');
+      : '<span class="cut-hint">点击任意结构切断，可切多处</span>');
 }
 
 export function updateUI() {
@@ -324,8 +325,17 @@ export function updateUI() {
   updateCutBar();
   applyAllHighlights();
   updateInspector(getActiveNodeContext());
+  animateDockIfChanged();
   syncViewUI();
   writeHash();
+}
+
+// 详情换了对象（而不是同一对象的重绘）时，各列错峰淡入
+let dockSig = null;
+function animateDockIfChanged() {
+  const sig = ['dTitle', 'dSub', 'dSegments', 'dMotor'].map(id => $(id).textContent).join('|');
+  if (dockSig !== null && sig !== dockSig) riseIn(document.querySelectorAll('#detailContent > .info-block:not(.is-hidden)'));
+  dockSig = sig;
 }
 
 // ==================== 自测 ====================
@@ -373,9 +383,9 @@ export function zonePicking() {
 }
 
 function showQuizScore() {
-  $('quizScore').textContent = `本次：${state.quizRight} / ${state.quizTotal}`;
+  $('quizScore').textContent = `${state.quizRight} / ${state.quizTotal}`;
   const s = store.stats();
-  $('quizStats').textContent = s.total ? `累计正确率 ${Math.round(s.right / s.total * 100)}% · 错题 ${s.wrongNow}` : '';
+  $('quizStats').textContent = s.total ? `累计 ${Math.round(s.right / s.total * 100)}% · 错题 ${s.wrongNow}` : '';
 }
 
 function setQuizFeedback(text, cls) {
@@ -417,11 +427,12 @@ function loadQuizQuestion() {
   if (item && item.kind === 'zones') state.limbMode = item.zones.mode;
   if (item && item.kind === 'mcq') state.limbMode = 'motor';
   $('quizQuestion').textContent = !item
-    ? (state.quizDeck === 'wrong' ? '错题本是空的 🎉 换个题型继续练吧。' : '没有题目。')
-    : item.kind === 'zones' ? item.q + '（在上肢图上点选，可以为空）' : item.q;
+    ? (state.quizDeck === 'wrong' ? '错题本是空的 🎉' : '没有题目。')
+    : item.kind === 'zones' ? item.q + '（在上肢图点选，可不选）' : item.q;
   renderQuizOptions(item);
   setQuizFeedback('');
   showQuizScore();
+  riseIn([$('quizQuestion'), $('quizOptions')]);
   renderPlexusSVG();
   renderLimbSVG();
   updateUI();
@@ -447,7 +458,7 @@ function handleQuizAnswer(clickedId) {
   if (!item || state.quizAnswered || (item.kind !== 'target' && item.kind !== 'case')) return;
   const ok = clickedId === item.target;
   finishAnswer(item, ok);
-  const head = ok ? `✅ 回答正确！就是「${label(item.target)}」。` : `❌ 你点了「${label(clickedId)}」，正确答案是「${label(item.target)}」。`;
+  const head = ok ? `✅ 正确：${label(item.target)}。` : `❌ 应为「${label(item.target)}」，不是「${label(clickedId)}」。`;
   if (item.kind === 'case') {
     state.cuts = new Set([item.target]);
     setQuizFeedback(head + caseExplain(item.target), ok ? 'ok' : 'err');
@@ -475,7 +486,7 @@ function handleOption(id) {
   const ok = id === item.answer;
   finishAnswer(item, ok);
   markOptions(item, id);
-  setQuizFeedback((ok ? '✅ 回答正确！' : '❌ 答错了。') + item.explain + '。', ok ? 'ok' : 'err');
+  setQuizFeedback((ok ? '✅ ' : '❌ ') + item.explain + '。', ok ? 'ok' : 'err');
   showMcqAnswer(item);
   updateUI();
 }
@@ -502,9 +513,9 @@ function submitZoneQuiz(reveal) {
     const extra = [...state.quizPicks].filter(id => !answer.includes(id));
     const ok = !missed.length && !extra.length;
     finishAnswer(item, ok);
-    if (ok) setQuizFeedback(`✅ 完全正确：${answerText}。`, 'ok');
+    if (ok) setQuizFeedback(`✅ 正确：${answerText}。`, 'ok');
     else setQuizFeedback('❌ ' + [missed.length ? `漏选：${names(missed)}` : '', extra.length ? `多选：${names(extra)}` : '']
-      .filter(Boolean).join('；') + '。红色为正确答案。', 'err');
+      .filter(Boolean).join('；') + '。红色为答案。', 'err');
   }
   state.quizPicks = new Set();
   state.lesionKey = item.zones.lesion;
@@ -581,7 +592,7 @@ function syncViewUI() {
 function setTheme(dark) {
   state.dark = dark;
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  $('btnTheme').textContent = dark ? '☀️ 浅色' : '🌙 深色';
+  $('btnTheme').textContent = dark ? '浅色' : '深色';
   view3d.setTheme(dark);
   store.setPref('theme', dark ? 'dark' : 'light');
 }
@@ -759,4 +770,6 @@ export function init() {
   bindEvents();
   showQuizScore();
   applyHash(true);
+  introPlexus();
+  riseIn([document.querySelector('.limb-pane'), ...document.querySelectorAll('#detailContent > .info-block:not(.is-hidden)')], { delay: 260, gap: 60 });
 }

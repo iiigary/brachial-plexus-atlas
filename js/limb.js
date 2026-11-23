@@ -20,7 +20,7 @@ export function renderLimbSVG() {
   defs.appendChild(clip);
   limbSvg.appendChild(defs);
 
-  [['前面观（掌侧）', 110], ['后面观（背侧）', LIMB_W - 110]].forEach(([txt, x]) => {
+  [['前面观', 110], ['后面观', LIMB_W - 110]].forEach(([txt, x]) => {
     const t = createSvgEl('text', { x, y: 15, 'text-anchor': 'middle', class: 'limb-view-title' });
     t.textContent = txt;
     limbSvg.appendChild(t);
@@ -88,9 +88,7 @@ export function applyLimbHighlights(ctx) {
     return;
   }
   if (!ctx) {
-    caption.textContent = state.cutMode
-      ? '自由切断：点击左侧通路图上的任意结构即可切断，再点一次恢复'
-      : '点击图中任意肌群或皮区，可反向高亮对应神经通路';
+    caption.textContent = state.cutMode ? '' : '点击肌肉或皮区，反向溯源';
     return;
   }
 
@@ -124,25 +122,23 @@ export function applyLimbHighlights(ctx) {
     ? ctx.spared.map(id => PlexusModel.target(id)).filter(t => t.kind === state.limbMode).map(t => t.name)
     : [];
   const sparedNote = !spared.length ? ''
-    : ctx.branch ? ` · 只伤到${siteName}，同一神经上的其余分支保留：${spared.join('、')}`
-    : ` · 损伤在${siteName}，更近端已分出的分支保留：${spared.join('、')}`;
+    : ctx.branch ? ` · 保留：${spared.join('、')}`
+    : ` · 近端已分出，保留：${spared.join('、')}`;
 
   if (ctx.isLesion && state.limbMode === 'dermatome' && !ctx.dermatomal) {
-    caption.textContent = '束和周围神经的损伤不按皮节分布，请看「周围皮区」';
+    caption.textContent = '束及周围神经损伤不按皮节分布，请看「皮区」';
   } else if (matched.size === 0) {
     caption.textContent = ctx.isLesion
-      ? `${siteName}损伤不累及当前图中的${isMotor ? '肌肉' : '皮区'}${sparedNote}`
-      : (isMotor
-        ? `「${siteName}」为纯感觉神经，或图中没有画出它支配的肌肉`
-        : `「${siteName}」为纯运动神经，无独立皮肤感觉区`);
+      ? `不累及图中${isMotor ? '肌肉' : '皮区'}${sparedNote}`
+      : (isMotor ? '纯感觉神经，或其肌肉未画出' : '纯运动神经，无独立皮区');
   } else if (ctx.isLesion) {
-    caption.textContent = (isMotor ? '受累肌肉' : '感觉减退区域') + sparedNote;
+    caption.textContent = (isMotor ? '受累肌肉' : '感觉减退') + sparedNote;
   } else if (zoneTarget) {
     const segs = PlexusModel.ROOTS.filter(r => zoneTarget.fibers.some(f => f.roots.includes(r))).map(r => r.toUpperCase()).join('、');
     const nerves = [...new Set(zoneTarget.fibers.map(f => nodeMap[f.nerve].label))].join(' + ');
     caption.textContent = zoneTarget.kind === 'dermatome'
-      ? `已从「${zoneTarget.name}」定位至 ${siteName}`
-      : `已从「${zoneTarget.name}」反向溯源至 ${nerves}（主要节段 ${segs}）`;
+      ? `${zoneTarget.name} → ${siteName}`
+      : `${zoneTarget.name} → ${nerves} · ${segs}`;
   } else {
     caption.textContent = '';
   }

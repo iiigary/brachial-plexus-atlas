@@ -248,7 +248,7 @@ function bindPointer() {
     const id = hit && hit.object.userData.nodeId;
     const zone = hit && !id && hit.object.userData.zoneId;
     viewport.style.cursor = hit ? 'pointer' : '';
-    captionEl.textContent = zone ? `肌肉：${PlexusModel.target(zone).name}（点击反向溯源）` : DEFAULT_CAPTION;
+    captionEl.textContent = zone ? `${PlexusModel.target(zone).name} · 点击溯源` : DEFAULT_CAPTION;
     onNodeHover(id || null);
   });
   canvas.addEventListener('pointerleave', () => { onNodeHover(null); captionEl.textContent = DEFAULT_CAPTION; });

@@ -56,7 +56,9 @@ export const PlexusModel = (() => {
   // F(神经, 主要节段, 分出平面 lv)
   // lv：0 腋窝/起始处 · 1 上臂 · 2 肘/前臂近端 · 2.5 前臂近段（旋后肌以远）· 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
   // 节段取常用教材值（Moore、Prometheus）；教材间常相差约一个节段。
-  const F = (nerve, roots, lv = 0) => ({ nerve, roots: roots.split(' '), lv });
+  // part：这条纤维只支配该肌的一部分（如桡神经只管肱肌外侧小部分）。有 part 的纤维算「部分参与」，
+  // 页面上与主要支配分开表达。
+  const F = (nerve, roots, lv = 0, part = '') => ({ nerve, roots: roots.split(' '), lv, part });
   const TARGETS = [
     { id: 'm_deltoid', kind: 'motor', name: '三角肌', fibers: [F('axillary', 'c5 c6')] },
     { id: 'm_teres_minor', kind: 'motor', name: '小圆肌', fibers: [F('axillary', 'c5 c6')] },
@@ -64,8 +66,10 @@ export const PlexusModel = (() => {
     { id: 'm_pec', kind: 'motor', name: '胸大肌/胸小肌', fibers: [F('lat_pectoral', 'c5 c6 c7'), F('med_pectoral', 'c8 t1')] },
     { id: 'm_serratus', kind: 'motor', name: '前锯肌', fibers: [F('long_thoracic', 'c5 c6 c7')] },
     { id: 'm_coraco', kind: 'motor', name: '喙肱肌', fibers: [F('musculocutaneous', 'c6 c7')] },
-    // 肱肌外侧一小部分由桡神经（C7）支配
-    { id: 'm_biceps', kind: 'motor', name: '肱二头肌/肱肌', fibers: [F('musculocutaneous', 'c5 c6', 1), F('radial', 'c7', 1)] },
+    { id: 'm_biceps', kind: 'motor', name: '肱二头肌', fibers: [F('musculocutaneous', 'c5 c6', 1)] },
+    // 肱肌主要由肌皮神经支配；下外侧一小部分有桡神经（C7）分支进入（Frazer 2007，个体间有差异）。
+    // 与肱二头肌分开建模：桡神经与肱二头肌没有支配关系。
+    { id: 'm_brachialis', kind: 'motor', name: '肱肌', fibers: [F('musculocutaneous', 'c5 c6', 1), F('radial', 'c7', 1, '下外侧小部分')] },
     { id: 'm_pronator', kind: 'motor', name: '旋前圆肌', fibers: [F('median', 'c6 c7', 2)] },
     { id: 'm_flexor_med', kind: 'motor', name: '桡侧腕屈肌/指浅屈肌', fibers: [F('median', 'c6 c7 c8 t1', 2)] },
     { id: 'm_palmaris', kind: 'motor', name: '掌长肌', fibers: [F('median', 'c7 c8', 2)] },
@@ -211,6 +215,15 @@ export const PlexusModel = (() => {
     return out;
   }
 
+  // 结构 id 与靶区的关系：'main' 主要支配 | 'part' 只经「部分参与」的纤维相连 | null 无关
+  function relation(targetId, id) {
+    const t = targetMap[targetId];
+    if (t.kind === 'dermatome') return rootsOf(id).includes(t.fibers[0].nerve) ? 'main' : null;
+    const through = t.fibers.filter(f => fiberHits(f, [id]));
+    if (!through.length) return null;
+    return through.every(f => f.part) ? 'part' : 'main';
+  }
+
   // 纤维在 site 处离开 site 的平面：site 就是纤维的终点神经 → f.lv；
   // site 是母神经、纤维走它的具名分支 → 该分支的分出平面；其余（根/干/股/束）→ 0
   function exitLv(f, path, site) {
@@ -228,7 +241,8 @@ export const PlexusModel = (() => {
     const isNerve = sites.length > 0 && sites.every(s => s in COMPOSITION);
     const dermatomal = sites.filter(s => ROOTS.includes(s) || TRUNKS.includes(s));
     const branch = sites.some(s => s in BRANCH_LV);
-    const severity = new Map(), spared = [];
+    // detail：靶区 id → { hit, kept }，各为 [{ nerve, roots, part }]，说明「部分受累」具体断了哪些、留了哪些
+    const severity = new Map(), spared = [], detail = new Map();
     TARGETS.forEach(t => {
       if (t.kind === 'dermatome') {
         // 皮节只对根/干水平的损伤有意义；束和周围神经的损伤按周围皮区分布
@@ -236,17 +250,23 @@ export const PlexusModel = (() => {
         return;
       }
       let total = 0, hit = 0, bypass = false;
+      const d = { hit: [], kept: [] };
       t.fibers.forEach(f => {
         total += f.roots.length;
-        f.roots.forEach(r => {
+        const cut = f.roots.filter(r => {
           const p = pathOf(r, f.nerve);
           const on = p ? sites.filter(s => p.includes(s)) : [];
-          if (!on.length) return;
-          if (on.some(s => exitLv(f, p, s) >= lv)) hit++;
-          else bypass = true;
+          if (!on.length) return false;
+          if (on.some(s => exitLv(f, p, s) >= lv)) return true;
+          bypass = true;
+          return false;
         });
+        hit += cut.length;
+        const rest = f.roots.filter(r => !cut.includes(r));
+        if (cut.length) d.hit.push({ nerve: f.nerve, roots: cut, part: f.part });
+        if (rest.length) d.kept.push({ nerve: f.nerve, roots: rest, part: f.part });
       });
-      if (hit) severity.set(t.id, hit === total ? 'full' : 'partial');
+      if (hit) { severity.set(t.id, hit === total ? 'full' : 'partial'); detail.set(t.id, d); }
       else if (bypass) spared.push(t.id);
     });
     // 只伤到具名分支（骨间前/后神经、桡浅支）：同一母神经的其余分支照常工作
@@ -264,7 +284,7 @@ export const PlexusModel = (() => {
       sites: new Set(sites), isNerve, dermatomal: dermatomal.length > 0, branch,
       // 节前 = 全部损伤点都在根；Horner 征 = T1 根在发出白交通支之前受损
       preganglionic: sites.length > 0 && sites.every(s => ROOTS.includes(s)), horner: sites.includes('t1'),
-      severity, spared, ...tr,
+      severity, spared, detail, ...tr,
     };
   }
 
@@ -295,6 +315,6 @@ export const PlexusModel = (() => {
   return {
     ROOTS, TRUNKS, LINKS, COMPOSITION, MINOR, TARGETS, LESION_SITES, BRANCH_LV, NODE_IDS,
     target: id => targetMap[id], parentsOf: id => inLinks[id] || [], childrenOf: id => outLinks[id] || [],
-    pathOf, rootsOf, trace, traceTarget, targetsFor, lesion, lesionAt, segLabel, minorLabel, routeOf,
+    pathOf, rootsOf, trace, traceTarget, targetsFor, relation, lesion, lesionAt, segLabel, minorLabel, routeOf,
   };
 })();

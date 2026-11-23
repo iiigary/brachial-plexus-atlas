@@ -4,10 +4,10 @@ import { LIMB_W, LIMB_ARM, LIMB_TORSO, LIMB_TORSO_EDGE, LIMB_MARKS, LIMB_ZONES }
 import { nodeMap } from './data/nodes.js';
 import { state } from './state.js';
 import { createSvgEl } from './plexus2d.js';
-import { onZoneClick, onChipClick, zonePicking } from './app.js';
+import { onZoneClick, onChipClick, zonePicking, lesionDigest } from './app.js';
 
 const limbSvg = document.getElementById('limbSvg');
-const activeChips = document.getElementById('activeChips');
+const summary = document.getElementById('limbSummary');
 const caption = document.getElementById('limbCaption');
 
 export function renderLimbSVG() {
@@ -41,6 +41,9 @@ export function renderLimbSVG() {
       const t = PlexusModel.target(z.id);
       const p = createSvgEl('path', { d: z.d, class: 'zone-shape', 'data-zone': z.id });
       p.addEventListener('click', () => onZoneClick(z.id));
+      // 图 → 摘要：悬停分区时，下方摘要里对应的名称也亮起
+      p.addEventListener('mouseenter', () => linkChip(z.id, true));
+      p.addEventListener('mouseleave', () => linkChip(z.id, false));
       const titleEl = createSvgEl('title');
       titleEl.textContent = t.name;
       p.appendChild(titleEl);
@@ -72,94 +75,196 @@ export function renderLimbSVG() {
   limbSvg.appendChild(labelLayer);
 }
 
-// ctx 来自 app.getActiveNodeContext()；返回值 = 本次高亮的靶区 id → 'full' | 'partial' | 'on'
+const NERVE = id => nodeMap[id].label;
+const SEG = roots => roots.map(r => r.toUpperCase()).join('、');
+const fiberText = f => `${NERVE(f.nerve)} ${SEG(f.roots)}${f.part ? `（${f.part}）` : ''}`;
+const linkZone = (id, on) => limbSvg.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
+const linkChip = (id, on) => summary.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
+
+// 在图上闪一下某个分区（摘要 → 图的定位，不改变当前状态）
+function flashZone(id) {
+  limbSvg.querySelectorAll(`.zone-shape[data-zone="${id}"]`).forEach(el => {
+    el.classList.remove('flash');
+    void el.getBoundingClientRect();
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1300);
+  });
+}
+
+// 摘要里的一行：左侧小标题（文字 + 图例色块），右侧是名称标签或一句话
+function row(key, cls) {
+  const r = document.createElement('div');
+  r.className = 'sum-row' + (cls ? ' ' + cls : '');
+  const k = document.createElement('span');
+  k.className = 'sum-key';
+  k.textContent = key;
+  const v = document.createElement('div');
+  v.className = 'sum-val';
+  r.append(k, v);
+  summary.appendChild(r);
+  return v;
+}
+
+// locate = true：点击只在图上定位（损伤、自测结果下不离开当前状态）；否则点击溯源
+function chip(box, id, text, cls, { locate = false, title = '' } = {}) {
+  const c = document.createElement('button');
+  c.type = 'button';
+  c.className = 'mini-chip' + (cls ? ' ' + cls : '');
+  c.dataset.zone = id;
+  c.textContent = text;
+  c.title = title || (locate ? '点击在图上定位' : `点击溯源：${PlexusModel.target(id).name}`);
+  c.addEventListener('click', () => (locate ? flashZone(id) : onChipClick(id)));
+  ['mouseenter', 'focus'].forEach(ev => c.addEventListener(ev, () => linkZone(id, true)));
+  ['mouseleave', 'blur'].forEach(ev => c.addEventListener(ev, () => linkZone(id, false)));
+  box.appendChild(c);
+}
+
+let partialSig = '', partialOpen = false;
+const ZONE_CLASSES = ['active-motor', 'active-sensory', 'active-part', 'active-lesion', 'active-lesion-partial', 'spared',
+  'quiz-ok', 'quiz-missed', 'quiz-extra', 'linked'];
+const KIND_WORD = { motor: '肌肉', cutaneous: '皮区', dermatome: '皮节' };
+
+// ctx 来自 app.getActiveNodeContext()。图上的状态和下方摘要用同一份数据生成，避免两处说法不一致。
 export function applyLimbHighlights(ctx) {
   const zoneEls = limbSvg.querySelectorAll('.zone-shape');
   const labelEls = limbSvg.querySelectorAll('.zone-label, .zone-leader, .zone-leader-dot');
-  activeChips.innerHTML = '';
+  const inMode = id => PlexusModel.target(id).kind === state.limbMode;
+  summary.innerHTML = '';
   zoneEls.forEach(el => {
-    el.classList.remove('active-motor', 'active-sensory', 'active-lesion', 'active-lesion-partial');
-    el.classList.toggle('picked', state.quizMode && state.quizPicks.has(el.getAttribute('data-zone')));
+    el.classList.remove(...ZONE_CLASSES);
+    el.classList.toggle('picked', state.quizMode && !state.quizResult && state.quizPicks.has(el.getAttribute('data-zone')));
   });
-  labelEls.forEach(el => el.classList.remove('on', 'lesion', 'linked'));
+  labelEls.forEach(el => el.classList.remove('on', 'lesion', 'linked', 'keep'));
   limbSvg.classList.remove('has-focus');
+  const mark = (id, cls, labelCls) => {
+    zoneEls.forEach(el => { if (el.getAttribute('data-zone') === id) el.classList.add(cls); });
+    labelEls.forEach(el => { if (el.getAttribute('data-zone') === id) el.classList.add('on', ...(labelCls ? [labelCls] : [])); });
+  };
 
   if (zonePicking()) {
-    caption.textContent = `已选 ${state.quizPicks.size} 个`;
+    caption.textContent = `点选${KIND_WORD[state.limbMode]}，再按「提交」 · 已选 ${state.quizPicks.size} 个`;
+    const v = state.quizPicks.size ? row('已选') : null;
+    state.quizPicks.forEach(id => chip(v, id, PlexusModel.target(id).name, 'pick', { locate: true }));
     return;
   }
+
+  // 反向题提交后：在作答的同一张图上区分选对、漏选、多选
+  if (state.quizMode && state.quizResult) {
+    const { picks, answer, optional, reveal } = state.quizResult;
+    const ok = [...answer].filter(id => picks.has(id)), missed = [...answer].filter(id => !picks.has(id));
+    const extra = [...picks].filter(id => !answer.has(id) && !optional.has(id));
+    ok.forEach(id => mark(id, 'quiz-ok'));
+    missed.forEach(id => mark(id, reveal ? 'active-lesion' : 'quiz-missed', 'lesion'));
+    optional.forEach(id => mark(id, 'active-lesion-partial', 'lesion'));
+    extra.forEach(id => mark(id, 'quiz-extra'));
+    limbSvg.classList.add('has-focus');
+    caption.textContent = !answer.size ? `答案：没有完全受累的区域${extra.length ? ` · 多选 ${extra.length}` : ''}`
+      : reveal ? `答案共 ${answer.size} 个`
+      : `答案共 ${answer.size} 个 · 选对 ${ok.length} · 漏选 ${missed.length} · 多选 ${extra.length}`;
+    [['✓ 选对', ok, 'ok'], [reveal ? '答案' : '○ 漏选', missed, reveal ? 'lesion' : 'missed'],
+      ['部分受累 · 不计分', [...optional], 'lesion partial'], ['✕ 多选', extra, 'extra']].forEach(([key, ids, cls]) => {
+      if (!ids.length) return;
+      const v = row(key, cls.split(' ').pop());
+      ids.forEach(id => chip(v, id, PlexusModel.target(id).name, cls, { locate: true }));
+    });
+    return;
+  }
+
   if (!ctx) {
-    caption.textContent = state.cutMode ? '' : '点击肌肉或皮区，反向溯源';
+    caption.textContent = state.cutMode || state.quizMode ? '' : '点击肌肉或皮区，反向溯源';
     return;
   }
 
   const isMotor = state.limbMode === 'motor';
-  const zoneTarget = ctx.zoneId ? PlexusModel.target(ctx.zoneId) : null;
-  const siteName = ctx.isLesion ? ctx.levelName : nodeMap[ctx.activeId].label;
 
-  const hits = new Map();
+  // ---------- 损伤：受累 / 部分 / 保留 / 原因 ----------
   if (ctx.isLesion) {
-    ctx.severity.forEach((sev, id) => hits.set(id, sev === 'full' ? 'active-lesion' : 'active-lesion-partial'));
-  } else {
-    const ids = zoneTarget ? [ctx.zoneId] : PlexusModel.targetsFor(ctx.activeId);
-    ids.forEach(id => hits.set(id, isMotor ? 'active-motor' : 'active-sensory'));
+    const full = [], partial = [];
+    ctx.severity.forEach((sev, id) => { if (inMode(id)) (sev === 'full' ? full : partial).push(id); });
+    const spared = ctx.spared.filter(inMode);
+    full.forEach(id => mark(id, 'active-lesion', 'lesion'));
+    partial.forEach(id => mark(id, 'active-lesion-partial', 'lesion'));
+    spared.forEach(id => mark(id, 'spared', 'keep'));
+    limbSvg.classList.toggle('has-focus', full.length + partial.length + spared.length > 0);
+
+    const dg = lesionDigest(ctx);
+    const nonDerm = state.limbMode === 'dermatome' && !ctx.dermatomal;
+    caption.textContent = dg.site;
+    if (nonDerm) row('提示').textContent = '束及周围神经损伤不按皮节分布，请切到「皮区」。';
+    else {
+      const word = isMotor ? '瘫痪' : '感觉缺失';
+      if (full.length) { const v = row(word, 'full'); full.forEach(id => chip(v, id, PlexusModel.target(id).name, 'lesion', { locate: true })); }
+      if (partial.length) {
+        const v = row('部分', 'partial');
+        // 部分受累的很多时（如上干损伤）先列前 3 块，其余点开再看，免得把图挤小
+        const sig = [...ctx.sites].join() + '|' + ctx.level + '|' + state.limbMode;
+        if (sig !== partialSig) { partialSig = sig; partialOpen = false; }
+        const list = partial.length > 4 && !partialOpen ? partial.slice(0, 3) : partial;
+        list.forEach(id => {
+          const d = ctx.detail.get(id);
+          // 标签上只写「还剩什么」：同一条神经只写节段，换了神经才写神经名；完整的断/留放在悬停提示里
+          const cutNerves = new Set(d.hit.map(f => f.nerve));
+          const left = d.kept.map(f => (cutNerves.has(f.nerve) ? '' : NERVE(f.nerve) + ' ') + SEG(f.roots) + (f.part ? `·${f.part}` : '')).join('、');
+          chip(v, id, `${PlexusModel.target(id).name}（仍有 ${left}）`, 'lesion partial', {
+            locate: true, title: `断：${d.hit.map(fiberText).join('、')}\n留：${d.kept.map(fiberText).join('、')}\n点击在图上定位`,
+          });
+        });
+        if (list.length < partial.length) {
+          const more = document.createElement('button');
+          more.type = 'button';
+          more.className = 'mini-chip more';
+          more.textContent = `另 ${partial.length - list.length} 块 ▸`;
+          more.title = partial.slice(3).map(id => PlexusModel.target(id).name).join('、');
+          more.addEventListener('click', () => { partialOpen = true; applyLimbHighlights(ctx); });
+          v.appendChild(more);
+        }
+      }
+      if (!full.length && !partial.length) row(word).textContent = `图中${KIND_WORD[state.limbMode]}都不受累。`;
+      if (spared.length) { const v = row('保留', 'keep'); spared.forEach(id => chip(v, id, PlexusModel.target(id).name, 'keep', { locate: true })); }
+    }
+    if (dg.sign) row('体征').textContent = dg.sign;
+    if (dg.why) row('原因').textContent = dg.why;
+    if (dg.diff) row('变化', 'diff').textContent = dg.diff;
+    return;
   }
 
-  const matched = new Map();
-  zoneEls.forEach(el => {
-    const id = el.getAttribute('data-zone');
-    if (!hits.has(id)) return;
-    el.classList.add(hits.get(id));
-    matched.set(id, hits.get(id) === 'active-lesion-partial');
+  // ---------- 浏览：主要支配与「部分参与」分开 ----------
+  const zoneTarget = ctx.zoneId ? PlexusModel.target(ctx.zoneId) : null;
+  const main = [], part = [];
+  if (zoneTarget) main.push(ctx.zoneId);
+  else PlexusModel.targetsFor(ctx.activeId).forEach(id => {
+    if (inMode(id)) (PlexusModel.relation(id, ctx.activeId) === 'part' ? part : main).push(id);
   });
-  labelEls.forEach(el => {
-    if (!hits.has(el.getAttribute('data-zone'))) return;
-    el.classList.add('on');
-    if (ctx.isLesion) el.classList.add('lesion');
-  });
-  // 有命中时，其余标注退后（样式见 #limbSvg.has-focus）
-  limbSvg.classList.toggle('has-focus', matched.size > 0);
+  main.filter(inMode).forEach(id => mark(id, isMotor ? 'active-motor' : 'active-sensory'));
+  part.forEach(id => mark(id, 'active-part'));
+  const shown = main.filter(inMode).length + part.length;
+  limbSvg.classList.toggle('has-focus', shown > 0);
 
-  // 同一神经上没被这次损伤波及的分支
-  const spared = ctx.isLesion
-    ? ctx.spared.map(id => PlexusModel.target(id)).filter(t => t.kind === state.limbMode).map(t => t.name)
-    : [];
-  const sparedNote = !spared.length ? ''
-    : ctx.branch ? ` · 保留：${spared.join('、')}`
-    : ` · 近端已分出，保留：${spared.join('、')}`;
-
-  if (ctx.isLesion && state.limbMode === 'dermatome' && !ctx.dermatomal) {
-    caption.textContent = '束及周围神经损伤不按皮节分布，请看「皮区」';
-  } else if (matched.size === 0) {
-    caption.textContent = ctx.isLesion
-      ? `不累及图中${isMotor ? '肌肉' : '皮区'}${sparedNote}`
-      : (isMotor ? '纯感觉神经，或其肌肉未画出' : '纯运动神经，无独立皮区');
-  } else if (ctx.isLesion) {
-    caption.textContent = (isMotor ? '受累肌肉' : '感觉减退') + sparedNote;
-  } else if (zoneTarget) {
+  if (zoneTarget) {
     const segs = PlexusModel.ROOTS.filter(r => zoneTarget.fibers.some(f => f.roots.includes(r))).map(r => r.toUpperCase()).join('、');
-    const nerves = [...new Set(zoneTarget.fibers.map(f => nodeMap[f.nerve].label))].join(' + ');
     caption.textContent = zoneTarget.kind === 'dermatome'
-      ? `${zoneTarget.name} → ${siteName}`
-      : `${zoneTarget.name} → ${nerves} · ${segs}`;
-  } else {
-    caption.textContent = '';
+      ? `${zoneTarget.name} → ${NERVE(ctx.activeId)}`
+      : `${zoneTarget.name} · ${segs}`;
+    if (zoneTarget.kind !== 'dermatome') {
+      const mainF = zoneTarget.fibers.filter(f => !f.part), partF = zoneTarget.fibers.filter(f => f.part);
+      row(partF.length ? '主要支配' : '支配').textContent = mainF.map(fiberText).join(' + ');
+      if (partF.length) row('部分参与', 'partial').textContent = partF.map(fiberText).join(' + ');
+    }
+    return;
   }
-
-  // 下方标签补全图内放不下的全名与「部分」标记；悬停指回图上的区域，点击溯源该区域自己的通路
-  const link = (id, on) => limbSvg.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
-  matched.forEach((partial, id) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = `mini-chip ${ctx.isLesion ? 'lesion' : ''}`;
-    const name = PlexusModel.target(id).name;
-    chip.textContent = partial ? `${name}（部分）` : name;
-    chip.title = `点击溯源：${name}`;
-    chip.addEventListener('click', () => onChipClick(id));
-    chip.addEventListener('mouseenter', () => link(id, true));
-    chip.addEventListener('mouseleave', () => link(id, false));
-    chip.addEventListener('focus', () => link(id, true));
-    chip.addEventListener('blur', () => link(id, false));
-    activeChips.appendChild(chip);
-  });
+  if (!shown) {
+    caption.textContent = isMotor ? '纯感觉神经，或其肌肉未画出' : '纯运动神经，无独立皮区';
+    return;
+  }
+  caption.textContent = `${NERVE(ctx.activeId)}：${isMotor ? '有纤维到达的肌肉' : '分布的' + KIND_WORD[state.limbMode]}`;
+  if (main.length) { const v = row(isMotor ? '支配' : '分布'); main.forEach(id => chip(v, id, PlexusModel.target(id).name)); }
+  if (part.length) {
+    const v = row('部分参与', 'partial');
+    part.forEach(id => {
+      const t = PlexusModel.target(id);
+      const via = t.fibers.filter(f => f.part && PlexusModel.relation(id, ctx.activeId) === 'part');
+      const others = t.fibers.filter(f => !f.part).map(f => NERVE(f.nerve));
+      chip(v, id, `${t.name}（仅${via.map(f => f.part).join('、')}；主要由${[...new Set(others)].join('、')}支配）`, 'partial');
+    });
+  }
 }

@@ -37,17 +37,20 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 .btn-quiet { border-style: dashed; color: var(--muted); }
 
 /* ---------- 自测 ---------- */
-.quiz-deck { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
 .quiz-stats { font-size: var(--fs-caption); color: var(--muted); }
-.quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; }
+.quiz-box .btn { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); background: var(--surface); }
+.quiz-box .btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+[data-theme="dark"] .quiz-box .btn.active { color: #0b1120; }
+.quiz-box .btn-quiet { background: transparent; }
 .quiz-options:empty { display: none; }
 .quiz-option { justify-content: center; text-align: center; white-space: normal; line-height: 1.35; }
 .quiz-option:disabled { cursor: default; opacity: 0.85; }
 .quiz-option.correct { background: #059669; border-color: #059669; color: #fff; opacity: 1; }
 .quiz-option.wrong { background: var(--lesion-color); border-color: var(--lesion-color); color: #fff; opacity: 1; }
-.quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
-.quiz-actions .btn { flex: 1; justify-content: center; }
-.quiz-actions .btn-quiet { flex: 0 0 auto; }
+.quiz-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 300px; }
+.quiz-actions .btn { justify-content: center; }
+#btnSubmitQuiz, #btnNextQuiz { min-width: 84px; }
 
 /* ---------- 临床卡片：左列小标题，右列标签，横向铺开 ---------- */
 .clinical-card { flex-grow: 2.6; }
@@ -120,9 +123,33 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
   background: var(--hud-bg); text-align: center;
 }
 
+/* ---------- 工具菜单：投影 / 打印 / 主题 ---------- */
+.menu { position: relative; }
+.menu-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 190px; padding: 5px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: none; border-radius: 6px;
+  background: transparent; color: var(--text); font-size: var(--fs-body); text-align: left; cursor: pointer;
+}
+.menu-item:hover, .menu-item:focus-visible { background: var(--surface-2); outline: none; }
+.menu-item svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.menu-item span { flex: 1; }
+.menu-item kbd { font: inherit; font-size: var(--fs-caption); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
+.menu-item.active { color: var(--accent); font-weight: 600; }
+.menu-item.active span::after { content: " ✓"; }
+
+/* ---------- 3D：聚焦按钮、标签引线 ---------- */
+.hud-sep { width: 1px; height: 16px; background: var(--hud-border); margin: 0 3px; }
+.hud-pill:disabled { opacity: 0.45; cursor: default; border-color: var(--hud-border); }
+.leaders3d { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.leaders3d line { stroke: var(--label-focal-ring); stroke-width: 1; opacity: 0.8; }
+
 /* ---------- 署名 ---------- */
 .credits {
-  margin-top: auto; padding-top: 6px; text-align: center;
+  margin-top: 4px; padding: 7px 10px 4px; border-top: 1px solid var(--border); max-width: 230px;
   font-size: var(--fs-micro); line-height: var(--lh-base); color: var(--muted);
 }
 .credits a { color: inherit; }

@@ -19,6 +19,9 @@ export const state = {
   quizTotal: 0,
   quizAnswered: false,
   quizPicks: new Set(), // 反向题里点选的上肢图区域
+  quizResult: null, // 反向题提交后：{ picks, answer }，在原图上对照显示
+  dock: true, // 底部详情是否展开（浏览时）
+  quizDock: false, // 底部详情是否展开（自测时，默认收起）
   present: false,
   dark: false,
   view: '2d', // '2d' | '3d'

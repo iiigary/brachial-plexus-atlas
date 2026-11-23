@@ -17,6 +17,7 @@
   --muscle-base: #e2e8f0;
   --muscle-active: #2563eb;
   --sensory-active: #0891b2;
+  --keep-color: #047857;
   --shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
 
   /* ---------- 排版：字体角色 ---------- */
@@ -24,11 +25,13 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* 字号阶梯（HTML 文字，px） */
-  --fs-micro: 10.5px;   /* 署名 */
-  --fs-caption: 11px;   /* 小标题、标签、chip */
-  --fs-label: 12px;     /* 按钮、说明、英文名 */
-  --fs-body: 13px;      /* 正文、题干、搜索 */
-  --fs-title: 14px;     /* 窗格标题 */
+  /* 主要解释文字 14px 起、操作目标约 32px 高：试做起点，待目标用户与设备验证后再调 */
+  --fs-micro: 11px;     /* 署名 */
+  --fs-caption: 12px;   /* 小标题、标签、chip */
+  --fs-label: 13px;     /* 按钮、说明、英文名 */
+  --fs-body: 14px;      /* 正文、搜索 */
+  --fs-lead: 15px;      /* 题干、当前状态结论 */
+  --fs-title: 15px;     /* 窗格标题 */
   --fs-h1: 16px;        /* 页面标题 */
   --fs-h2: 20px;        /* 详情标题 */
 
@@ -69,6 +72,7 @@
   --muscle-base: #25334a;
   --muscle-active: #60a5fa;
   --sensory-active: #22d3ee;
+  --keep-color: #34d399;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -83,8 +87,8 @@ body {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   transition: background 0.25s, color 0.25s;
 }
 
@@ -135,7 +139,7 @@ header {
   border: 1px solid transparent;
   background: transparent;
   color: var(--text);
-  padding: 5px 10px;
+  padding: 7px 12px;
   border-radius: 5px;
   font-size: var(--fs-label);
   font-weight: 500;
@@ -151,7 +155,7 @@ header {
 .quiz-box .btn, .cut-bar .btn { border-color: var(--border); }
 
 /* 顶栏右侧：学习模式（自测）单独强调，系统级低频操作收成图标 */
-.btn-mode { border-color: var(--accent); color: var(--accent); font-weight: 600; padding: 5px 14px; }
+.btn-mode { border-color: var(--accent); color: var(--accent); font-weight: 600; padding: 7px 16px; }
 .btn-mode:hover { background: var(--accent-soft); }
 .btn-mode.active { background: var(--accent); color: #fff; }
 [data-theme="dark"] .btn-mode.active { color: #0b1120; }
@@ -167,12 +171,29 @@ header {
 [data-theme="dark"] .ico-sun { display: block; }
 
 /* ---------- 工作台骨架：主舞台 | 上肢窗格，底部停靠详情 ---------- */
+/* 上肢窗格宽度：默认值 → 用户拖动的值（--limb-user）→ 反向题自测时自动放大 */
 .workbench {
+  --limb-w: var(--limb-user, clamp(350px, 31vw, 520px));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(330px, 28vw, 470px);
+  grid-template-columns: minmax(0, 1fr) 7px min(var(--limb-w), 70vw);
+  flex: 1 1 0;
   min-height: 0;
   background: var(--surface);
 }
+body.quiz-zones .workbench { --limb-w: max(var(--limb-user, 0px), 54vw); }
+.splitter {
+  position: relative; cursor: col-resize; touch-action: none; outline: none;
+  border-left: 1px solid var(--border); background: transparent; transition: background 0.16s;
+}
+.splitter::after {
+  content: ""; position: absolute; left: 2px; top: 50%; width: 2px; height: 34px; margin-top: -17px;
+  border-radius: 2px; background: var(--node-stroke); opacity: 0.7;
+}
+.splitter:hover, .splitter:focus-visible, body.resizing .splitter { background: var(--accent-soft); }
+.splitter.custom::after { background: var(--accent); opacity: 1; }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing .workbench * { pointer-events: none; }
+body.resizing .splitter { pointer-events: auto; }
 
 .stage {
   position: relative;
@@ -202,7 +223,7 @@ header {
   border: none;
   background: transparent;
   color: var(--text);
-  padding: 4px 8px;
+  padding: 8px 10px;
   border-radius: 4px;
   font-size: var(--fs-label);
   font-weight: 500;
@@ -232,7 +253,7 @@ header {
 }
 .chip-btn {
   border: none; background: transparent; color: var(--muted); cursor: pointer;
-  font-size: var(--fs-caption); font-weight: 500; padding: 3px 9px; border-radius: 5px; transition: all 0.16s;
+  font-size: var(--fs-caption); font-weight: 500; padding: 5px 10px; border-radius: 5px; transition: all 0.16s;
 }
 .chip-btn:hover { color: var(--text); background: var(--surface-2); }
 .chip-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
@@ -244,6 +265,7 @@ header {
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
 .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
 .swatch.dashed { height: 0; border-top: 2px dashed var(--muted); border-radius: 0; }
+.swatch.dotted { height: 0; border-top: 2px dotted var(--keep-color); border-radius: 0; }
 
 .svg-wrap {
   position: relative;
@@ -287,7 +309,7 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
 }
 .hud-pill {
   border: 1px solid #243454; background: rgba(23, 35, 59, 0.9); color: #e9f0fb;
-  padding: 3px 10px; border-radius: 999px; font-size: var(--fs-label); font-weight: 500; cursor: pointer; transition: all 0.15s;
+  padding: 6px 12px; border-radius: 999px; font-size: var(--fs-label); font-weight: 500; cursor: pointer; transition: all 0.15s;
 }
 .hud-pill:hover { border-color: #38bdf8; }
 .hud-pill.active { background: #38bdf8; border-color: #38bdf8; color: #05101d; font-weight: 600; }
@@ -372,8 +394,7 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
   flex-direction: column;
   gap: 8px;
   min-height: 0;
-  padding: 8px 14px 12px;
-  border-left: 1px solid var(--border);
+  padding: 8px 14px 10px;
 }
 
 .limb-header {
@@ -401,7 +422,7 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
   color: var(--muted);
   font-size: var(--fs-label);
   font-weight: 500;
-  padding: 4px 8px;
+  padding: 7px 10px;
   border-radius: 4px;
   cursor: pointer;
   box-shadow: inset 0 -2px 0 transparent;
@@ -416,12 +437,12 @@ canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display:
 }
 
 .seg-solid { background: var(--surface-2); padding: 2px; border-radius: 7px; gap: 0; }
-.seg-solid .seg-btn { padding: 4px 12px; border-radius: 5px; box-shadow: none; }
+.seg-solid .seg-btn { padding: 6px 13px; border-radius: 5px; box-shadow: none; }
 .seg-solid .seg-btn.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14); }
 
 .limb-svg-box {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 54%;
   display: flex;
   position: relative;
 }
@@ -430,6 +451,7 @@ svg#limbSvg {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
   user-select: none;
 }
 
@@ -487,30 +509,38 @@ svg#limbSvg {
 
 
 .limb-status {
-  font-size: var(--fs-label);
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  color: var(--text);
   text-align: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  line-height: var(--lh-tight);
 }
+.limb-status:has(#limbCaption:empty) { display: none; }
 
-.chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  max-height: 84px;
-  overflow-y: auto;
+/* 当前状态摘要：每行 = 小标题（带图例色块）+ 名称标签或一句话 */
+.limb-summary {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; align-items: start;
+  overflow-y: auto; scrollbar-width: thin; flex: 0 1 auto; min-height: 0;
 }
-.chip-list:empty { display: none; }
+.limb-summary:empty { display: none; }
+.sum-row { display: contents; }
+.sum-key {
+  font-size: var(--fs-caption); font-weight: 600; color: var(--muted); letter-spacing: 0.04em;
+  white-space: nowrap; padding-top: 3px; display: inline-flex; align-items: center; gap: 5px;
+}
+.sum-key::before { content: ""; width: 11px; height: 11px; border-radius: 2px; flex: none; display: none; }
+.sum-row.full .sum-key::before { display: block; background: var(--lesion-color); }
+.sum-row.partial .sum-key::before { display: block; border: 1.5px dashed currentColor; }
+.sum-row.keep .sum-key::before { display: block; border: 1.5px dotted var(--keep-color); }
+.sum-row.full .sum-key, .sum-row.missed .sum-key { color: var(--lesion-color); }
+.sum-row.keep .sum-key, .sum-row.ok .sum-key { color: var(--keep-color); }
+.sum-val { display: flex; flex-wrap: wrap; gap: 4px 5px; font-size: var(--fs-label); line-height: var(--lh-base); min-width: 0; }
+.sum-row.diff .sum-val { color: var(--muted); }
 
 .mini-chip {
   font-size: var(--fs-caption);
   line-height: var(--lh-base);
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 4px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -518,24 +548,26 @@ svg#limbSvg {
   cursor: pointer;
   border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
   font-family: inherit;
+  text-align: left;
 }
 
-.mini-chip:hover, .mini-chip:focus-visible { border-color: currentColor; background: var(--surface); outline: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .mini-chip { animation: chipIn 0.26s cubic-bezier(.22, .8, .24, 1) backwards; }
-  .mini-chip:nth-child(2) { animation-delay: 30ms; }
-  .mini-chip:nth-child(3) { animation-delay: 60ms; }
-  .mini-chip:nth-child(4) { animation-delay: 90ms; }
-  .mini-chip:nth-child(n+5) { animation-delay: 120ms; }
-}
-@keyframes chipIn { from { opacity: 0; transform: translateY(4px) scale(0.96); } }
+.mini-chip:hover, .mini-chip:focus-visible, .mini-chip.linked { border-color: currentColor; background: var(--surface); outline: none; }
 .mini-chip.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
+/* 状态不只靠颜色：部分 = 虚线框，保留 = 点线框，多选 = 删除线 */
+.mini-chip.partial { background: transparent; border-style: dashed; border-color: currentColor; font-weight: 500; }
+.mini-chip.keep, .mini-chip.ok { background: color-mix(in srgb, var(--keep-color) 12%, transparent); color: var(--keep-color); }
+.mini-chip.keep { border-style: dotted; border-color: currentColor; }
+.mini-chip.missed { background: transparent; color: var(--lesion-color); border-style: dashed; border-color: currentColor; }
+.mini-chip.extra { background: var(--surface-2); color: var(--muted); text-decoration: line-through; }
+.mini-chip.pick { background: var(--accent-soft); }
+.mini-chip.more { background: transparent; color: var(--muted); border-style: solid; font-weight: 500; }
 
 /* ---------- 底部停靠栏：横向分栏的结构详情 ---------- */
 .dock {
   position: relative;
   display: flex;
-  height: clamp(200px, 33vh, 320px);
+  flex: none;
+  height: clamp(190px, 27vh, 300px);
   min-height: 0;
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -546,6 +578,16 @@ svg#limbSvg {
   min-width: 0;
   display: flex;
 }
+
+/* 收起后只留一行：当前对象的名称 + 展开按钮 */
+.dock-strip { position: absolute; top: 6px; right: 10px; z-index: 3; display: flex; align-items: center; gap: 10px; }
+.dock-strip strong, .dock-strip span { display: none; }
+.dock-strip .btn { padding: 4px 10px; background: var(--bg); }
+.dock.collapsed { height: auto; }
+.dock.collapsed #detailContent { display: none; }
+.dock.collapsed .dock-strip { position: static; flex: 1; padding: 6px 12px 6px 18px; }
+.dock.collapsed .dock-strip strong { display: block; font-size: var(--fs-body); }
+.dock.collapsed .dock-strip span { display: block; flex: 1; min-width: 0; font-size: var(--fs-label); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
@@ -595,26 +637,32 @@ svg#limbSvg {
 .tag-row:empty { display: none; }
 .dock-head .seg-note { color: var(--muted); font-size: var(--fs-label); }
 
+/* 自测条：横跨主工作区上方。左 = 题库与成绩，中 = 题目 / 选项 / 反馈，右 = 操作（位置固定） */
 .quiz-box {
-  flex: 0 0 clamp(320px, 30vw, 420px);
-  overflow-y: auto;
-  padding: 12px 16px;
+  flex: none;
+  padding: 10px 18px;
   background: var(--accent-soft);
-  border-right: 1px solid var(--border);
-  box-shadow: inset 3px 0 0 var(--accent);
+  border-bottom: 1px solid var(--border);
+  box-shadow: inset 0 3px 0 var(--accent);
   display: none;
-  flex-direction: column;
-  gap: 7px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px 22px;
+  align-items: start;
 }
-
-.quiz-box.show { display: flex; }
-.quiz-q { font-size: var(--fs-body); font-weight: 600; line-height: var(--lh-base); }
-.quiz-meta { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-label); color: var(--muted); }
-.quiz-meta > :first-child { font-weight: 600; letter-spacing: var(--ls-caps); }
+.quiz-box.show { display: grid; }
+.quiz-side { display: flex; flex-direction: column; gap: 4px; }
+.quiz-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.quiz-q { font-size: var(--fs-lead); font-weight: 600; line-height: var(--lh-base); }
+.quiz-where { font-size: var(--fs-label); color: var(--accent); font-weight: 600; }
+.quiz-meta { display: flex; gap: 10px; align-items: baseline; font-size: var(--fs-label); color: var(--muted); }
+.quiz-meta > :first-child { font-weight: 700; letter-spacing: var(--ls-caps); color: var(--accent); }
 #quizScore { font-family: var(--font-mono); }
-.quiz-feedback { font-size: var(--fs-label); font-weight: 600; line-height: var(--lh-base); }
-.quiz-feedback.ok { color: #059669; }
-.quiz-feedback.err { color: #dc2626; }
+.quiz-feedback { font-size: var(--fs-body); line-height: var(--lh-base); max-height: 5.2em; overflow-y: auto; }
+.quiz-feedback:empty { display: none; }
+.quiz-feedback.ok { color: #047857; }
+.quiz-feedback.err { color: #b91c1c; }
+[data-theme="dark"] .quiz-feedback.ok { color: #34d399; }
+[data-theme="dark"] .quiz-feedback.err { color: #fca5a5; }
 
 /* 损伤部位（平面）选择条 */
 .level-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
@@ -636,6 +684,9 @@ svg#limbSvg {
 .zone-leader.on { stroke: var(--accent); stroke-width: 1.1; opacity: 1; }
 .zone-leader-dot.on { fill: var(--accent); }
 .zone-leader.on.lesion { stroke: var(--lesion-color); }
+.zone-label.on.keep { fill: var(--keep-color); }
+.zone-leader.on.keep { stroke: var(--keep-color); }
+.zone-leader-dot.on.keep { fill: var(--keep-color); }
 .zone-leader-dot.on.lesion { fill: var(--lesion-color); }
 .zone-label, .zone-leader, .zone-leader-dot { transition: opacity 0.18s; }
 /* 有焦点时，无关标注退后，只留当前支配/受累的 */
@@ -651,6 +702,16 @@ svg#limbSvg {
 .zone-shape[data-zone="d_c8"]:not([class*="active"]):not(.picked) { fill: #8b5cf6; fill-opacity: 0.22; }
 .zone-shape[data-zone="d_t1"]:not([class*="active"]):not(.picked) { fill: #ec4899; fill-opacity: 0.2; }
 .zone-shape.picked { fill: var(--accent); fill-opacity: 0.5; stroke: var(--accent); stroke-width: 2; }
+/* 部分参与（如桡神经之于肱肌）：浅填充 + 虚线框，与「主要支配」的实心区分 */
+.zone-shape.active-part { fill: var(--muscle-active); fill-opacity: 0.2; stroke: var(--muscle-active); stroke-width: 1.6; stroke-dasharray: 4 3; }
+/* 损伤时保留的分支：点线框，不填实 */
+.zone-shape.spared { fill: var(--keep-color); fill-opacity: 0.1; stroke: var(--keep-color); stroke-width: 1.8; stroke-dasharray: 1 3; stroke-linecap: round; }
+/* 反向题对照：选对 = 实心绿，漏选 = 红虚线空心，多选 = 灰色斜纹感的淡填充 + 粗虚线 */
+.zone-shape.quiz-ok { fill: var(--keep-color); fill-opacity: 0.6; stroke: var(--keep-color); stroke-width: 2; }
+.zone-shape.quiz-missed { fill: var(--lesion-color); fill-opacity: 0.12; stroke: var(--lesion-color); stroke-width: 2.2; stroke-dasharray: 5 3; }
+.zone-shape.quiz-extra { fill: var(--muted); fill-opacity: 0.35; stroke: var(--text); stroke-width: 1.6; stroke-dasharray: 2 2; }
+@keyframes zoneFlash { 0%, 60% { stroke-width: 4.5; fill-opacity: 1; } 30%, 100% { stroke-width: 2; } }
+.zone-shape.flash { animation: zoneFlash 1.2s ease-out; }
 
 /* ---------- 投影模式：整体放大字号阶梯，停靠栏加高 ---------- */
 @media screen {
@@ -659,6 +720,7 @@ svg#limbSvg {
     --fs-caption: 13.5px;
     --fs-label: 14.5px;
     --fs-body: 16px;
+    --fs-lead: 17px;
     --fs-title: 17px;
     --fs-h1: 19px;
     --fs-h2: 24px;
@@ -673,30 +735,36 @@ svg#limbSvg {
     --svg-view: 13.5px;
   }
   body.present .legend { display: none; }
-  body.present .btn, body.present .pill { padding: 7px 12px; }
-  body.present .chip-btn { padding: 5px 11px; }
-  body.present .seg-btn { padding: 6px 12px; }
+  body.present .btn, body.present .pill { padding: 8px 13px; }
+  body.present .chip-btn { padding: 6px 12px; }
+  body.present .seg-btn { padding: 7px 12px; }
   body.present .mini-chip { padding: 3px 10px; }
-  body.present .dock { height: clamp(220px, 34vh, 380px); }
+  body.present .dock { height: clamp(220px, 30vh, 380px); }
 }
 
 /* ---------- 窄屏：解除整屏锁定，窗格纵向堆叠 ---------- */
 @media screen and (max-width: 1100px) {
-  .workbench { grid-template-columns: minmax(0, 1fr) 320px; }
-  .dock { height: clamp(200px, 33vh, 300px); }
+  .workbench { --limb-w: var(--limb-user, 330px); }
+  .dock { height: clamp(190px, 27vh, 300px); }
+  .quiz-box { grid-template-columns: minmax(0, 1fr) auto; }
+  .quiz-side { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 }
 @media screen and (max-width: 860px) {
-  body { height: auto; min-height: 100dvh; overflow: visible; display: flex; flex-direction: column; }
-  .workbench { grid-template-columns: 1fr; }
+  body { height: auto; min-height: 100dvh; overflow: visible; }
+  .workbench, body.quiz-zones .workbench { grid-template-columns: 1fr; flex: none; }
+  .splitter { display: none; }
+  .limb-summary { max-height: none; }
+  /* 反向题：作答的上肢图排在通路图前面，紧接题目 */
+  body.quiz-zones .limb-pane { order: -1; }
+  .quiz-box { position: sticky; top: 0; z-index: 15; grid-template-columns: 1fr; }
+  .quiz-actions { flex-direction: row; }
   .stage { height: min(62vh, 560px); border-bottom: 1px solid var(--border); }
-  .limb-pane { border-left: none; }
   .limb-svg-box { flex: none; }
   svg#limbSvg { height: auto; max-width: 520px; margin: 0 auto; }
   .dock { height: auto; flex-direction: column; }
   #detailContent { flex-direction: column; }
   .info-block { border-left: none; border-top: 1px solid var(--border); overflow: visible; padding-bottom: 12px; }
   .info-block:first-child { border-top: none; }
-  .quiz-box { flex-basis: auto; border-right: none; border-bottom: 1px solid var(--border); }
 }
 @media screen and (max-width: 640px) {
   header { padding: 8px 12px; }
@@ -722,14 +790,16 @@ svg#limbSvg {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body, body.present { display: block; min-height: 0; height: auto; overflow: visible; background: #fff; }
   header { padding: 0 0 8px; border-bottom: 1px solid var(--border); }
-  .toolbar, #viewTabs, .stage-foot, .viewport3d, .quiz-box, #limbModeTabs, .pulse-edge,
+  .toolbar, #viewTabs, .stage-foot, .viewport3d, .quiz-box, #limbModeTabs, .pulse-edge, .splitter, .dock-strip,
   .pill:not(.active), #levelBar .seg-btn:not(.active), body:not(.has-lesion) .lesion-bar { display: none !important; }
   .workbench { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 10px; }
+  .limb-summary { max-height: none; overflow: visible; }
+  .dock.collapsed #detailContent { display: grid; }
   .stage { grid-column: 1 / -1; break-inside: avoid; }
   .stage-bar { border-bottom: none; }
   .svg-wrap, .svg-wrap.is-hidden { display: flex !important; min-height: 0; overflow: visible; padding: 4px; }
   svg#plexus { height: auto; }
-  .limb-pane { border-left: none; break-inside: avoid; }
+  .limb-pane { break-inside: avoid; }
   .limb-svg-box { flex: none; }
   svg#limbSvg { height: auto; }
   .dock { display: block; height: auto; border-top: 1px solid var(--border); background: none; }

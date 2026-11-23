@@ -93,7 +93,7 @@ export const NODES = [
     sensory: '肩外侧三角肌表面皮肤（“徽章区”）',
     clinical: '绕肱骨外科颈经四边孔穿行；肩关节前脱位或肱骨外科颈骨折易损伤，致“方肩”畸形及肩外展障碍。' },
   { id: 'radial', stage: 'branch', x: 885, y: 310, w: 144, h: 48, label: '桡神经', sub: 'Radial Nerve', en: 'Radial Nerve (C5–T1)',
-    motor: '肱三头肌、肘肌、肱桡肌、旋后肌及前臂全部伸腕/伸指肌',
+    motor: '肱三头肌、肘肌、肱桡肌、旋后肌及前臂全部伸腕/伸指肌；另有分支进入肱肌下外侧小部分（肱肌主要由肌皮神经支配）',
     sensory: '臂后、前臂后及手背桡侧 2.5 指（虎口区最恒定）',
     clinical: '紧贴肱骨干桡神经沟走行；肱骨中段骨折或“周末夜麻痹”压迫可致典型“垂腕”畸形。' },
   { id: 'median', stage: 'branch', x: 885, y: 410, w: 144, h: 48, label: '正中神经', sub: 'Median Nerve', en: 'Median Nerve · (C5) C6–T1',

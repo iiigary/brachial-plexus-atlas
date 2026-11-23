@@ -67,10 +67,13 @@ function clearFocus() {
   state.cuts = new Set();
 }
 
+// 离开自测去做别的事（选损伤、搜索、切断）：不恢复进入前的上下文，因为用户已经选了新的去处
 function exitQuiz() {
   if (!state.quizMode) return;
   state.quizMode = false;
   state.quizPicks = new Set();
+  state.quizResult = null;
+  quizReturn = null;
   renderPlexusSVG();
 }
 
@@ -212,6 +215,52 @@ function lesionSummary(ctx) {
   };
 }
 
+// 同一损伤类别内切换部位时，记住上一个部位的受累范围，用来说明「变了什么」
+let lesionCur = null, lesionPrev = null;
+function trackLesion(ctx) {
+  if (!state.lesionKey || !ctx || state.quizMode) { lesionCur = lesionPrev = null; return; }
+  if (lesionCur && lesionCur.key === ctx.key && lesionCur.level === ctx.level) return;
+  lesionPrev = lesionCur && lesionCur.key === ctx.key ? lesionCur : null;
+  lesionCur = { key: ctx.key, level: ctx.level, levelName: ctx.levelName, severity: ctx.severity };
+}
+
+// 当前损伤的一句话摘要，供上肢图下方显示。全部取自模型和 LESIONS 的现有文字，不另写一份事实。
+export function lesionDigest(ctx) {
+  const out = { site: '', sign: '', why: '', diff: '' };
+  if (state.lesionKey) {
+    const L = LESIONS[state.lesionKey];
+    out.site = `${L.title} · ${ctx.levelName}`;
+    // 体征是这个部位的结果，取临床说明的第一句
+    out.sign = L.levels[ctx.level].clinical.split('。')[0] + '。';
+  } else {
+    out.site = `切断：${ctx.levelName}`;
+  }
+  const sites = [...ctx.sites];
+  if (ctx.branch) {
+    const parents = [...new Set(sites.filter(id => id in PlexusModel.BRANCH_LV).map(id => label(PlexusModel.parentsOf(id)[0])))];
+    out.why = `只伤到分支，${parents.join('、')}主干和它的其余分支照常工作。`;
+  } else if (ctx.spared.length) {
+    out.why = '「保留」的分支在损伤平面的近端已经从主干分出，所以不受影响。';
+  } else if (ctx.preganglionic) {
+    out.why = '根部（节前）损伤：直接从神经根发出的旁支也一并受累。';
+  } else if ([...ctx.severity.values()].includes('partial')) {
+    out.why = '「部分」= 这块肌肉或皮区还有别的节段或神经供应，只断了其中一部分。';
+  }
+  if (state.lesionKey && lesionPrev && lesionCur && lesionCur.level === ctx.level) {
+    const a = lesionPrev.severity, b = ctx.severity;
+    const gone = [...a.keys()].filter(id => !b.has(id) && !id.startsWith('d_'));
+    const added = [...b.keys()].filter(id => !a.has(id) && !id.startsWith('d_'));
+    const changed = [...b.keys()].filter(id => a.has(id) && a.get(id) !== b.get(id));
+    const parts = [
+      gone.length ? `不再受累 ${names(gone)}` : '',
+      added.length ? `新增受累 ${names(added)}` : '',
+      changed.length ? `程度改变 ${names(changed)}` : '',
+    ].filter(Boolean);
+    out.diff = `较「${lesionPrev.levelName}」：${parts.length ? parts.join('；') : '肌肉与皮区的受累范围相同'}。`;
+  }
+  return out;
+}
+
 function renderClinicalCard(id) {
   const card = CLINICAL[id];
   $('dCard').classList.toggle('is-hidden', !card);
@@ -237,7 +286,8 @@ function updateInspector(ctx) {
       const T = L.levels[ctx.level];
       // 部位已在部位条和节段说明里，这里只留节前/节后与 Horner
       tags.innerHTML = plexusTags;
-      setText({ dTitle: L.title, dSub: L.sub, dSegments: T.segments, dMotor: T.motor, dSensory: T.sensory, dClinical: T.clinical, dSpatial: L.spatial });
+      // 标题同时写出类别和部位，如「桡神经损伤 · 骨间后神经」
+      setText({ dTitle: `${L.title} · ${ctx.levelName}`, dSub: L.sub, dSegments: T.segments, dMotor: T.motor, dSensory: T.sensory, dClinical: T.clinical, dSpatial: L.spatial });
     } else {
       const cuts = [...ctx.sites];
       const s = lesionSummary(ctx);
@@ -322,15 +372,44 @@ export function updateUI() {
   $('btnCut').classList.toggle('active', state.cutMode);
   $('btnQuiz').classList.toggle('active', state.quizMode);
   $('btnPresent').classList.toggle('active', state.present);
+  $('btnPresent').setAttribute('aria-checked', state.present);
   $('quizBox').classList.toggle('show', state.quizMode);
   $('btnSubmitQuiz').classList.toggle('is-hidden', !zonePicking());
+  // 自测时由题型决定主要作答区：反向题放大上肢图，其余题型突出通路图
+  const item = state.quizMode ? currentQuiz() : null;
+  document.body.classList.toggle('quiz', state.quizMode);
+  document.body.classList.toggle('quiz-zones', !!item && item.kind === 'zones');
+  $('quizWhere').textContent = !item ? ''
+    : item.kind === 'zones' ? '在上肢图（前面观 / 后面观）上点选'
+    : item.kind === 'mcq' ? '在下面四个选项里选一个'
+    : state.view === '3d' ? '在下方 3D 图上点击结构 ↓' : '在下方通路图上点击结构 ↓';
+  $('quizWhere').classList.toggle('is-hidden', !item || state.quizAnswered);
   updateLevelBar();
   updateCutBar();
+  trackLesion(getActiveNodeContext());
   applyAllHighlights();
   updateInspector(getActiveNodeContext());
+  syncDock();
   animateDockIfChanged();
   syncViewUI();
   writeHash();
+}
+
+// 底部详情可收起：平时默认展开，自测时默认收起（题目无关的说明不占地方），两种场合各记各的
+function syncDock() {
+  const open = state.quizMode ? state.quizDock : state.dock;
+  $('dock').classList.toggle('collapsed', !open);
+  $('btnDock').textContent = open ? '收起详情 ▾' : '展开详情 ▴';
+  $('btnDock').setAttribute('aria-expanded', open);
+  $('dockStripTitle').textContent = $('dTitle').textContent;
+  $('dockStripSub').textContent = $('dSub').textContent;
+}
+
+function toggleDock() {
+  if (state.quizMode) state.quizDock = !state.quizDock;
+  else { state.dock = !state.dock; store.setPref('dock', state.dock); }
+  syncDock();
+  window.dispatchEvent(new Event('resize'));
 }
 
 // 详情换了对象（而不是同一对象的重绘）时，各列错峰淡入
@@ -426,12 +505,13 @@ function loadQuizQuestion() {
   const item = currentQuiz();
   state.quizAnswered = false;
   state.quizPicks = new Set();
+  state.quizResult = null;
   clearFocus();
   if (item && item.kind === 'zones') state.limbMode = item.zones.mode;
   if (item && item.kind === 'mcq') state.limbMode = 'motor';
   $('quizQuestion').textContent = !item
     ? (state.quizDeck === 'wrong' ? '错题本是空的 🎉' : '没有题目。')
-    : item.kind === 'zones' ? item.q + '（在上肢图点选，可不选）' : item.q;
+    : item.kind === 'zones' ? item.q + '（没有受累的也可以不选，直接提交）' : item.q;
   renderQuizOptions(item);
   setQuizFeedback('');
   showQuizScore();
@@ -506,20 +586,29 @@ function submitZoneQuiz(reveal) {
   const item = currentQuiz();
   if (!zonePicking()) return;
   const L = PlexusModel.lesion(item.zones.lesion, item.zones.level);
-  const answer = [...L.severity.keys()].filter(id => PlexusModel.target(id).kind === item.zones.mode);
-  const answerText = answer.length ? names(answer) : '没有（这个部位的损伤不影响这一类区域）';
+  // 标准答案 = 完全受累的区域；只是「部分受累」的（如桡神经损伤时的肱肌）选不选都算对
+  const inMode = id => PlexusModel.target(id).kind === item.zones.mode;
+  const answer = [...L.severity].filter(([id, sev]) => inMode(id) && sev === 'full').map(([id]) => id);
+  const optional = [...L.severity].filter(([id, sev]) => inMode(id) && sev === 'partial').map(([id]) => id);
+  const answerText = (answer.length ? names(answer) : '没有（这个部位的损伤不影响这一类区域）')
+    + (optional.length ? `；另有部分受累：${names(optional)}（选不选都算对）` : '');
+  // 判断依据：直接用该损伤部位已有的说明文字
+  const T = LESIONS[item.zones.lesion].levels[L.level];
+  const basis = ' 依据：' + (item.zones.mode === 'motor' ? T.motor : T.sensory);
   if (reveal) {
     finishAnswer(item, false, false);
-    setQuizFeedback(`💡 答案：${answerText}。`);
+    setQuizFeedback(`💡 答案：${answerText}。` + basis);
   } else {
     const missed = answer.filter(id => !state.quizPicks.has(id));
-    const extra = [...state.quizPicks].filter(id => !answer.includes(id));
+    const extra = [...state.quizPicks].filter(id => !answer.includes(id) && !optional.includes(id));
     const ok = !missed.length && !extra.length;
     finishAnswer(item, ok);
-    if (ok) setQuizFeedback(`✅ 正确：${answerText}。`, 'ok');
-    else setQuizFeedback('❌ ' + [missed.length ? `漏选：${names(missed)}` : '', extra.length ? `多选：${names(extra)}` : '']
-      .filter(Boolean).join('；') + '。红色为答案。', 'err');
+    if (ok) setQuizFeedback(`✅ 正确：${answerText}。` + basis, 'ok');
+    else setQuizFeedback('❌ ' + [missed.length ? `漏选 ${missed.length} 个` : '', extra.length ? `多选 ${extra.length} 个` : '']
+      .filter(Boolean).join('，') + '，图上已标出。' + basis, 'err');
   }
+  // 作答保留在原图上，与答案对照（选对 / 漏选 / 多选），见 limb.js
+  state.quizResult = { picks: new Set(reveal ? [] : state.quizPicks), answer: new Set(answer), optional: new Set(optional), reveal };
   state.quizPicks = new Set();
   state.lesionKey = item.zones.lesion;
   state.lesionLevel = item.zones.level;
@@ -527,14 +616,31 @@ function submitZoneQuiz(reveal) {
   updateUI();
 }
 
+// 进入自测前的浏览上下文；用「退出」或 Q / Esc 离开自测时原样恢复
+let quizReturn = null;
+const RETURN_KEYS = ['selectedId', 'selectedZoneId', 'lesionKey', 'lesionLevel', 'cutMode', 'limbMode', 'showCollaterals'];
+
 function toggleQuiz() {
   const on = !state.quizMode;
+  const back = quizReturn;
+  if (on) {
+    quizReturn = { cuts: new Set(state.cuts) };
+    RETURN_KEYS.forEach(k => { quizReturn[k] = state[k]; });
+  }
   clearFocus();
   state.cutMode = false;
   state.quizPicks = new Set();
+  state.quizResult = null;
   state.quizMode = on;
-  if (on) { state.showCollaterals = true; loadQuizQuestion(); }
-  else { renderPlexusSVG(); updateUI(); }
+  if (on) { state.quizDock = false; state.showCollaterals = true; loadQuizQuestion(); return; }
+  if (back) {
+    RETURN_KEYS.forEach(k => { state[k] = back[k]; });
+    state.cuts = back.cuts;
+  }
+  quizReturn = null;
+  renderPlexusSVG();
+  renderLimbSVG();
+  updateUI();
 }
 
 function setQuizDeck(d) {
@@ -595,8 +701,7 @@ function syncViewUI() {
 function setTheme(dark) {
   state.dark = dark;
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  $('btnTheme').title = dark ? '切换浅色' : '切换深色';
-  $('btnTheme').setAttribute('aria-label', $('btnTheme').title);
+  $('themeLabel').textContent = dark ? '浅色主题' : '深色主题';
   view3d.setTheme(dark);
   store.setPref('theme', dark ? 'dark' : 'light');
 }
@@ -615,10 +720,59 @@ function resetAll() {
   state.quizMode = false;
   state.cutMode = false;
   state.quizPicks = new Set();
+  state.quizResult = null;
+  quizReturn = null;
+  state.dock = true;
+  store.setPref('dock', true);
+  setLimbWidth(null);
   state.show3d = { ...DEFAULT_3D };
   view3d.setCamPreset('front');
   renderPlexusSVG();
   updateUI();
+}
+
+// ==================== 工具菜单、面板宽度 ====================
+function setMenu(open) {
+  $('toolList').classList.toggle('is-hidden', !open);
+  $('btnTools').setAttribute('aria-expanded', open);
+}
+
+// 上肢图窗格宽度：拖动分隔条调整，双击或「重置」恢复默认。px = null 表示用样式表里的默认值
+function setLimbWidth(px) {
+  const wb = $('workbench');
+  if (px == null) wb.style.removeProperty('--limb-user');
+  else {
+    const max = wb.getBoundingClientRect().width * 0.7;
+    px = Math.round(Math.max(300, Math.min(max, px)));
+    wb.style.setProperty('--limb-user', px + 'px');
+  }
+  $('splitter').classList.toggle('custom', px != null);
+  store.setPref('limbW', px);
+}
+
+function bindSplitter() {
+  const sp = $('splitter'), pane = document.querySelector('.limb-pane');
+  let drag = null;
+  sp.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, w: pane.getBoundingClientRect().width };
+    sp.setPointerCapture(e.pointerId);
+    document.body.classList.add('resizing');
+    e.preventDefault();
+  });
+  sp.addEventListener('pointermove', e => { if (drag) setLimbWidth(drag.w + (drag.x - e.clientX)); });
+  const end = () => { drag = null; document.body.classList.remove('resizing'); };
+  sp.addEventListener('pointerup', end);
+  sp.addEventListener('pointercancel', end);
+  sp.addEventListener('dblclick', () => setLimbWidth(null));
+  sp.addEventListener('keydown', e => {
+    const w = pane.getBoundingClientRect().width;
+    if (e.key === 'ArrowLeft') setLimbWidth(w + 32);
+    else if (e.key === 'ArrowRight') setLimbWidth(w - 32);
+    else if (e.key === 'Home' || e.key === 'Enter') setLimbWidth(null);
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  });
 }
 
 // ==================== 用网址记住状态 ====================
@@ -649,6 +803,8 @@ function applyHash(first) {
   const own = (o, key) => key != null && Object.prototype.hasOwnProperty.call(o, key);
   state.quizMode = false;
   state.quizPicks = new Set();
+  state.quizResult = null;
+  quizReturn = null;
   clearFocus();
   state.cutMode = false;
 
@@ -722,12 +878,20 @@ function bindEvents() {
   $('btnRevealQuiz').addEventListener('click', revealQuiz);
   $('btnSubmitQuiz').addEventListener('click', () => submitZoneQuiz(false));
   $('btnClearProgress').addEventListener('click', clearProgress);
+  $('btnExitQuiz').addEventListener('click', () => { if (state.quizMode) toggleQuiz(); });
+  $('btnDock').addEventListener('click', toggleDock);
+  $('btnFocus3d').addEventListener('click', () => view3d.focusCurrent());
   $('btnReset').addEventListener('click', resetAll);
   $('btnTheme').addEventListener('click', () => { setTheme(!state.dark); updateUI(); });
   $('btnPresent').addEventListener('click', () => { setPresent(!state.present); updateUI(); });
   $('btnPrint').addEventListener('click', () => window.print());
+  // 工具菜单：点菜单项后收起；点别处或按 Esc 也收起
+  $('btnTools').addEventListener('click', e => { e.stopPropagation(); setMenu($('toolList').classList.contains('is-hidden')); });
+  $('toolList').addEventListener('click', () => setMenu(false));
+  document.addEventListener('click', () => setMenu(false));
+  bindSplitter();
 
-  // 数字键 = 损伤预设，←/→ = 损伤部位，空格 = 冲动动画，X = 自由切断，/ = 搜索；
+  // 数字键 = 损伤预设，←/→ = 损伤部位，空格 = 冲动动画，X = 自由切断，/ = 搜索，F = 3D 聚焦当前结构；
   // 投影模式下 ↑/↓ 与翻页键（翻页笔）逐个切换预设
   document.addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -735,15 +899,18 @@ function bindEvents() {
     const k = e.key, lower = k.toLowerCase();
     const pager = state.present && !state.quizMode;
     let handled = true;
+    if (k === 'Escape' && !$('toolList').classList.contains('is-hidden')) { setMenu(false); e.preventDefault(); return; }
 
     if (k === '/') $('searchInput').focus();
     else if (k === ' ') togglePulse();
     else if (lower === 'p') { setPresent(!state.present); updateUI(); }
     else if (lower === 'q') toggleQuiz();
     else if (lower === 'v') setView(state.view === '2d' ? '3d' : '2d');
+    else if (lower === 'f' && state.view === '3d') view3d.focusCurrent();
     else if (state.quizMode) {
       const item = currentQuiz();
-      if (lower === 'n' || k === 'ArrowRight' || k === 'PageDown') nextQuiz();
+      if (k === 'Escape') toggleQuiz();
+      else if (lower === 'n' || k === 'ArrowRight' || k === 'PageDown') nextQuiz();
       else if (k === 'Enter' && zonePicking()) submitZoneQuiz(false);
       else if (item && item.kind === 'mcq' && k >= '1' && k <= '4' && item.options[+k - 1]) handleOption(item.options[+k - 1].id);
       else handled = false;
@@ -773,6 +940,9 @@ export function init() {
   initSearch($('searchInput'), $('searchResults'), applySearchAction);
   bindEvents();
   showQuizScore();
+  state.dock = store.pref('dock', true) !== false;
+  const limbW = store.pref('limbW', null);
+  if (typeof limbW === 'number') setLimbWidth(limbW);
   applyHash(true);
   introPlexus();
   riseIn([document.querySelector('.limb-pane'), ...document.querySelectorAll('#detailContent > .info-block:not(.is-hidden)')], { delay: 260, gap: 60 });

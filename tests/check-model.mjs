@@ -176,8 +176,8 @@ check('口诀 ULTRA / M4U：后束、内侧束的分支齐全', () => {
 });
 
 check('Erb（上干）：肩外展全瘫、屈肘部分保留 C7，菱形肌、前锯肌与手不受累，无 Horner', () => {
-  expectSev('erb', 'trunk', 'full', ['m_deltoid', 'm_teres_minor', 'm_rotator', 's_axil', 's_lat_forearm', 'd_c5', 'd_c6']);
-  expectSev('erb', 'trunk', 'partial', ['m_biceps', 'm_brachiorad', 'm_triceps', 'm_flexor_med']);
+  expectSev('erb', 'trunk', 'full', ['m_deltoid', 'm_teres_minor', 'm_rotator', 'm_biceps', 's_axil', 's_lat_forearm', 'd_c5', 'd_c6']);
+  expectSev('erb', 'trunk', 'partial', ['m_brachialis', 'm_brachiorad', 'm_triceps', 'm_flexor_med']);
   expectSev('erb', 'trunk', 'none', ['m_thenar', 'm_hypothenar', 'm_flexor_uln', 'm_serratus', 'm_rhomboid', 'm_ext_digits', 's_med_arm', 'd_c8']);
   const L = M.lesion('erb');
   assert.strictEqual(L.level, 'trunk');
@@ -186,7 +186,7 @@ check('Erb（上干）：肩外展全瘫、屈肘部分保留 C7，菱形肌、�
 
 check('C5–C6 根性撕脱：比上干损伤多出菱形肌、前锯肌；仍无 Horner', () => {
   expectSev('erb', 'root', 'full', ['m_deltoid', 'm_rhomboid', 'd_c5', 'd_c6']);
-  expectSev('erb', 'root', 'partial', ['m_serratus', 'm_biceps']);
+  expectSev('erb', 'root', 'partial', ['m_serratus', 'm_brachialis']);
   const L = M.lesion('erb', 'root');
   assert(L.preganglionic && !L.horner);
   assert.strictEqual(set(L.sites), 'c5,c6');
@@ -205,12 +205,42 @@ check('桡神经：腋部累及肱三头肌；桡神经沟垂腕；骨间后神�
   expectSev('radial', 'axilla', 'full', ['m_triceps', 'm_anconeus', 'm_brachiorad', 'm_supinator', 'm_ext_digits', 's_rad_arm', 's_rad_hand']);
   expectSev('radial', 'groove', 'full', ['m_brachiorad', 'm_supinator', 'm_ext_digits', 's_rad_hand']);
   expectSev('radial', 'groove', 'none', ['m_triceps', 'm_anconeus', 's_rad_arm']);
-  expectSev('radial', 'groove', 'partial', ['m_biceps']);
+  expectSev('radial', 'groove', 'partial', ['m_brachialis']);
+  expectSev('radial', 'groove', 'none', ['m_biceps']);
   assert(M.lesion('radial', 'groove').spared.includes('m_triceps'));
   assert.strictEqual(set(M.lesion('radial', 'pin').severity.keys()), 'm_ext_digits');
   const pin = M.lesion('radial', 'pin');
   assert(pin.branch && pin.spared.includes('m_brachiorad') && pin.spared.includes('s_rad_hand') && pin.spared.includes('m_supinator'));
   assert.strictEqual(M.lesion('radial').level, 'groove');
+});
+
+check('肱二头肌与肱肌分开：桡神经只与肱肌下外侧小部分有关，且标为「部分参与」', () => {
+  assert(!M.targetsFor('radial').has('m_biceps'), '桡神经不应关联肱二头肌');
+  assert(M.targetsFor('radial').has('m_brachialis'));
+  assert.strictEqual(M.relation('m_brachialis', 'radial'), 'part');
+  assert.strictEqual(M.relation('m_brachialis', 'c7'), 'part');
+  assert.strictEqual(M.relation('m_brachialis', 'musculocutaneous'), 'main');
+  assert.strictEqual(M.relation('m_biceps', 'musculocutaneous'), 'main');
+  assert.strictEqual(M.relation('m_biceps', 'radial'), null);
+  assert.strictEqual(M.relation('m_triceps', 'radial'), 'main');
+  // 「部分受累」能说清断了哪条、留了哪条
+  const d = M.lesion('radial', 'groove').detail.get('m_brachialis');
+  assert.deepStrictEqual(d.hit.map(f => f.nerve), ['radial']);
+  assert.deepStrictEqual(d.kept.map(f => f.nerve), ['musculocutaneous']);
+  assert(d.hit[0].part, '桡神经到肱肌的纤维应带「部分」说明');
+  // 骨间后神经平面：肱肌的桡神经分支在近端已分出
+  assert(M.lesion('radial', 'pin').spared.includes('m_brachialis'));
+  for (const L of [M.lesion('erb'), M.lesion('radial', 'axilla'), M.lesionAt(['c7'])])
+    for (const [id, s] of L.severity) if (s === 'partial') assert(L.detail.get(id).kept.length, `${id} 部分受累却没有保留的纤维`);
+});
+
+check('损伤名称：父级按解剖类别命名，不用单一体征概括全部部位', () => {
+  for (const [key, L] of Object.entries(LESIONS)) {
+    assert(/损伤$/.test(L.title), `${key} 的标题应是解剖类别：${L.title}`);
+    for (const sign of ['垂腕', '猿手', '爪形手', '方肩', '翼状肩胛']) assert(!L.title.includes(sign), `${key} 标题含体征 ${sign}`);
+  }
+  const pills = [...html.matchAll(/data-lesion="(\w+)"[^>]*>([^<]+)</g)];
+  for (const [, key, text] of pills) assert(LESIONS[key].title.startsWith(text), `按钮「${text}」与标题「${LESIONS[key].title}」不一致`);
 });
 
 check('正中神经：腕管保留手掌感觉与前臂屈肌；骨间前神经只累及深屈肌与旋前方肌；高位全部受累', () => {

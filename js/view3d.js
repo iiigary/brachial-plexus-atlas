@@ -12,6 +12,12 @@ import { getActiveNodeContext, labelsHidden, onNodeHover, onNodeClick, onBackgro
 const viewport = document.getElementById('viewport3d');
 const canvas = document.getElementById('scene');
 const labelBox = document.getElementById('labels3d');
+const focusBtn = document.getElementById('btnFocus3d');
+// 标签被挤开时，用引线连回它所指的结构
+const leaderSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+leaderSvg.setAttribute('class', 'leaders3d');
+labelBox.appendChild(leaderSvg);
+const leaderPool = [];
 const fallback = document.getElementById('hud3dFallback');
 const captionEl = document.getElementById('hud3dCaption');
 const DEFAULT_CAPTION = captionEl.textContent;
@@ -211,6 +217,7 @@ function presetGoal(name) {
 
 function markPreset(name) {
   activePreset = name;
+  focusBtn.classList.remove('active');
   document.querySelectorAll('#camPresets .hud-pill').forEach(b => b.classList.toggle('active', b.dataset.cam === name));
 }
 
@@ -221,6 +228,39 @@ export function setCamPreset(name) {
   if (!ready || !name) return;
   const goal = presetGoal(name);
   camTween = { t0: performance.now(), from: { pos: camera.position.clone(), target: controls.target.clone() }, to: goal };
+}
+
+// 把镜头对准当前选中 / 受损的结构及其直接相连的结构。只在用户点「聚焦当前」或按 F 时触发，
+// 平时切换选择不会自己转镜头（避免打断手动观察和课堂演示）。保持当前观察方向，只平移和拉近。
+export function focusCurrent() {
+  if (!ready || !lastCtx) return;
+  const ids = new Set();
+  lastCtx.sites.forEach(id => {
+    ids.add(id);
+    PlexusModel.parentsOf(id).forEach(x => ids.add(x));
+    PlexusModel.childrenOf(id).forEach(x => ids.add(x));
+  });
+  const pts = [];
+  ids.forEach(id => {
+    if (!nodeObjs[id] || !nodeObjs[id].group.visible) return;
+    pts.push(V(ANCHORS[id]));
+    // 只有焦点结构自身的走行算进取景范围；邻居只取锚点，免得把整条手臂都框进来
+    if (lastCtx.sites.has(id) && COURSES[id]) COURSES[id].forEach(p => pts.push(V(p)));
+  });
+  if (!pts.length) return;
+  const box = new THREE.Box3().setFromPoints(pts);
+  const center = box.getCenter(new THREE.Vector3());
+  const radius = Math.max(5, ...pts.map(p => p.distanceTo(center))) + 2;
+  const vfov = THREE.MathUtils.degToRad(camera.fov) / 2;
+  const hfov = Math.atan(Math.tan(vfov) * camera.aspect);
+  // 留出约两成边距，给上方的工具条和标签让位
+  const dist = Math.min(controls.maxDistance, radius * 1.2 / Math.sin(Math.min(vfov, hfov)));
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  state.show3d.auto = false;
+  camTween = { t0: performance.now(), from: { pos: camera.position.clone(), target: controls.target.clone() },
+    to: { target: center, pos: center.clone().add(dir.multiplyScalar(dist)) } };
+  markPreset(null);
+  focusBtn.classList.add('active');
 }
 
 // ---------- 拾取 ----------
@@ -313,7 +353,12 @@ function build() {
 
 // ---------- 样式（每次状态变化调用） ----------
 export function update(ctx) {
-  lastCtx = ctx;
+  // 悬停只是临时高亮，不改变「聚焦当前」的对象
+  if (!state.hoverId) {
+    if (lastCtx && (!ctx || [...ctx.sites].join() !== [...lastCtx.sites].join())) focusBtn.classList.remove('active');
+    lastCtx = ctx;
+  }
+  focusBtn.disabled = !lastCtx;
   if (!ready) return;
   const show = state.show3d;
   groups.bones.visible = show.bones;
@@ -376,32 +421,57 @@ export function update(ctx) {
 
 // ---------- 动画循环（只在 3D 可见时运行） ----------
 const tmp = new THREE.Vector3();
-// 每帧按优先级逐个放标签，和已放好的重叠就先藏起来（上一帧显示过的略微优先，减少转动时闪烁）
+// 标签相对锚点的候选位置（以标签宽高为单位的偏移）：先试正上方，被挡住再试更高、左右、下方。
+// 只有当前相关的标签（选中 / 受累通路上的）会换位置并带引线；其余标签被挡住就先隐藏，放大后自然出现。
+const SLOTS = [[0, -0.85], [0, -2.1], [0.75, -1.5], [-0.75, -1.5], [0.8, 0.1], [-0.8, 0.1], [0, 1.4], [0.9, -2.6], [-0.9, -2.6]];
+function slotBox(it, k) {
+  const [sx, sy] = SLOTS[k];
+  const w = it.el._w, h = it.el._h;
+  const cx = it.x + sx * (w + 22), cy = it.y + sy * h;
+  return { cx, cy, x0: cx - w / 2 - 2, x1: cx + w / 2 + 2, y0: cy - h / 2 - 1, y1: cy + h / 2 + 1 };
+}
+
 function updateLabels() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
   const items = [];
   const hide = el => { if (el._shown) { el.style.visibility = 'hidden'; el._shown = false; } };
-  const add = (el, pos, on, pri) => {
+  const add = (el, pos, on, pri, movable) => {
     if (!on) { hide(el); return; }
     tmp.copy(pos).project(camera);
     const x = ((tmp.x + 1) / 2) * w, y = ((1 - tmp.y) / 2) * h;
     if (tmp.z > 1 || tmp.z < -1 || x < -40 || x > w + 40 || y < -20 || y > h + 40) { hide(el); return; }
     if (el._text !== el.textContent) { el._text = el.textContent; el._w = el.offsetWidth; el._h = el.offsetHeight; }
-    items.push({ el, x, y, pri: pri + (el._shown ? 3 : 0) });
+    items.push({ el, x, y, movable, pri: pri + (el._shown ? 3 : 0) });
   };
-  Object.values(nodeObjs).forEach(o => add(o.label, o.pos, o.showLabel, o.pri));
-  ctxLabels.forEach(l => add(l.el, l.pos, state.show3d.labels && state.show3d[l.layer], 5));
+  Object.values(nodeObjs).forEach(o => add(o.label, o.pos, o.showLabel, o.pri, o.pri >= 40));
+  ctxLabels.forEach(l => add(l.el, l.pos, state.show3d.labels && state.show3d[l.layer], 5, false));
 
   items.sort((a, b) => b.pri - a.pri);
   const placed = [];
+  let used = 0;
+  const free = r => r.x0 > 0 && r.x1 < w && r.y0 > 0 && r.y1 < h
+    && !placed.some(p => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0);
   for (const it of items) {
-    const { el, x, y } = it;
-    const r = { x0: x - el._w / 2 - 2, x1: x + el._w / 2 + 2, y0: y - el._h * 1.35 - 1, y1: y - el._h * 0.35 + 1 };
-    if (placed.some(p => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) { hide(el); continue; }
+    const { el } = it;
+    // 上一帧用过的位置优先，转动时标签不会来回跳
+    const order = it.movable ? [el._slot || 0, ...SLOTS.keys()] : [0];
+    let k = -1, r = null;
+    for (const c of order) { const b = slotBox(it, c); if (free(b)) { k = c; r = b; break; } }
+    if (k < 0) { hide(el); continue; }
+    el._slot = k;
     placed.push(r);
-    el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -135%)`;
+    el.style.transform = `translate(${r.cx}px, ${r.cy}px) translate(-50%, -50%)`;
     if (!el._shown) { el.style.visibility = 'visible'; el._shown = true; }
+    if (k === 0) continue;
+    // 引线：从结构所在点连到标签框最近的边
+    let line = leaderPool[used];
+    if (!line) { line = document.createElementNS('http://www.w3.org/2000/svg', 'line'); leaderSvg.appendChild(line); leaderPool.push(line); }
+    used++;
+    line.setAttribute('x1', it.x); line.setAttribute('y1', it.y);
+    line.setAttribute('x2', Math.max(r.x0, Math.min(r.x1, it.x))); line.setAttribute('y2', Math.max(r.y0, Math.min(r.y1, it.y)));
+    line.style.display = '';
   }
+  for (let i = used; i < leaderPool.length; i++) leaderPool[i].style.display = 'none';
 }
 
 function frame(ts) {

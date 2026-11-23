@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/check-model.mjs",
+    "test": "node tests/check-model.mjs && node tests/check-limb-meshes.mjs",
+    "build:limb": "node tools/build-limb-meshes.mjs --source raw/isa_BP3D_4.0_obj_99 --parts raw/isa_element_parts.txt",
     "start": "python3 serve.py 8765"
   }
 }

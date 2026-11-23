@@ -1,0 +1,1819 @@
+{
+ "source": "BodyParts3D 4.0 (isa_BP3D_4.0_obj_99), © The Database Center for Life Science, CC BY 4.0",
+ "units": "cm",
+ "axes": "x: 患者左侧, y: 上, z: 前；原点为靶区肌肉包围盒中心",
+ "qMin": [
+  -16.4683,
+  -37.5042,
+  -11.2723
+ ],
+ "qRange": [
+  32.483,
+  73.4443,
+  22.5445
+ ],
+ "parts": [
+  {
+   "key": "clavicular part of right deltoid",
+   "zone": "m_deltoid",
+   "kind": "muscle",
+   "files": [
+    "FJ1468"
+   ],
+   "posOffset": 0,
+   "vCount": 1053,
+   "idxOffset": 6320,
+   "iCount": 6618,
+   "wide": false,
+   "c": [
+    1.21,
+    28.82,
+    -1.22
+   ]
+  },
+  {
+   "key": "acromial part of right deltoid",
+   "zone": "m_deltoid",
+   "kind": "muscle",
+   "files": [
+    "FJ1467"
+   ],
+   "posOffset": 19556,
+   "vCount": 656,
+   "idxOffset": 23492,
+   "iCount": 3900,
+   "wide": false,
+   "c": [
+    -3.04,
+    27.39,
+    -3.73
+   ]
+  },
+  {
+   "key": "spinal part of right deltoid",
+   "zone": "m_deltoid",
+   "kind": "muscle",
+   "files": [
+    "FJ1513"
+   ],
+   "posOffset": 31292,
+   "vCount": 982,
+   "idxOffset": 37184,
+   "iCount": 5700,
+   "wide": false,
+   "c": [
+    -0.38,
+    25.43,
+    -6.89
+   ]
+  },
+  {
+   "key": "right teres minor",
+   "zone": "m_teres_minor",
+   "kind": "muscle",
+   "files": [
+    "FJ1508"
+   ],
+   "posOffset": 48584,
+   "vCount": 255,
+   "idxOffset": 50116,
+   "iCount": 1518,
+   "wide": false,
+   "c": [
+    1.38,
+    24.66,
+    -6.56
+   ]
+  },
+  {
+   "key": "right subclavius",
+   "zone": "m_subclavius",
+   "kind": "muscle",
+   "files": [
+    "FJ1460"
+   ],
+   "posOffset": 53152,
+   "vCount": 830,
+   "idxOffset": 58132,
+   "iCount": 4920,
+   "wide": false,
+   "c": [
+    9.06,
+    29.84,
+    0.5
+   ]
+  },
+  {
+   "key": "clavicular part of right pectoralis major",
+   "zone": "m_pec",
+   "kind": "muscle",
+   "files": [
+    "FJ1447"
+   ],
+   "posOffset": 67972,
+   "vCount": 949,
+   "idxOffset": 73668,
+   "iCount": 5538,
+   "wide": false,
+   "c": [
+    4.08,
+    27.12,
+    0.87
+   ]
+  },
+  {
+   "key": "sternocostal part of right pectoralis major",
+   "zone": "m_pec",
+   "kind": "muscle",
+   "files": [
+    "FJ1464"
+   ],
+   "posOffset": 84744,
+   "vCount": 3565,
+   "idxOffset": 106136,
+   "iCount": 21342,
+   "wide": false,
+   "c": [
+    7.44,
+    21.36,
+    6.03
+   ]
+  },
+  {
+   "key": "abdominal part of right pectoralis major",
+   "zone": "m_pec",
+   "kind": "muscle",
+   "files": [
+    "FJ1446"
+   ],
+   "posOffset": 148820,
+   "vCount": 774,
+   "idxOffset": 153464,
+   "iCount": 4608,
+   "wide": false,
+   "c": [
+    4.55,
+    15.55,
+    5.65
+   ]
+  },
+  {
+   "key": "right pectoralis minor",
+   "zone": "m_pec",
+   "kind": "muscle",
+   "files": [
+    "FJ1456"
+   ],
+   "posOffset": 162680,
+   "vCount": 4766,
+   "idxOffset": 191276,
+   "iCount": 28404,
+   "wide": false,
+   "c": [
+    5.4,
+    22.87,
+    3.05
+   ]
+  },
+  {
+   "key": "right serratus anterior",
+   "zone": "m_serratus",
+   "kind": "muscle",
+   "files": [
+    "FJ1459"
+   ],
+   "posOffset": 248084,
+   "vCount": 24599,
+   "idxOffset": 395680,
+   "iCount": 147630,
+   "wide": false,
+   "c": [
+    4.69,
+    19.84,
+    -3.73
+   ]
+  },
+  {
+   "key": "right coracobrachialis",
+   "zone": "m_coraco",
+   "kind": "muscle",
+   "files": [
+    "FJ1488"
+   ],
+   "posOffset": 690940,
+   "vCount": 228,
+   "idxOffset": 692308,
+   "iCount": 1332,
+   "wide": false,
+   "c": [
+    -0.12,
+    22.16,
+    -2.23
+   ]
+  },
+  {
+   "key": "long head of right biceps brachii",
+   "zone": "m_biceps",
+   "kind": "muscle",
+   "files": [
+    "FJ1478"
+   ],
+   "posOffset": 694972,
+   "vCount": 713,
+   "idxOffset": 699252,
+   "iCount": 4254,
+   "wide": false,
+   "c": [
+    -3.94,
+    13.73,
+    -1.86
+   ]
+  },
+  {
+   "key": "short head of right biceps brachii",
+   "zone": "m_biceps",
+   "kind": "muscle",
+   "files": [
+    "FJ1512"
+   ],
+   "posOffset": 707760,
+   "vCount": 932,
+   "idxOffset": 713352,
+   "iCount": 5568,
+   "wide": false,
+   "c": [
+    -1.82,
+    16.18,
+    -1.5
+   ]
+  },
+  {
+   "key": "right brachialis",
+   "zone": "m_brachialis",
+   "kind": "muscle",
+   "files": [
+    "FJ1486"
+   ],
+   "posOffset": 724488,
+   "vCount": 877,
+   "idxOffset": 729752,
+   "iCount": 5238,
+   "wide": false,
+   "c": [
+    -4.95,
+    7.41,
+    -3.07
+   ]
+  },
+  {
+   "key": "humeral head of right pronator teres",
+   "zone": "m_pronator",
+   "kind": "muscle",
+   "files": [
+    "FJ1474"
+   ],
+   "posOffset": 740228,
+   "vCount": 908,
+   "idxOffset": 745676,
+   "iCount": 5532,
+   "wide": false,
+   "c": [
+    -7.41,
+    -4.27,
+    -1.62
+   ]
+  },
+  {
+   "key": "ulnar head of right pronator teres",
+   "zone": "m_pronator",
+   "kind": "muscle",
+   "files": [
+    "FJ1516"
+   ],
+   "posOffset": 756740,
+   "vCount": 532,
+   "idxOffset": 759932,
+   "iCount": 3120,
+   "wide": false,
+   "c": [
+    -7.7,
+    -5.12,
+    -1.77
+   ]
+  },
+  {
+   "key": "right flexor carpi radialis",
+   "zone": "m_flexor_med",
+   "kind": "muscle",
+   "files": [
+    "FJ1496"
+   ],
+   "posOffset": 766172,
+   "vCount": 585,
+   "idxOffset": 769684,
+   "iCount": 3438,
+   "wide": false,
+   "c": [
+    -6.3,
+    -8.81,
+    0.19
+   ]
+  },
+  {
+   "key": "right flexor digitorum superficialis",
+   "zone": "m_flexor_med",
+   "kind": "muscle",
+   "files": [
+    "FJ1475",
+    "FJ1499"
+   ],
+   "posOffset": 776560,
+   "vCount": 4779,
+   "idxOffset": 805236,
+   "iCount": 28686,
+   "wide": false,
+   "c": [
+    -7.48,
+    -17.41,
+    1.29
+   ]
+  },
+  {
+   "key": "right palmaris longus",
+   "zone": "m_palmaris",
+   "kind": "muscle",
+   "files": [
+    "FJ1502"
+   ],
+   "posOffset": 862608,
+   "vCount": 2458,
+   "idxOffset": 877356,
+   "iCount": 14904,
+   "wide": false,
+   "c": [
+    -8.24,
+    -20.32,
+    2.32
+   ]
+  },
+  {
+   "key": "right flexor pollicis longus",
+   "zone": "m_ain",
+   "kind": "muscle",
+   "files": [
+    "FJ1498"
+   ],
+   "posOffset": 907164,
+   "vCount": 711,
+   "idxOffset": 911432,
+   "iCount": 4320,
+   "wide": false,
+   "c": [
+    -10.86,
+    -17.61,
+    0.83
+   ]
+  },
+  {
+   "key": "right pronator quadratus",
+   "zone": "m_pq",
+   "kind": "muscle",
+   "files": [
+    "FJ1503"
+   ],
+   "posOffset": 920072,
+   "vCount": 941,
+   "idxOffset": 925720,
+   "iCount": 5460,
+   "wide": false,
+   "c": [
+    -8.15,
+    -17.63,
+    0.48
+   ]
+  },
+  {
+   "key": "humeral head of right flexor carpi ulnaris",
+   "zone": "m_flexor_uln",
+   "kind": "muscle",
+   "files": [
+    "FJ1473"
+   ],
+   "posOffset": 936640,
+   "vCount": 1326,
+   "idxOffset": 944596,
+   "iCount": 7968,
+   "wide": false,
+   "c": [
+    -4.59,
+    -10.5,
+    -1.14
+   ]
+  },
+  {
+   "key": "ulnar head of right flexor carpi ulnaris",
+   "zone": "m_flexor_uln",
+   "kind": "muscle",
+   "files": [
+    "FJ1518"
+   ],
+   "posOffset": 960532,
+   "vCount": 742,
+   "idxOffset": 964984,
+   "iCount": 4608,
+   "wide": false,
+   "c": [
+    -4.77,
+    -8.5,
+    -2.89
+   ]
+  },
+  {
+   "key": "right abductor pollicis brevis",
+   "zone": "m_thenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1483"
+   ],
+   "posOffset": 974200,
+   "vCount": 376,
+   "idxOffset": 976456,
+   "iCount": 2232,
+   "wide": false,
+   "c": [
+    -11.96,
+    -23.48,
+    3.34
+   ]
+  },
+  {
+   "key": "right opponens pollicis",
+   "zone": "m_thenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1501"
+   ],
+   "posOffset": 980920,
+   "vCount": 498,
+   "idxOffset": 983908,
+   "iCount": 2868,
+   "wide": false,
+   "c": [
+    -12.13,
+    -23.7,
+    3.23
+   ]
+  },
+  {
+   "key": "superficial head of right flexor pollicis brevis",
+   "zone": "m_thenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1514"
+   ],
+   "posOffset": 989644,
+   "vCount": 377,
+   "idxOffset": 991908,
+   "iCount": 2154,
+   "wide": false,
+   "c": [
+    -11.34,
+    -24.31,
+    3.67
+   ]
+  },
+  {
+   "key": "oblique head of right adductor pollicis",
+   "zone": "m_adductor",
+   "kind": "muscle",
+   "files": [
+    "FJ1481"
+   ],
+   "posOffset": 996216,
+   "vCount": 347,
+   "idxOffset": 998300,
+   "iCount": 1962,
+   "wide": false,
+   "c": [
+    -11.56,
+    -25.11,
+    2.72
+   ]
+  },
+  {
+   "key": "transverse head of right adductor pollicis",
+   "zone": "m_adductor",
+   "kind": "muscle",
+   "files": [
+    "FJ1515"
+   ],
+   "posOffset": 1002224,
+   "vCount": 377,
+   "idxOffset": 1004488,
+   "iCount": 2262,
+   "wide": false,
+   "c": [
+    -11.52,
+    -26.77,
+    2.56
+   ]
+  },
+  {
+   "key": "abductor digiti minimi of right hand",
+   "zone": "m_hypothenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1466"
+   ],
+   "posOffset": 1009012,
+   "vCount": 245,
+   "idxOffset": 1010484,
+   "iCount": 1518,
+   "wide": false,
+   "c": [
+    -6.94,
+    -26.68,
+    3.38
+   ]
+  },
+  {
+   "key": "flexor digiti minimi brevis of right hand",
+   "zone": "m_hypothenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1470"
+   ],
+   "posOffset": 1013520,
+   "vCount": 172,
+   "idxOffset": 1014552,
+   "iCount": 984,
+   "wide": false,
+   "c": [
+    -7.45,
+    -26.78,
+    3.4
+   ]
+  },
+  {
+   "key": "opponens digiti minimi of right hand",
+   "zone": "m_hypothenar",
+   "kind": "muscle",
+   "files": [
+    "FJ1482"
+   ],
+   "posOffset": 1016520,
+   "vCount": 250,
+   "idxOffset": 1018020,
+   "iCount": 1422,
+   "wide": false,
+   "c": [
+    -7.41,
+    -26.8,
+    2.89
+   ]
+  },
+  {
+   "key": "set of dorsal interossei of right hand",
+   "zone": "m_interossei",
+   "kind": "muscle",
+   "files": [
+    "FJ1509"
+   ],
+   "posOffset": 1020864,
+   "vCount": 1504,
+   "idxOffset": 1029888,
+   "iCount": 7632,
+   "wide": false,
+   "c": [
+    -10.57,
+    -28.13,
+    2.06
+   ]
+  },
+  {
+   "key": "set of palmar interossei of right hand",
+   "zone": "m_interossei",
+   "kind": "muscle",
+   "files": [
+    "FJ1511"
+   ],
+   "posOffset": 1045152,
+   "vCount": 530,
+   "idxOffset": 1048332,
+   "iCount": 2886,
+   "wide": false,
+   "c": [
+    -9.91,
+    -28.39,
+    2.87
+   ]
+  },
+  {
+   "key": "right supraspinatus",
+   "zone": "m_rotator",
+   "kind": "muscle",
+   "files": [
+    "FJ1506"
+   ],
+   "posOffset": 1054104,
+   "vCount": 444,
+   "idxOffset": 1056768,
+   "iCount": 2628,
+   "wide": false,
+   "c": [
+    2.33,
+    29.68,
+    -5.14
+   ]
+  },
+  {
+   "key": "right infraspinatus muscle",
+   "zone": "m_rotator",
+   "kind": "muscle",
+   "files": [
+    "FJ1500"
+   ],
+   "posOffset": 1062024,
+   "vCount": 435,
+   "idxOffset": 1064636,
+   "iCount": 2598,
+   "wide": false,
+   "c": [
+    2.98,
+    26.37,
+    -7.04
+   ]
+  },
+  {
+   "key": "right rhomboid major",
+   "zone": "m_rhomboid",
+   "kind": "muscle",
+   "files": [
+    "FJ1536"
+   ],
+   "posOffset": 1069832,
+   "vCount": 3611,
+   "idxOffset": 1091500,
+   "iCount": 21606,
+   "wide": false,
+   "c": [
+    12.69,
+    25.71,
+    -10.19
+   ]
+  },
+  {
+   "key": "right rhomboid minor",
+   "zone": "m_rhomboid",
+   "kind": "muscle",
+   "files": [
+    "FJ1537"
+   ],
+   "posOffset": 1134712,
+   "vCount": 1107,
+   "idxOffset": 1141356,
+   "iCount": 6618,
+   "wide": false,
+   "c": [
+    12.95,
+    30.83,
+    -9.07
+   ]
+  },
+  {
+   "key": "right teres major",
+   "zone": "m_teres_major",
+   "kind": "muscle",
+   "files": [
+    "FJ1507"
+   ],
+   "posOffset": 1154592,
+   "vCount": 545,
+   "idxOffset": 1157864,
+   "iCount": 3126,
+   "wide": false,
+   "c": [
+    2.46,
+    21.05,
+    -6.53
+   ]
+  },
+  {
+   "key": "right subscapularis",
+   "zone": "m_teres_major",
+   "kind": "muscle",
+   "files": [
+    "FJ1504"
+   ],
+   "posOffset": 1164116,
+   "vCount": 987,
+   "idxOffset": 1170040,
+   "iCount": 6258,
+   "wide": false,
+   "c": [
+    5.92,
+    24.48,
+    -6.79
+   ]
+  },
+  {
+   "key": "long head of right triceps brachii",
+   "zone": "m_triceps",
+   "kind": "muscle",
+   "files": [
+    "FJ1479"
+   ],
+   "posOffset": 1182556,
+   "vCount": 798,
+   "idxOffset": 1187344,
+   "iCount": 4764,
+   "wide": false,
+   "c": [
+    -2.13,
+    13.03,
+    -6.32
+   ]
+  },
+  {
+   "key": "lateral head of right triceps brachii",
+   "zone": "m_triceps",
+   "kind": "muscle",
+   "files": [
+    "FJ1477"
+   ],
+   "posOffset": 1196872,
+   "vCount": 1309,
+   "idxOffset": 1204728,
+   "iCount": 7818,
+   "wide": false,
+   "c": [
+    -4.66,
+    12.54,
+    -6.22
+   ]
+  },
+  {
+   "key": "medial head of right triceps brachii",
+   "zone": "m_triceps",
+   "kind": "muscle",
+   "files": [
+    "FJ1480"
+   ],
+   "posOffset": 1220364,
+   "vCount": 420,
+   "idxOffset": 1222884,
+   "iCount": 2496,
+   "wide": false,
+   "c": [
+    -3.49,
+    7.25,
+    -5.09
+   ]
+  },
+  {
+   "key": "right anconeus",
+   "zone": "m_anconeus",
+   "kind": "muscle",
+   "files": [
+    "FJ1485"
+   ],
+   "posOffset": 1227876,
+   "vCount": 641,
+   "idxOffset": 1231724,
+   "iCount": 3834,
+   "wide": false,
+   "c": [
+    -5.96,
+    -1.34,
+    -5.54
+   ]
+  },
+  {
+   "key": "right brachioradialis",
+   "zone": "m_brachiorad",
+   "kind": "muscle",
+   "files": [
+    "FJ1487"
+   ],
+   "posOffset": 1239392,
+   "vCount": 2438,
+   "idxOffset": 1254020,
+   "iCount": 14616,
+   "wide": false,
+   "c": [
+    -9.13,
+    -4.18,
+    -1.66
+   ]
+  },
+  {
+   "key": "right extensor carpi radialis longus",
+   "zone": "m_brachiorad",
+   "kind": "muscle",
+   "files": [
+    "FJ1490"
+   ],
+   "posOffset": 1283252,
+   "vCount": 1251,
+   "idxOffset": 1290760,
+   "iCount": 7422,
+   "wide": false,
+   "c": [
+    -9.59,
+    -6.29,
+    -2.8
+   ]
+  },
+  {
+   "key": "right supinator",
+   "zone": "m_supinator",
+   "kind": "muscle",
+   "files": [
+    "FJ1505"
+   ],
+   "posOffset": 1305604,
+   "vCount": 1565,
+   "idxOffset": 1314996,
+   "iCount": 9330,
+   "wide": false,
+   "c": [
+    -8.04,
+    -3.66,
+    -3.16
+   ]
+  },
+  {
+   "key": "right extensor digitorum",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1492"
+   ],
+   "posOffset": 1333656,
+   "vCount": 2131,
+   "idxOffset": 1346444,
+   "iCount": 12882,
+   "wide": false,
+   "c": [
+    -9.4,
+    -22.1,
+    0.21
+   ]
+  },
+  {
+   "key": "right extensor indicis",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1493"
+   ],
+   "posOffset": 1372208,
+   "vCount": 370,
+   "idxOffset": 1374428,
+   "iCount": 2160,
+   "wide": false,
+   "c": [
+    -10.01,
+    -23.51,
+    1.07
+   ]
+  },
+  {
+   "key": "right extensor digiti minimi",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1491"
+   ],
+   "posOffset": 1378748,
+   "vCount": 723,
+   "idxOffset": 1383088,
+   "iCount": 4302,
+   "wide": false,
+   "c": [
+    -7.69,
+    -14.76,
+    -1.76
+   ]
+  },
+  {
+   "key": "right extensor carpi ulnaris",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1472",
+    "FJ1517"
+   ],
+   "posOffset": 1391692,
+   "vCount": 1664,
+   "idxOffset": 1401676,
+   "iCount": 9492,
+   "wide": false,
+   "c": [
+    -7,
+    -13.96,
+    -1.91
+   ]
+  },
+  {
+   "key": "right extensor pollicis longus",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1495"
+   ],
+   "posOffset": 1420660,
+   "vCount": 659,
+   "idxOffset": 1424616,
+   "iCount": 3978,
+   "wide": false,
+   "c": [
+    -10.72,
+    -20.42,
+    0.82
+   ]
+  },
+  {
+   "key": "right extensor pollicis brevis",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1494"
+   ],
+   "posOffset": 1432572,
+   "vCount": 501,
+   "idxOffset": 1435580,
+   "iCount": 2994,
+   "wide": false,
+   "c": [
+    -10.81,
+    -19.76,
+    0.38
+   ]
+  },
+  {
+   "key": "right abductor pollicis longus",
+   "zone": "m_ext_digits",
+   "kind": "muscle",
+   "files": [
+    "FJ1484"
+   ],
+   "posOffset": 1441568,
+   "vCount": 935,
+   "idxOffset": 1447180,
+   "iCount": 5622,
+   "wide": false,
+   "c": [
+    -9.42,
+    -14.66,
+    -1.38
+   ]
+  },
+  {
+   "key": "lumbrical 1 of right hand",
+   "zone": "m_lumb_lat",
+   "kind": "muscle",
+   "files": [
+    "FJ1510"
+   ],
+   "posOffset": 1458424,
+   "vCount": 263,
+   "idxOffset": 1460004,
+   "iCount": 1590,
+   "wide": false,
+   "c": [
+    -12.58,
+    -28.89,
+    3.03
+   ]
+  },
+  {
+   "key": "lumbrical 2 of right hand",
+   "zone": "m_lumb_lat",
+   "kind": "muscle",
+   "files": [
+    "FJ1510"
+   ],
+   "posOffset": 1463184,
+   "vCount": 452,
+   "idxOffset": 1465896,
+   "iCount": 2388,
+   "wide": false,
+   "c": [
+    -11.77,
+    -30.9,
+    3.55
+   ]
+  },
+  {
+   "key": "lumbrical 3 of right hand",
+   "zone": "m_lumb_med",
+   "kind": "muscle",
+   "files": [
+    "FJ1510"
+   ],
+   "posOffset": 1470672,
+   "vCount": 329,
+   "idxOffset": 1472648,
+   "iCount": 2010,
+   "wide": false,
+   "c": [
+    -9.14,
+    -29.05,
+    3.05
+   ]
+  },
+  {
+   "key": "lumbrical 4 of right hand",
+   "zone": "m_lumb_med",
+   "kind": "muscle",
+   "files": [
+    "FJ1510"
+   ],
+   "posOffset": 1476668,
+   "vCount": 328,
+   "idxOffset": 1478636,
+   "iCount": 2004,
+   "wide": false,
+   "c": [
+    -7.58,
+    -28.66,
+    3.47
+   ]
+  },
+  {
+   "key": "right flexor digitorum profundus",
+   "zone": null,
+   "kind": "bg",
+   "files": [
+    "FJ1497"
+   ],
+   "posOffset": 1482644,
+   "vCount": 2425,
+   "idxOffset": 1497196,
+   "iCount": 14514,
+   "wide": false,
+   "c": [
+    -8.61,
+    -20.82,
+    1.78
+   ]
+  },
+  {
+   "key": "right extensor carpi radialis brevis",
+   "zone": null,
+   "kind": "bg",
+   "files": [
+    "FJ1489"
+   ],
+   "posOffset": 1526224,
+   "vCount": 1054,
+   "idxOffset": 1532548,
+   "iCount": 6288,
+   "wide": false,
+   "c": [
+    -9.41,
+    -9.99,
+    -2.68
+   ]
+  },
+  {
+   "key": "right clavicle",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3362"
+   ],
+   "posOffset": 1545124,
+   "vCount": 575,
+   "idxOffset": 1548576,
+   "iCount": 3438,
+   "wide": false,
+   "c": [
+    8.05,
+    30.78,
+    -0.54
+   ]
+  },
+  {
+   "key": "right scapula",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3384"
+   ],
+   "posOffset": 1555452,
+   "vCount": 13088,
+   "idxOffset": 1633980,
+   "iCount": 78516,
+   "wide": false,
+   "c": [
+    4.03,
+    27.44,
+    -6.08
+   ]
+  },
+  {
+   "key": "right humerus",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3368"
+   ],
+   "posOffset": 1791012,
+   "vCount": 1894,
+   "idxOffset": 1802376,
+   "iCount": 11352,
+   "wide": false,
+   "c": [
+    -2.88,
+    15.74,
+    -3.35
+   ]
+  },
+  {
+   "key": "right radius",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3349"
+   ],
+   "posOffset": 1825080,
+   "vCount": 338,
+   "idxOffset": 1827108,
+   "iCount": 2016,
+   "wide": false,
+   "c": [
+    -9.08,
+    -12.44,
+    -0.96
+   ]
+  },
+  {
+   "key": "right ulna",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3391"
+   ],
+   "posOffset": 1831140,
+   "vCount": 419,
+   "idxOffset": 1833656,
+   "iCount": 2502,
+   "wide": false,
+   "c": [
+    -5.98,
+    -5.85,
+    -2.81
+   ]
+  },
+  {
+   "key": "right scaphoid",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3383"
+   ],
+   "posOffset": 1838660,
+   "vCount": 163,
+   "idxOffset": 1839640,
+   "iCount": 966,
+   "wide": false,
+   "c": [
+    -10.43,
+    -22.3,
+    1.24
+   ]
+  },
+  {
+   "key": "right lunate",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3374"
+   ],
+   "posOffset": 1841572,
+   "vCount": 168,
+   "idxOffset": 1842580,
+   "iCount": 996,
+   "wide": false,
+   "c": [
+    -8.55,
+    -22.52,
+    1.13
+   ]
+  },
+  {
+   "key": "right triquetral",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3390"
+   ],
+   "posOffset": 1844572,
+   "vCount": 87,
+   "idxOffset": 1845096,
+   "iCount": 510,
+   "wide": false,
+   "c": [
+    -7.88,
+    -23.28,
+    1.48
+   ]
+  },
+  {
+   "key": "right pisiform",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3382"
+   ],
+   "posOffset": 1846116,
+   "vCount": 97,
+   "idxOffset": 1846700,
+   "iCount": 570,
+   "wide": false,
+   "c": [
+    -7.72,
+    -23.36,
+    2.7
+   ]
+  },
+  {
+   "key": "right trapezium",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3388"
+   ],
+   "posOffset": 1847840,
+   "vCount": 219,
+   "idxOffset": 1849156,
+   "iCount": 1302,
+   "wide": false,
+   "c": [
+    -11.31,
+    -23.12,
+    2.17
+   ]
+  },
+  {
+   "key": "right trapezoid",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3389"
+   ],
+   "posOffset": 1851760,
+   "vCount": 182,
+   "idxOffset": 1852852,
+   "iCount": 1080,
+   "wide": false,
+   "c": [
+    -10.73,
+    -23.9,
+    1.39
+   ]
+  },
+  {
+   "key": "right capitate",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3361"
+   ],
+   "posOffset": 1855012,
+   "vCount": 216,
+   "idxOffset": 1856308,
+   "iCount": 1284,
+   "wide": false,
+   "c": [
+    -9.7,
+    -23.42,
+    1.31
+   ]
+  },
+  {
+   "key": "right hamate",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3367"
+   ],
+   "posOffset": 1858876,
+   "vCount": 263,
+   "idxOffset": 1860456,
+   "iCount": 1566,
+   "wide": false,
+   "c": [
+    -8.62,
+    -23.89,
+    1.47
+   ]
+  },
+  {
+   "key": "right first metacarpal bone",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3350"
+   ],
+   "posOffset": 1863588,
+   "vCount": 285,
+   "idxOffset": 1865300,
+   "iCount": 1698,
+   "wide": false,
+   "c": [
+    -13.46,
+    -25.35,
+    3.45
+   ]
+  },
+  {
+   "key": "right second metacarpal bone",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3352"
+   ],
+   "posOffset": 1868696,
+   "vCount": 376,
+   "idxOffset": 1870952,
+   "iCount": 2244,
+   "wide": false,
+   "c": [
+    -11.76,
+    -27.4,
+    2.42
+   ]
+  },
+  {
+   "key": "right third metacarpal bone",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3354"
+   ],
+   "posOffset": 1875440,
+   "vCount": 353,
+   "idxOffset": 1877560,
+   "iCount": 2106,
+   "wide": false,
+   "c": [
+    -10.23,
+    -27.15,
+    1.97
+   ]
+  },
+  {
+   "key": "right fourth metacarpal bone",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3356"
+   ],
+   "posOffset": 1881772,
+   "vCount": 270,
+   "idxOffset": 1883392,
+   "iCount": 1608,
+   "wide": false,
+   "c": [
+    -8.94,
+    -27.05,
+    2.03
+   ]
+  },
+  {
+   "key": "right fifth metacarpal bone",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3358"
+   ],
+   "posOffset": 1886608,
+   "vCount": 255,
+   "idxOffset": 1888140,
+   "iCount": 1518,
+   "wide": false,
+   "c": [
+    -7.63,
+    -26.87,
+    2.56
+   ]
+  },
+  {
+   "key": "proximal phalanx of right thumb",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3327"
+   ],
+   "posOffset": 1891176,
+   "vCount": 163,
+   "idxOffset": 1892156,
+   "iCount": 954,
+   "wide": false,
+   "c": [
+    -15.01,
+    -27.66,
+    4.73
+   ]
+  },
+  {
+   "key": "distal phalanx of right thumb",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3198"
+   ],
+   "posOffset": 1894064,
+   "vCount": 122,
+   "idxOffset": 1894796,
+   "iCount": 720,
+   "wide": false,
+   "c": [
+    -15.73,
+    -29.6,
+    5.86
+   ]
+  },
+  {
+   "key": "proximal phalanx of right index finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3322"
+   ],
+   "posOffset": 1896236,
+   "vCount": 195,
+   "idxOffset": 1897408,
+   "iCount": 1158,
+   "wide": false,
+   "c": [
+    -13.42,
+    -32.31,
+    3.96
+   ]
+  },
+  {
+   "key": "middle phalanx of right index finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3303"
+   ],
+   "posOffset": 1899724,
+   "vCount": 134,
+   "idxOffset": 1900528,
+   "iCount": 792,
+   "wide": false,
+   "c": [
+    -14.38,
+    -34.82,
+    5.7
+   ]
+  },
+  {
+   "key": "distal phalanx of right index finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3193"
+   ],
+   "posOffset": 1902112,
+   "vCount": 107,
+   "idxOffset": 1902756,
+   "iCount": 630,
+   "wide": false,
+   "c": [
+    -14.75,
+    -35.87,
+    7.1
+   ]
+  },
+  {
+   "key": "proximal phalanx of right middle finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3325"
+   ],
+   "posOffset": 1904016,
+   "vCount": 231,
+   "idxOffset": 1905404,
+   "iCount": 1374,
+   "wide": false,
+   "c": [
+    -11.06,
+    -32.43,
+    4.4
+   ]
+  },
+  {
+   "key": "middle phalanx of right middle finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3306"
+   ],
+   "posOffset": 1908152,
+   "vCount": 173,
+   "idxOffset": 1909192,
+   "iCount": 1026,
+   "wide": false,
+   "c": [
+    -11.42,
+    -35.06,
+    6.19
+   ]
+  },
+  {
+   "key": "distal phalanx of right middle finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3196"
+   ],
+   "posOffset": 1911244,
+   "vCount": 89,
+   "idxOffset": 1911780,
+   "iCount": 522,
+   "wide": false,
+   "c": [
+    -11.73,
+    -36.79,
+    8.01
+   ]
+  },
+  {
+   "key": "proximal phalanx of right ring finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3326"
+   ],
+   "posOffset": 1912824,
+   "vCount": 190,
+   "idxOffset": 1913964,
+   "iCount": 1128,
+   "wide": false,
+   "c": [
+    -8.88,
+    -31.91,
+    4.31
+   ]
+  },
+  {
+   "key": "middle phalanx of right ring finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3292"
+   ],
+   "posOffset": 1916220,
+   "vCount": 160,
+   "idxOffset": 1917180,
+   "iCount": 948,
+   "wide": false,
+   "c": [
+    -8.98,
+    -34.87,
+    6.48
+   ]
+  },
+  {
+   "key": "distal phalanx of right ring finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3197"
+   ],
+   "posOffset": 1919076,
+   "vCount": 58,
+   "idxOffset": 1919424,
+   "iCount": 336,
+   "wide": false,
+   "c": [
+    -9.05,
+    -35.9,
+    8
+   ]
+  },
+  {
+   "key": "proximal phalanx of right little finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3323"
+   ],
+   "posOffset": 1920096,
+   "vCount": 159,
+   "idxOffset": 1921052,
+   "iCount": 942,
+   "wide": false,
+   "c": [
+    -6.84,
+    -30.84,
+    4.28
+   ]
+  },
+  {
+   "key": "middle phalanx of right little finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3304"
+   ],
+   "posOffset": 1922936,
+   "vCount": 106,
+   "idxOffset": 1923572,
+   "iCount": 624,
+   "wide": false,
+   "c": [
+    -6.47,
+    -33.04,
+    5.69
+   ]
+  },
+  {
+   "key": "distal phalanx of right little finger",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "FJ3194"
+   ],
+   "posOffset": 1924820,
+   "vCount": 98,
+   "idxOffset": 1925408,
+   "iCount": 564,
+   "wide": false,
+   "c": [
+    -6.36,
+    -34.5,
+    6.88
+   ]
+  },
+  {
+   "key": "right first rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3334"
+   ],
+   "posOffset": 1926536,
+   "vCount": 1640,
+   "idxOffset": 1936376,
+   "iCount": 9828,
+   "wide": false,
+   "c": [
+    11.69,
+    31.73,
+    -1.68
+   ]
+  },
+  {
+   "key": "right second rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3336"
+   ],
+   "posOffset": 1956032,
+   "vCount": 2799,
+   "idxOffset": 1972828,
+   "iCount": 16782,
+   "wide": false,
+   "c": [
+    10.45,
+    29.91,
+    -1.59
+   ]
+  },
+  {
+   "key": "right third rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3338"
+   ],
+   "posOffset": 2006392,
+   "vCount": 3629,
+   "idxOffset": 2028168,
+   "iCount": 21762,
+   "wide": false,
+   "c": [
+    9.89,
+    27.43,
+    -2.04
+   ]
+  },
+  {
+   "key": "right fourth rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3340"
+   ],
+   "posOffset": 2071692,
+   "vCount": 4418,
+   "idxOffset": 2098200,
+   "iCount": 26496,
+   "wide": false,
+   "c": [
+    8.87,
+    24.43,
+    -1.96
+   ]
+  },
+  {
+   "key": "right fifth rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3342"
+   ],
+   "posOffset": 2151192,
+   "vCount": 4857,
+   "idxOffset": 2180336,
+   "iCount": 29130,
+   "wide": false,
+   "c": [
+    8.38,
+    21.78,
+    -3.26
+   ]
+  },
+  {
+   "key": "right sixth rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3344"
+   ],
+   "posOffset": 2238596,
+   "vCount": 5125,
+   "idxOffset": 2269348,
+   "iCount": 30738,
+   "wide": false,
+   "c": [
+    7.56,
+    18.31,
+    -3.43
+   ]
+  },
+  {
+   "key": "right seventh rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3346"
+   ],
+   "posOffset": 2330824,
+   "vCount": 5018,
+   "idxOffset": 2360932,
+   "iCount": 30096,
+   "wide": false,
+   "c": [
+    7.73,
+    15.64,
+    -4.32
+   ]
+  },
+  {
+   "key": "right eighth rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3347"
+   ],
+   "posOffset": 2421124,
+   "vCount": 4170,
+   "idxOffset": 2446144,
+   "iCount": 25008,
+   "wide": false,
+   "c": [
+    7.97,
+    12.55,
+    -4.67
+   ]
+  },
+  {
+   "key": "right ninth rib",
+   "zone": null,
+   "kind": "rib",
+   "files": [
+    "FJ3348"
+   ],
+   "posOffset": 2496160,
+   "vCount": 3790,
+   "idxOffset": 2518900,
+   "iCount": 22728,
+   "wide": false,
+   "c": [
+    8.42,
+    10.06,
+    -5.74
+   ]
+  }
+ ]
+}

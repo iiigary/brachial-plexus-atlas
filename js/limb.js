@@ -5,12 +5,73 @@ import { nodeMap } from './data/nodes.js';
 import { state } from './state.js';
 import { createSvgEl } from './plexus2d.js';
 import { onZoneClick, onChipClick, zonePicking, lesionDigest } from './app.js';
+import * as limb3d from './limb3d.js';
 
 const limbSvg = document.getElementById('limbSvg');
 const summary = document.getElementById('limbSummary');
 const caption = document.getElementById('limbCaption');
+const l3Box = document.getElementById('limb3d');
+const l3Extra = document.getElementById('limb3dExtra');
+
+// 「肌肉」页优先用真实网格。网格异步加载；加载完成前和失败时都显示 SVG 示意图。
+// SVG 在肌肉页照常生成（只是隐藏），它的分区类名就是 3D 的状态来源。
+let l3State = 'loading', lastCtx = null, l3Hover = null;
+const use3d = () => state.limbMode === 'motor' && l3State === 'ok';
+limb3d.init(l3Box, {
+  onZoneClick: id => onZoneClick(id),
+  onHover: id => {
+    if (l3Hover) linkChip(l3Hover, false);
+    l3Hover = id;
+    if (id) linkChip(id, true);
+  },
+}).then(ok => {
+  l3State = ok ? 'ok' : 'off';
+  renderLimbSVG();
+  applyLimbHighlights(lastCtx);
+});
+
+// 没有网格的肌肉（背阔肌）：在 3D 图下方放文字按钮，状态类与 SVG 分区相同
+function renderExtras() {
+  l3Extra.innerHTML = '';
+  if (!use3d()) return;
+  LIMB_ZONES.motor.filter(z => !limb3d.has(z.id) && z.v === 'p').forEach(z => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mini-chip';
+    b.dataset.zone = z.id;
+    b.textContent = PlexusModel.target(z.id).name;
+    b.title = '这块肌肉没有三维模型 · 点击溯源';
+    b.addEventListener('click', () => onZoneClick(z.id));
+    b.addEventListener('mouseenter', () => linkChip(z.id, true));
+    b.addEventListener('mouseleave', () => linkChip(z.id, false));
+    l3Extra.appendChild(b);
+  });
+}
+
+function sync3d() {
+  const on = use3d();
+  limbSvg.classList.toggle('is-hidden', on);
+  l3Extra.classList.toggle('is-hidden', on ? !l3Extra.childElementCount : true);
+  limb3d.setVisible(on);
+  if (!on) return;
+  const classes = new Map();
+  limbSvg.querySelectorAll('.zone-shape[data-zone]').forEach(el => {
+    const id = el.getAttribute('data-zone');
+    classes.set(id, [...(classes.get(id) || []), ...el.classList]);
+  });
+  limb3d.setZoneStates(classes);
+  l3Extra.querySelectorAll('[data-zone]').forEach(b => {
+    b.className = 'mini-chip ' + (classes.get(b.dataset.zone) || []).filter(c => c !== 'zone-shape').join(' ');
+  });
+}
 
 export function renderLimbSVG() {
+  renderSvg();
+  renderExtras();
+  sync3d();
+}
+
+function renderSvg() {
   limbSvg.innerHTML = '';
 
   const defs = createSvgEl('defs');
@@ -78,11 +139,16 @@ export function renderLimbSVG() {
 const NERVE = id => nodeMap[id].label;
 const SEG = roots => roots.map(r => r.toUpperCase()).join('、');
 const fiberText = f => `${NERVE(f.nerve)} ${SEG(f.roots)}${f.part ? `（${f.part}）` : ''}`;
-const linkZone = (id, on) => limbSvg.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
+const linkZone = (id, on) => {
+  limbSvg.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
+  l3Extra.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
+  if (use3d()) limb3d.link(id, on);
+};
 const linkChip = (id, on) => summary.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
 
 // 在图上闪一下某个分区（摘要 → 图的定位，不改变当前状态）
 function flashZone(id) {
+  if (use3d()) limb3d.flash(id);
   limbSvg.querySelectorAll(`.zone-shape[data-zone="${id}"]`).forEach(el => {
     el.classList.remove('flash');
     void el.getBoundingClientRect();
@@ -126,6 +192,12 @@ const KIND_WORD = { motor: '肌肉', cutaneous: '皮区', dermatome: '皮节' };
 
 // ctx 来自 app.getActiveNodeContext()。图上的状态和下方摘要用同一份数据生成，避免两处说法不一致。
 export function applyLimbHighlights(ctx) {
+  lastCtx = ctx;
+  highlight(ctx);
+  sync3d();
+}
+
+function highlight(ctx) {
   const zoneEls = limbSvg.querySelectorAll('.zone-shape');
   const labelEls = limbSvg.querySelectorAll('.zone-label, .zone-leader, .zone-leader-dot');
   const inMode = id => PlexusModel.target(id).kind === state.limbMode;

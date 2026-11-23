@@ -1,0 +1,50 @@
+/* 右上肢「肌肉」页的真实网格视图（js/limb3d.js） */
+.limb3d { position: relative; width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+.limb3d.is-hidden { display: none; }
+.l3-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+.l3-labels { position: absolute; inset: 0; pointer-events: none; }
+.l3-label {
+  position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap;
+  padding: 1px 6px; border-radius: 4px; font-size: var(--fs-caption); line-height: 1.5;
+  color: var(--text); background: color-mix(in srgb, var(--surface) 86%, transparent);
+  border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+.l3-label.active-motor, .l3-label.picked { color: var(--muscle-active); border-color: currentColor; }
+.l3-label.active-part { color: var(--muscle-active); border-style: dashed; }
+.l3-label.active-lesion, .l3-label.quiz-missed { color: var(--lesion-color); border-color: currentColor; }
+.l3-label.active-lesion-partial { color: var(--lesion-color); border-style: dashed; }
+.l3-label.quiz-ok, .l3-label.spared { color: var(--keep-color); border-color: currentColor; }
+.l3-label.quiz-extra { color: var(--muted); border-style: dashed; }
+.l3-label.hot { font-weight: 600; z-index: 1; }
+
+.l3-tools { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; padding: 2px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.l3-view { min-width: 30px; padding: 3px 8px; border: 0; border-radius: 6px; background: none;
+  color: var(--muted); font: inherit; font-size: var(--fs-caption); cursor: pointer; }
+.l3-view:hover { color: var(--text); }
+.l3-view.active { background: var(--accent-soft); color: var(--accent); }
+.l3-view:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+svg#limbSvg.is-hidden { display: none; }
+
+/* 没有网格的靶区（背阔肌）：放在图下方的文字按钮，状态类与 SVG 分区相同 */
+.l3-extra { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; flex-wrap: wrap; z-index: 2; }
+.l3-extra.is-hidden { display: none; }
+.l3-extra .mini-chip { background: var(--surface); }
+.l3-extra .mini-chip::after { content: '（无模型）'; margin-left: 2px; color: var(--muted); font-size: var(--fs-micro); }
+.l3-extra .mini-chip.active-motor, .l3-extra .mini-chip.picked { color: var(--muscle-active); border-color: currentColor; background: var(--accent-soft); }
+.l3-extra .mini-chip.active-part { color: var(--muscle-active); border-style: dashed; }
+.l3-extra .mini-chip.active-lesion, .l3-extra .mini-chip.quiz-missed { color: var(--lesion-color); border-color: currentColor; }
+.l3-extra .mini-chip.active-lesion-partial { color: var(--lesion-color); border-style: dashed; }
+.l3-extra .mini-chip.spared, .l3-extra .mini-chip.quiz-ok { color: var(--keep-color); border-color: currentColor; }
+.l3-extra .mini-chip.quiz-extra { color: var(--muted); border-style: dashed; }
+
+@media screen and (max-width: 860px) {
+  .limb-svg-box .limb3d { height: min(70vh, 560px); }
+}
+/* 打印时 WebGL 画面可能是空白，改印示意图 */
+@media print {
+  .limb3d, .l3-extra { display: none !important; }
+  svg#limbSvg.is-hidden { display: block; }
+}

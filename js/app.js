@@ -12,6 +12,7 @@ import { store } from './store.js';
 import { renderPlexusSVG, applyPlexusHighlights, introPlexus } from './plexus2d.js';
 import { riseIn } from './motion.js';
 import { renderLimbSVG, applyLimbHighlights } from './limb.js';
+import * as limb3d from './limb3d.js';
 import * as view3d from './view3d.js';
 import { initSearch } from './search.js';
 
@@ -703,6 +704,7 @@ function setTheme(dark) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   $('themeLabel').textContent = dark ? '浅色主题' : '深色主题';
   view3d.setTheme(dark);
+  limb3d.setTheme();
   store.setPref('theme', dark ? 'dark' : 'light');
 }
 

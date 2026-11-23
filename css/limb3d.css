@@ -32,7 +32,6 @@ svg#limbSvg.is-hidden { display: none; }
 .l3-extra { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; flex-wrap: wrap; z-index: 2; }
 .l3-extra.is-hidden { display: none; }
 .l3-extra .mini-chip { background: var(--surface); }
-.l3-extra .mini-chip::after { content: '（无模型）'; margin-left: 2px; color: var(--muted); font-size: var(--fs-micro); }
 .l3-extra .mini-chip.active-motor, .l3-extra .mini-chip.picked { color: var(--muscle-active); border-color: currentColor; background: var(--accent-soft); }
 .l3-extra .mini-chip.active-part { color: var(--muscle-active); border-style: dashed; }
 .l3-extra .mini-chip.active-lesion, .l3-extra .mini-chip.quiz-missed { color: var(--lesion-color); border-color: currentColor; }

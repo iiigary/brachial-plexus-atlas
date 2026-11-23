@@ -4,3 +4,5 @@ __pycache__/
 .claude/settings.local.json
 # BodyParts3D 原始数据包（136 MB），只用于 tools/build-limb-meshes.mjs 重新生成网格
 raw/
+# tools/make-usb.sh 生成的离线文件夹
+臂丛神经图谱-U盘版/

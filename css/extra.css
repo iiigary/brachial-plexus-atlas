@@ -4,7 +4,7 @@
 .search { position: relative; flex: 1 1 260px; max-width: 420px; min-width: 200px; }
 .search input {
   width: 100%; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
-  background: var(--surface-2); color: var(--text); font-size: 13px; outline: none;
+  background: var(--surface-2); color: var(--text); font-size: var(--fs-body); outline: none;
 }
 .search input:focus { border-color: var(--accent); background: var(--surface); }
 .search-results {
@@ -18,16 +18,16 @@
 }
 .search-item.active, .search-item:hover { background: var(--accent-soft); }
 .search-tag {
-  grid-row: span 2; align-self: center; font-size: 10.5px; font-weight: 700; color: var(--accent);
+  grid-row: span 2; align-self: center; font-size: var(--fs-caption); font-weight: 600; color: var(--accent);
   background: var(--accent-soft); border-radius: 5px; padding: 2px 6px; white-space: nowrap;
 }
-.search-label { font-size: 13px; font-weight: 600; }
-.search-sub { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.search-empty { padding: 10px; font-size: 12px; color: var(--muted); }
+.search-label { font-size: var(--fs-body); font-weight: 600; line-height: var(--lh-tight); }
+.search-sub { font-size: var(--fs-caption); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-empty { padding: 10px; font-size: var(--fs-label); color: var(--muted); text-align: center; }
 
 /* ---------- 自由切断 ---------- */
 .cut-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
-.cut-hint { font-size: 12px; color: var(--muted); }
+.cut-hint { font-size: var(--fs-label); color: var(--muted); }
 .cut-mark { display: none; pointer-events: none; }
 .cut-mark circle { fill: var(--lesion-color); }
 .cut-mark text { font-size: 9px; fill: #fff; }
@@ -38,7 +38,7 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 
 /* ---------- 自测 ---------- */
 .quiz-deck { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
-.quiz-stats { font-size: 11px; color: var(--muted); }
+.quiz-stats { font-size: var(--fs-caption); color: var(--muted); }
 .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .quiz-options:empty { display: none; }
 .quiz-option { justify-content: center; text-align: center; white-space: normal; line-height: 1.35; }
@@ -48,15 +48,13 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 .quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
 .quiz-actions .btn { flex: 1; justify-content: center; }
 .quiz-actions .btn-quiet { flex: 0 0 auto; }
-.quiz-feedback { line-height: 1.5; }
 
-/* ---------- 临床卡片 ---------- */
-.clinical-card { flex-grow: 1.2; }
-.clinical-card dl { display: grid; grid-template-columns: 1fr; gap: 2px; font-size: 12.4px; line-height: 1.5; }
-.clinical-card dt { color: var(--muted); font-weight: 600; font-size: 11px; margin-top: 6px; }
-.clinical-card dt:first-child { margin-top: 0; }
-.clinical-card dd { display: flex; flex-wrap: wrap; gap: 3px 4px; }
-.clinical-card dd span { background: var(--surface-2); border-radius: 3px; padding: 1px 6px; }
+/* ---------- 临床卡片：左列小标题，右列标签，横向铺开 ---------- */
+.clinical-card { flex-grow: 2.6; }
+.clinical-card dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; font-size: var(--fs-label); line-height: var(--lh-base); }
+.clinical-card dt { color: var(--muted); font-weight: 600; font-size: var(--fs-caption); letter-spacing: var(--ls-caps); padding-top: 2px; white-space: nowrap; }
+.clinical-card dd { display: flex; flex-wrap: wrap; gap: 3px 5px; }
+.clinical-card dd span { background: var(--surface-2); border-radius: 3px; padding: 1px 7px; }
 
 /* ---------- 3D：浅色舞台（深色主题下自动换回深色） ---------- */
 .viewport3d {
@@ -102,7 +100,6 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
   backdrop-filter: blur(14px) saturate(1.5);
 }
 .hud-group { background: color-mix(in srgb, var(--hud-bg) 72%, transparent); border-color: var(--hud-border); box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06); }
-.hud-label { color: var(--hud-muted); }
 .hud-pill { border-color: var(--hud-border); background: var(--pill-bg); color: var(--hud-text); }
 .hud-pill:hover { border-color: var(--pill-active); }
 .hud-pill.active { background: var(--pill-active); border-color: var(--pill-active); color: var(--pill-active-text); }
@@ -111,7 +108,7 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 .labels3d { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .label3d {
   position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; visibility: hidden;
-  font-size: 11px; font-weight: 600; color: var(--label-text);
+  font-size: var(--fs-caption); font-weight: 600; line-height: var(--lh-base); color: var(--label-text);
   background: var(--label-bg); border: 1px solid var(--label-border); border-radius: 4px; padding: 0 6px;
 }
 .label3d.focal { color: var(--label-focal); font-weight: 700; box-shadow: 0 0 0 1.5px var(--label-focal-ring); }
@@ -119,15 +116,14 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 .label3d.ctx { background: transparent; border-color: transparent; color: var(--label-ctx); font-weight: 500; }
 .label3d.ctx.artery { color: var(--label-artery); }
 .hud-fallback {
-  position: absolute; inset: 0; display: grid; place-items: center; color: var(--hud-text); font-size: 14px;
-  background: var(--hud-bg);
+  position: absolute; inset: 0; display: grid; place-items: center; color: var(--hud-text); font-size: var(--fs-title);
+  background: var(--hud-bg); text-align: center;
 }
-body.present .label3d { font-size: 13px; }
 
 /* ---------- 署名 ---------- */
 .credits {
-  margin-top: auto; padding-top: 4px;
-  font-size: 10.5px; line-height: 1.5; color: var(--muted); opacity: 0.75;
+  margin-top: auto; padding-top: 6px; text-align: center;
+  font-size: var(--fs-micro); line-height: var(--lh-base); color: var(--muted);
 }
 .credits a { color: inherit; }
 

@@ -43,7 +43,7 @@ export const LIMB_ZONES = {
     { id: 'm_rotator', d: 'M 184 70 L 122 60 L 108 64 L 104 96 L 114 97 L 182 136 Z', v: 'p', t: '冈上/冈下肌', lab: [146, 90, 'middle'] },
     { id: 'm_rhomboid', d: 'M 212 62 L 186 80 L 186 124 L 212 104 Z', v: 'p', t: '菱形肌', lab: [199, 97, 'middle'] },
     { id: 'm_teres_major', d: 'M 183 139 L 116 100 L 120 118 L 177 157 Z', v: 'p', t: '大圆肌', lab: [149, 132, 'middle'], rot: 31 },
-    { id: 'm_latissimus', d: 'M 212 122 L 187 150 L 177 161 L 124 122 L 130 232 L 212 232 Z', v: 'p', t: '背阔肌', lab: [172, 198, 'middle'] },
+    { id: 'm_latissimus', d: 'M 212 122 L 187 150 L 177 161 L 124 122 L 130 232 L 212 232 Z', v: 'p', t: '背阔肌', lab: [172, 210, 'middle'] },
     { id: 'm_triceps', d: 'M 82 137 C 90 122, 96 110, 100 100 L 124 116 L 124 187 L 87 187 L 85 167 L 66 161 L 66 132 Z', v: 'p', t: '肱三头肌', lab: [54, 150, 'end'], pt: [92, 150] },
     { id: 'm_brachiorad', d: 'M 66 163 L 84 169 L 88 252 L 66 263 Z', v: 'p', t: '肱桡肌', lab: [54, 210, 'end'], pt: [78, 210] },
     { id: 'm_ext_digits', d: 'M 88 190 L 124 190 L 124 300 L 66 300 L 66 266 L 89 255 Z', v: 'p', t: '指伸肌群', lab: [54, 276, 'end'], pt: [94, 274] },

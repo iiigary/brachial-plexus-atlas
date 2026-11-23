@@ -81,7 +81,8 @@ export function applyLimbHighlights(ctx) {
     el.classList.remove('active-motor', 'active-sensory', 'active-lesion', 'active-lesion-partial');
     el.classList.toggle('picked', state.quizMode && state.quizPicks.has(el.getAttribute('data-zone')));
   });
-  labelEls.forEach(el => el.classList.remove('on', 'lesion'));
+  labelEls.forEach(el => el.classList.remove('on', 'lesion', 'linked'));
+  limbSvg.classList.remove('has-focus');
 
   if (zonePicking()) {
     caption.textContent = `已选 ${state.quizPicks.size} 个`;
@@ -116,6 +117,8 @@ export function applyLimbHighlights(ctx) {
     el.classList.add('on');
     if (ctx.isLesion) el.classList.add('lesion');
   });
+  // 有命中时，其余标注退后（样式见 #limbSvg.has-focus）
+  limbSvg.classList.toggle('has-focus', matched.size > 0);
 
   // 同一神经上没被这次损伤波及的分支
   const spared = ctx.isLesion
@@ -143,12 +146,20 @@ export function applyLimbHighlights(ctx) {
     caption.textContent = '';
   }
 
+  // 下方标签补全图内放不下的全名与「部分」标记；悬停指回图上的区域，点击溯源该区域自己的通路
+  const link = (id, on) => limbSvg.querySelectorAll(`[data-zone="${id}"]`).forEach(el => el.classList.toggle('linked', on));
   matched.forEach((partial, id) => {
-    const chip = document.createElement('span');
+    const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = `mini-chip ${ctx.isLesion ? 'lesion' : ''}`;
     const name = PlexusModel.target(id).name;
     chip.textContent = partial ? `${name}（部分）` : name;
+    chip.title = `点击溯源：${name}`;
     chip.addEventListener('click', () => onChipClick(id));
+    chip.addEventListener('mouseenter', () => link(id, true));
+    chip.addEventListener('mouseleave', () => link(id, false));
+    chip.addEventListener('focus', () => link(id, true));
+    chip.addEventListener('blur', () => link(id, false));
     activeChips.appendChild(chip);
   });
 }

@@ -96,7 +96,7 @@ export const NODES = [
     motor: '肱三头肌、肘肌、肱桡肌、旋后肌及前臂全部伸腕/伸指肌',
     sensory: '臂后、前臂后及手背桡侧 2.5 指（虎口区最恒定）',
     clinical: '紧贴肱骨干桡神经沟走行；肱骨中段骨折或“周末夜麻痹”压迫可致典型“垂腕”畸形。' },
-  { id: 'median', stage: 'branch', x: 885, y: 410, w: 144, h: 48, label: '正中神经', sub: 'Median Nerve', en: 'Median Nerve (C5/C6–T1)',
+  { id: 'median', stage: 'branch', x: 885, y: 410, w: 144, h: 48, label: '正中神经', sub: 'Median Nerve', en: 'Median Nerve · (C5) C6–T1',
     motor: '前臂大部分屈肌与旋前肌、大鱼际肌（除拇收肌）、第 1–2 蚓状肌',
     sensory: '手掌桡侧（掌皮支）、桡侧 3.5 指掌面及其中远节指背',
     clinical: '由外侧束外侧根与内侧束内侧根汇合呈“M”形；腕管综合征可致桡侧 3.5 指夜间麻痛及大鱼际萎缩（猿手）；掌皮支不经腕管，手掌感觉保留。' },

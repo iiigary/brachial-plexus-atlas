@@ -46,6 +46,9 @@ export const PlexusModel = (() => {
     ain: ['c8', 't1'],
   };
 
+  // 次要/变异参与的节段：不计入主要成分（不参与损伤推导），通路图上画成「部分」（虚线），节段写成「(C5) C6–T1」
+  const MINOR = { median: ['c5'] };
+
   // 具名分支从母神经上分出的平面（lv 的含义见下方 TARGETS 注释）
   const BRANCH_LV = { pin: 2, srn: 2, ain: 2 };
 
@@ -159,6 +162,8 @@ export const PlexusModel = (() => {
   // 所有「根 → 神经」的纤维路径
   const NERVE_PATHS = [];
   Object.keys(COMPOSITION).forEach(n => COMPOSITION[n].forEach(r => NERVE_PATHS.push(pathOf(r, n))));
+  const MINOR_PATHS = [];
+  Object.keys(MINOR).forEach(n => MINOR[n].forEach(r => MINOR_PATHS.push(pathOf(r, n))));
 
   function addPath(p, fromIdx, nodes, edges) {
     for (let i = fromIdx; i < p.length; i++) {
@@ -172,10 +177,14 @@ export const PlexusModel = (() => {
     const upNodes = new Set([id]), upEdges = new Set(), downNodes = new Set([id]), downEdges = new Set();
     rootsOf(id).forEach(r => addPath(pathOf(r, id), 0, upNodes, upEdges));
     NERVE_PATHS.forEach(p => { const i = p.indexOf(id); if (i >= 0) addPath(p, i, downNodes, downEdges); });
-    return {
-      upNodes, upEdges, downNodes, downEdges,
-      nodes: new Set([...upNodes, ...downNodes]), edges: new Set([...upEdges, ...downEdges]),
-    };
+    const nodes = new Set([...upNodes, ...downNodes]), edges = new Set([...upEdges, ...downEdges]);
+    // 次要节段的通路：只保留主通路之外的部分
+    const mn = new Set(), me = new Set();
+    (MINOR[id] || []).forEach(r => addPath(pathOf(r, id), 0, mn, me));
+    MINOR_PATHS.forEach(p => { const i = p.indexOf(id); if (i >= 0) addPath(p, i, mn, me); });
+    const minorNodes = new Set([...mn].filter(n => !nodes.has(n)));
+    const minorEdges = new Set([...me].filter(e => !edges.has(e)));
+    return { upNodes, upEdges, downNodes, downEdges, nodes, edges, minorNodes, minorEdges };
   }
 
   // 单个靶区自己的路由（例如大鱼际肌只走 C8/T1 → 内侧束 → 正中神经）
@@ -270,7 +279,12 @@ export const PlexusModel = (() => {
     const idx = rootsOf(id).map(r => ROOTS.indexOf(r));
     const names = idx.map(i => ROOTS[i].toUpperCase());
     const contiguous = idx.every((v, i) => i === 0 || v === idx[i - 1] + 1);
-    return names.length > 1 && contiguous ? names[0] + '–' + names[names.length - 1] : names.join(', ');
+    const main = names.length > 1 && contiguous ? names[0] + '–' + names[names.length - 1] : names.join(', ');
+    return MINOR[id] ? `(${minorLabel(id)}) ${main}` : main;
+  }
+
+  function minorLabel(id) {
+    return (MINOR[id] || []).map(r => r.toUpperCase()).join(', ');
   }
 
   // 某靶区的纤维沿途经过的全部结构（用来排除「同一通路上的」干扰项）
@@ -279,8 +293,8 @@ export const PlexusModel = (() => {
   }
 
   return {
-    ROOTS, TRUNKS, LINKS, COMPOSITION, TARGETS, LESION_SITES, BRANCH_LV, NODE_IDS,
+    ROOTS, TRUNKS, LINKS, COMPOSITION, MINOR, TARGETS, LESION_SITES, BRANCH_LV, NODE_IDS,
     target: id => targetMap[id], parentsOf: id => inLinks[id] || [], childrenOf: id => outLinks[id] || [],
-    pathOf, rootsOf, trace, traceTarget, targetsFor, lesion, lesionAt, segLabel, routeOf,
+    pathOf, rootsOf, trace, traceTarget, targetsFor, lesion, lesionAt, segLabel, minorLabel, routeOf,
   };
 })();

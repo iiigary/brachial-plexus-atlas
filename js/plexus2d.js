@@ -25,20 +25,17 @@ const shortLabel = n => n.stage === 'root' ? n.label.replace(' 神经根', '') :
 let traceMap = new Map();  // 'from>to' -> 传导波描线
 let litPrev = new Set();   // 上一次已点亮的连线，只对新点亮的播放传导波
 
+// 层级（根/干/股/束/支）已由列位置表达，节点一律中性描边；颜色只留给「屈/伸」和交互状态
 function nodeColor(n) {
-  if (n.stage === 'root') return 'var(--root-color)';
-  if (n.stage === 'trunk') return 'var(--trunk-color)';
   if (n.stage === 'division') return n.divisionType === 'post' ? 'var(--post-color)' : 'var(--ant-color)';
-  if (n.stage === 'cord') return 'var(--cord-color)';
-  if (n.stage === 'branch' || n.stage === 'subbranch') return 'var(--branch-color)';
-  return 'var(--collateral-color)';
+  return n.stage === 'collateral' || n.stage === 'subbranch' ? 'var(--collateral-color)' : 'var(--node-stroke)';
 }
 
 function edgeColor(e) {
   if (e.type === 'post') return 'var(--post-color)';
   if (e.type === 'ant') return 'var(--ant-color)';
   if (e.type === 'collateral') return 'var(--collateral-color)';
-  return 'var(--trunk-color)';
+  return 'var(--node-stroke)';
 }
 
 function buildCurve(fromNode, toNode, isCollateral) {
@@ -97,7 +94,7 @@ export function renderPlexusSVG() {
     const d = buildCurve(nodeMap[e.from], nodeMap[e.to], e.type === 'collateral');
     edgeLayer.appendChild(createSvgEl('path', {
       d,
-      class: `edge ${e.type === 'post' ? 'posterior' : ''} ${e.type === 'collateral' ? 'collateral-edge' : ''}`,
+      class: `edge ${e.type === 'collateral' ? 'collateral-edge' : ''}`,
       stroke: edgeColor(e), 'data-from': e.from, 'data-to': e.to,
     }));
     const trace = createSvgEl('path', { d, class: 'trace-edge', pathLength: 1 });
@@ -163,8 +160,8 @@ export function applyPlexusHighlights(ctx) {
   nodeEls.forEach(el => el.classList.toggle('is-cut', state.cuts.has(el.getAttribute('data-id'))));
 
   if (!ctx) {
-    nodeEls.forEach(el => el.classList.remove('dim', 'selected', 'lesion-site'));
-    edgeEls.forEach(el => el.classList.remove('dim', 'highlight', 'lesion-downstream'));
+    nodeEls.forEach(el => el.classList.remove('dim', 'selected', 'lesion-site', 'partial'));
+    edgeEls.forEach(el => el.classList.remove('dim', 'highlight', 'lesion-downstream', 'partial'));
     pulseEls.forEach(el => el.classList.add('active-pulse'));
     litPrev = new Set();
     return;
@@ -172,7 +169,9 @@ export function applyPlexusHighlights(ctx) {
 
   nodeEls.forEach(el => {
     const id = el.getAttribute('data-id');
-    el.classList.toggle('dim', !ctx.nodes.has(id));
+    const partial = !ctx.isLesion && !!ctx.minorNodes && ctx.minorNodes.has(id);
+    el.classList.toggle('partial', partial);
+    el.classList.toggle('dim', !ctx.nodes.has(id) && !partial);
     el.classList.toggle('lesion-site', ctx.isLesion && ctx.sites.has(id));
     el.classList.toggle('selected', !ctx.isLesion && ctx.sites.has(id));
   });
@@ -184,13 +183,16 @@ export function applyPlexusHighlights(ctx) {
       el.classList.toggle('lesion-downstream', isDown);
       el.classList.toggle('highlight', isUp && !isDown);
       el.classList.toggle('dim', !isDown && !isUp);
+      el.classList.remove('partial');
     });
     pulseEls.forEach(el => el.classList.toggle('active-pulse', ctx.upEdges.has(keyOf(el)) && !ctx.downEdges.has(keyOf(el))));
   } else {
     edgeEls.forEach(el => {
       const onPath = ctx.edges.has(keyOf(el));
+      const partial = !!ctx.minorEdges && ctx.minorEdges.has(keyOf(el));
       el.classList.toggle('highlight', onPath);
-      el.classList.toggle('dim', !onPath);
+      el.classList.toggle('partial', partial);
+      el.classList.toggle('dim', !onPath && !partial);
       el.classList.remove('lesion-downstream');
     });
     pulseEls.forEach(el => el.classList.toggle('active-pulse', ctx.edges.has(keyOf(el))));
@@ -211,7 +213,7 @@ function playSweep(edgeEls, keyOf) {
     items.push({
       el: traceMap.get(key),
       col: colOf(el.getAttribute('data-from')),
-      color: down ? 'var(--lesion-color)' : el.getAttribute('stroke'),
+      color: down ? 'var(--lesion-color)' : 'var(--accent)',
     });
   });
   litPrev = lit;

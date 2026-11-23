@@ -227,6 +227,7 @@ function setText(f) {
 
 function updateInspector(ctx) {
   const tags = $('dTags');
+  $('detailContent').classList.toggle('is-lesion', !!(ctx && ctx.isLesion));
   if (ctx && ctx.isLesion) {
     const plexusTags = !ctx.isNerve
       ? `<span class="tag">${ctx.preganglionic ? '节前（根性）损伤' : '节后损伤'}</span><span class="tag">Horner 征：${ctx.horner ? '有' : '无'}</span>`
@@ -276,8 +277,10 @@ function updateInspector(ctx) {
 
   const n = nodeMap[state.selectedId];
   tags.innerHTML = `<span class="tag">${STAGE_NAMES[n.stage]}</span><span class="tag">${PlexusModel.segLabel(n.id)}</span>`;
+  const minor = PlexusModel.minorLabel(n.id);
   setText({
-    dTitle: n.label, dSub: n.en, dSegments: '',
+    dTitle: n.label, dSub: n.en,
+    dSegments: minor ? `${minor} 为部分/变异参与，通路图中以虚线表示。` : '',
     dMotor: n.motor, dSensory: n.sensory, dClinical: n.clinical, dSpatial: SPATIAL[n.id],
   });
   renderClinicalCard(n.id);
@@ -592,7 +595,8 @@ function syncViewUI() {
 function setTheme(dark) {
   state.dark = dark;
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  $('btnTheme').textContent = dark ? '浅色' : '深色';
+  $('btnTheme').title = dark ? '切换浅色' : '切换深色';
+  $('btnTheme').setAttribute('aria-label', $('btnTheme').title);
   view3d.setTheme(dark);
   store.setPref('theme', dark ? 'dark' : 'light');
 }

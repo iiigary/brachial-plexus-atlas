@@ -156,6 +156,18 @@ check('节段标签由模型推导', () => {
   assert.strictEqual(M.segLabel('long_thoracic'), 'C5–C7');
 });
 
+check('次要节段（正中神经的 C5）：单独标成「部分」，不进主通路和损伤推导', () => {
+  assert.strictEqual(M.segLabel('median'), '(C5) C6–T1');
+  const t = M.trace('median');
+  assert.strictEqual(set(t.minorNodes), set(['c5']));
+  assert.strictEqual(set(t.minorEdges), set(['c5>upper_trunk']));
+  assert(!t.nodes.has('c5'));
+  const c5 = M.trace('c5');
+  assert(c5.minorNodes.has('median') && c5.minorEdges.has('lat_cord>median') && !c5.nodes.has('median'));
+  assert.strictEqual(M.trace('radial').minorNodes.size, 0);
+  assert(!M.lesionAt(['c5']).severity.has('m_pronator'));
+});
+
 check('口诀 ULTRA / M4U：后束、内侧束的分支齐全', () => {
   const out = id => set(M.childrenOf(id));
   assert.strictEqual(out('post_cord'), set(['upper_subscapular', 'lower_subscapular', 'thoracodorsal', 'radial', 'axillary']));

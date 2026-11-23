@@ -1,0 +1,131 @@
+/* 优化版新增的界面：搜索、自由切断、选择题、临床卡片、3D 标签、署名 */
+
+/* ---------- 搜索 ---------- */
+.search { position: relative; flex: 1 1 260px; max-width: 420px; min-width: 200px; }
+.search input {
+  width: 100%; padding: 7px 12px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text); font-size: 13px; outline: none;
+}
+.search input:focus { border-color: var(--accent); background: var(--surface); }
+.search-results {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 40;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18); padding: 5px; max-height: 420px; overflow: auto;
+}
+.search-item {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: baseline;
+  padding: 7px 9px; border-radius: 8px; cursor: pointer;
+}
+.search-item.active, .search-item:hover { background: var(--accent-soft); }
+.search-tag {
+  grid-row: span 2; align-self: center; font-size: 10.5px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); border-radius: 5px; padding: 2px 6px; white-space: nowrap;
+}
+.search-label { font-size: 13px; font-weight: 600; }
+.search-sub { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-empty { padding: 10px; font-size: 12px; color: var(--muted); }
+
+/* ---------- 自由切断 ---------- */
+.cut-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
+.cut-hint { font-size: 12px; color: var(--muted); }
+.cut-mark { display: none; pointer-events: none; }
+.cut-mark circle { fill: var(--lesion-color); }
+.cut-mark text { font-size: 9px; fill: #fff; }
+.node-group.is-cut .cut-mark { display: inline; }
+svg#plexus.cut-mode .node-group { cursor: crosshair; }
+svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); stroke-dasharray: 4 3; }
+.btn-quiet { border-style: dashed; color: var(--muted); }
+
+/* ---------- 自测 ---------- */
+.quiz-deck { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.quiz-stats { font-size: 11px; color: var(--muted); }
+.quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.quiz-options:empty { display: none; }
+.quiz-option { justify-content: center; text-align: center; white-space: normal; line-height: 1.35; }
+.quiz-option:disabled { cursor: default; opacity: 0.85; }
+.quiz-option.correct { background: #059669; border-color: #059669; color: #fff; opacity: 1; }
+.quiz-option.wrong { background: var(--lesion-color); border-color: var(--lesion-color); color: #fff; opacity: 1; }
+.quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+.quiz-actions .btn { flex: 1; justify-content: center; }
+.quiz-actions .btn-quiet { flex: 0 0 auto; }
+.quiz-feedback { line-height: 1.5; }
+
+/* ---------- 临床卡片 ---------- */
+.clinical-card dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; font-size: 12.4px; line-height: 1.5; }
+.clinical-card dt { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.clinical-card dd { display: flex; flex-wrap: wrap; gap: 4px; }
+.clinical-card dd span {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px;
+}
+
+/* ---------- 3D：浅色舞台（深色主题下自动换回深色） ---------- */
+.viewport3d {
+  --stage-bg: radial-gradient(circle at 46% 40%, #ffffff 0%, #f1f5fa 55%, #e2e8f0 100%);
+  --hud-bg: rgba(255, 255, 255, 0.9);
+  --hud-border: #d5deea;
+  --hud-text: #132033;
+  --hud-muted: #5a6a82;
+  --pill-bg: #ffffff;
+  --pill-active: #2563eb;
+  --pill-active-text: #ffffff;
+  --label-bg: rgba(255, 255, 255, 0.92);
+  --label-border: #d5deea;
+  --label-text: #1e293b;
+  --label-focal: #0f172a;
+  --label-focal-ring: #2563eb;
+  --label-lesion: #b91c1c;
+  --label-ctx: rgba(71, 85, 105, 0.8);
+  --label-artery: #b91c1c;
+  background: var(--stage-bg);
+}
+[data-theme="dark"] .viewport3d {
+  --stage-bg: radial-gradient(circle at 48% 46%, #13203a 0%, #090f1d 68%, #050811 100%);
+  --hud-bg: rgba(16, 25, 43, 0.78);
+  --hud-border: #243454;
+  --hud-text: #e9f0fb;
+  --hud-muted: #8ea1be;
+  --pill-bg: rgba(23, 35, 59, 0.9);
+  --pill-active: #38bdf8;
+  --pill-active-text: #05101d;
+  --label-bg: rgba(8, 13, 26, 0.72);
+  --label-border: transparent;
+  --label-text: #e2e8f0;
+  --label-focal: #ffffff;
+  --label-focal-ring: #7dd3fc;
+  --label-lesion: #fecdd3;
+  --label-ctx: rgba(226, 232, 240, 0.6);
+  --label-artery: #fca5a5;
+}
+.hud-group { background: var(--hud-bg); border-color: var(--hud-border); box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06); }
+.hud-label { color: var(--hud-muted); }
+.hud-pill { border-color: var(--hud-border); background: var(--pill-bg); color: var(--hud-text); }
+.hud-pill:hover { border-color: var(--pill-active); }
+.hud-pill.active { background: var(--pill-active); border-color: var(--pill-active); color: var(--pill-active-text); }
+.hud-bottom { background: var(--hud-bg); border-color: var(--hud-border); color: var(--hud-muted); }
+
+.labels3d { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.label3d {
+  position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; visibility: hidden;
+  font-size: 11px; font-weight: 600; color: var(--label-text);
+  background: var(--label-bg); border: 1px solid var(--label-border); border-radius: 4px; padding: 0 6px;
+}
+.label3d.focal { color: var(--label-focal); font-weight: 700; box-shadow: 0 0 0 1.5px var(--label-focal-ring); }
+.label3d.lesion { color: var(--label-lesion); }
+.label3d.ctx { background: transparent; border-color: transparent; color: var(--label-ctx); font-weight: 500; }
+.label3d.ctx.artery { color: var(--label-artery); }
+.hud-fallback {
+  position: absolute; inset: 0; display: grid; place-items: center; color: var(--hud-text); font-size: 14px;
+  background: var(--hud-bg);
+}
+body.present .label3d { font-size: 13px; }
+
+/* ---------- 署名 ---------- */
+.credits {
+  max-width: 1680px; margin: 0 auto; padding: 0 22px 22px; font-size: 11.5px; line-height: 1.6; color: var(--muted);
+}
+.credits a { color: inherit; }
+
+@media print {
+  .search, .cut-bar, .credits { display: none !important; }
+  .clinical-card { break-inside: avoid; }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "brachial-plexus-atlas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/check-model.mjs",
+    "start": "python3 serve.py 8765"
+  }
+}

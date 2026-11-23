@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臂丛神经联动可视化 | Brachial Plexus Atlas</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/extra.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-badge">BP</div>
+      <div>
+        <h1>臂丛神经 · 上肢肌肉与皮区联动可视化</h1>
+      </div>
+    </div>
+    <div class="search" id="search">
+      <input id="searchInput" type="search" autocomplete="off" spellcheck="false"
+        placeholder="搜索神经、肌肉、体征…（如 垂腕、Froment、三角肌）  /" aria-label="搜索">
+      <div class="search-results is-hidden" id="searchResults" role="listbox"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn active" id="btnPulse" title="快捷键 空格">⚡ 冲动动画</button>
+      <button class="btn active" id="btnCollaterals" title="快捷键 C">🌿 显示旁支</button>
+      <button class="btn" id="btnCut" title="快捷键 X：点通路图上任意结构即切断，可切多处">✂ 自由切断</button>
+      <button class="btn" id="btnQuiz" title="快捷键 Q">🎯 自测模式</button>
+      <button class="btn" id="btnPresent" title="快捷键 P；投影时 ↑↓ 或翻页笔切换预设">📽 投影</button>
+      <button class="btn" id="btnPrint">🖨 打印</button>
+      <button class="btn" id="btnReset">↺ 重置</button>
+      <button class="btn" id="btnTheme">🌙 深色</button>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- 左：臂丛通路图 / 3D -->
+    <section class="card">
+      <div class="subbar">
+        <div class="seg-group" id="viewTabs" title="快捷键 V">
+          <button class="seg-btn active" data-view="2d">2D 通路图</button>
+          <button class="seg-btn" data-view="3d">3D 解剖示意</button>
+        </div>
+        <div class="lesion-bar">
+          <span class="lesion-label">临床损伤模拟：</span>
+          <button class="pill" data-lesion="erb" title="快捷键 1；← → 切换损伤部位">Erb 麻痹 (上臂丛)</button>
+          <button class="pill" data-lesion="klumpke" title="快捷键 2">Klumpke 麻痹 (下臂丛)</button>
+          <button class="pill" data-lesion="radial" title="快捷键 3">桡神经 (垂腕)</button>
+          <button class="pill" data-lesion="median" title="快捷键 4">正中神经 (猿手)</button>
+          <button class="pill" data-lesion="ulnar" title="快捷键 5">尺神经 (爪形手)</button>
+          <button class="pill" data-lesion="axillary" title="快捷键 6">腋神经 (方肩)</button>
+          <button class="pill" data-lesion="long_thoracic" title="快捷键 7">胸长神经 (翼状肩胛)</button>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="dot" style="background:var(--root-color)"></span>根</span>
+          <span class="legend-item"><span class="dot" style="background:var(--trunk-color)"></span>干</span>
+          <span class="legend-item"><span class="dot" style="background:var(--ant-color)"></span>前股 (屈肌)</span>
+          <span class="legend-item"><span class="dot" style="background:var(--post-color)"></span>后股 (伸肌/虚线)</span>
+          <span class="legend-item"><span class="dot" style="background:var(--cord-color)"></span>束</span>
+          <span class="legend-item"><span class="dot" style="background:var(--branch-color)"></span>终末支</span>
+          <span class="legend-item"><span class="dot" style="background:var(--lesion-color)"></span>损伤受累</span>
+          <span class="legend-item"><span class="dot" style="background:var(--lesion-color);opacity:0.4"></span>部分受累</span>
+        </div>
+        <div class="level-bar is-hidden" id="levelBar"></div>
+        <div class="cut-bar is-hidden" id="cutBar"></div>
+      </div>
+
+      <div class="svg-wrap pulse-on" id="svgWrap">
+        <svg id="plexus" viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="viewport3d is-hidden" id="viewport3d">
+        <canvas id="scene"></canvas>
+        <div class="labels3d" id="labels3d"></div>
+        <div class="hud-top">
+          <div class="hud-group" id="camPresets">
+            <span class="hud-label">视角：</span>
+            <button class="hud-pill active" data-cam="front">前面观</button>
+            <button class="hud-pill" data-cam="top">俯视(看前后束)</button>
+            <button class="hud-pill" data-cam="lateral">外侧观</button>
+            <button class="hud-pill" data-cam="back">后面观</button>
+            <button class="hud-pill" data-cam="arm">全臂</button>
+          </div>
+          <div class="hud-group" id="sceneToggles">
+            <button class="hud-pill" data-toggle="artery">动脉</button>
+            <button class="hud-pill" data-toggle="bones">骨骼</button>
+            <button class="hud-pill" data-toggle="muscles">肌肉</button>
+            <button class="hud-pill" data-toggle="labels">标签</button>
+            <button class="hud-pill" data-toggle="auto">自动旋转</button>
+          </div>
+        </div>
+        <div class="hud-bottom" id="hud3dCaption">示意模型（非扫描数据）：拖动旋转，滚轮/双指缩放，右键平移；点神经或肌肉可选中</div>
+        <div class="hud-fallback is-hidden" id="hud3dFallback">此浏览器无法创建 WebGL，3D 视图不可用。</div>
+      </div>
+    </section>
+
+    <!-- 右：上肢联动图 + 检查器 -->
+    <div class="side-col">
+      <section class="card limb-card">
+        <div class="limb-header">
+          <span class="limb-title">右上肢</span>
+          <div class="seg-group" id="limbModeTabs" title="快捷键 M">
+            <button class="seg-btn active" data-mode="motor">支配肌肉</button>
+            <button class="seg-btn" data-mode="cutaneous">周围皮区</button>
+            <button class="seg-btn" data-mode="dermatome">C5–T1 皮节</button>
+          </div>
+        </div>
+
+        <div class="limb-svg-box">
+          <svg id="limbSvg" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <div class="limb-status">
+          <span id="limbCaption"></span>
+        </div>
+        <div class="chip-list" id="activeChips"></div>
+      </section>
+
+      <aside class="card inspector">
+        <div class="quiz-box" id="quizBox">
+          <div class="quiz-meta">
+            <span>🎯 解剖定位自测</span>
+            <span id="quizScore">本次：0 / 0</span>
+          </div>
+          <div class="quiz-deck">
+            <div class="seg-group" id="quizDeckTabs">
+              <button class="seg-btn active" data-deck="all">全部</button>
+              <button class="seg-btn" data-deck="locate">定位</button>
+              <button class="seg-btn" data-deck="case">病例</button>
+              <button class="seg-btn" data-deck="mcq">选择题</button>
+              <button class="seg-btn" data-deck="wrong">错题</button>
+            </div>
+            <span class="quiz-stats" id="quizStats"></span>
+          </div>
+          <div class="quiz-q" id="quizQuestion">请点击对应结构...</div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+          <div class="quiz-actions">
+            <button class="btn active is-hidden" id="btnSubmitQuiz">提交所选</button>
+            <button class="btn" id="btnNextQuiz">下一题 →</button>
+            <button class="btn" id="btnRevealQuiz">查看答案</button>
+            <button class="btn btn-quiet" id="btnClearProgress" title="清除本机保存的做题记录">清除记录</button>
+          </div>
+        </div>
+
+        <div id="detailContent">
+          <div class="tag-row" id="dTags"></div>
+          <h2 id="dTitle">臂丛神经总览</h2>
+          <div class="en-name" id="dSub">Brachial Plexus · 腕神経叢 (C5–T1)</div>
+
+          <div class="info-block" style="margin-top:9px;">
+            <h3>脊髓节段 & 结构定位</h3>
+            <p id="dSegments"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>空间位置关系</h3>
+            <p id="dSpatial"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>主要支配肌肉（运动）</h3>
+            <p id="dMotor"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>皮肤感觉分布</h3>
+            <p id="dSensory"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>临床要点</h3>
+            <p id="dClinical"></p>
+          </div>
+
+          <div class="info-block clinical-card is-hidden" id="dCard" style="margin-top:8px;">
+            <h3>查体与体征</h3>
+            <dl id="dCardBody"></dl>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="credits">
+    仅供学习，不用于临床诊断 · 3D 数据改编自 <a href="https://github.com/prathusa/anatomy" target="_blank" rel="noopener">prathusa/anatomy</a>（CC BY 4.0）· <a href="CREDITS.md" target="_blank">署名与许可</a>
+  </footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

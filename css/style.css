@@ -1,0 +1,582 @@
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --border: #dce3ee;
+  --text: #132033;
+  --muted: #5a6a82;
+  --accent: #2563eb;
+  --accent-soft: #e0ecff;
+  --root-color: #2563eb;
+  --trunk-color: #0891b2;
+  --ant-color: #059669;
+  --post-color: #d97706;
+  --cord-color: #7c3aed;
+  --branch-color: #e11d48;
+  --collateral-color: #64748b;
+  --lesion-color: #dc2626;
+  --skin-base: #eef2f7;
+  --skin-stroke: #94a3b8;
+  --muscle-base: #e2e8f0;
+  --muscle-active: #2563eb;
+  --sensory-active: #0891b2;
+  --shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #0b1120;
+  --surface: #131c2e;
+  --surface-2: #1b2740;
+  --border: #263554;
+  --text: #e8eef8;
+  --muted: #94a5bf;
+  --accent: #60a5fa;
+  --accent-soft: #1a2c4e;
+  --root-color: #60a5fa;
+  --trunk-color: #22d3ee;
+  --ant-color: #34d399;
+  --post-color: #fbbf24;
+  --cord-color: #a78bfa;
+  --branch-color: #fb7185;
+  --collateral-color: #94a3b8;
+  --lesion-color: #f87171;
+  --skin-base: #1e293b;
+  --skin-stroke: #475569;
+  --muscle-base: #25334a;
+  --muscle-active: #60a5fa;
+  --sensory-active: #22d3ee;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.25s, color 0.25s;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.brand h1 { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.16s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn:hover { border-color: var(--accent); background: var(--surface-2); }
+.btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.main-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) 460px;
+  align-items: start;
+  gap: 16px;
+  padding: 16px 22px 24px;
+  max-width: 1680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1240px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.subbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.lesion-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lesion-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+.pill {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+
+.pill:hover { border-color: var(--lesion-color); color: var(--lesion-color); }
+.pill.active { background: var(--lesion-color); border-color: var(--lesion-color); color: #fff; }
+
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+.svg-wrap {
+  position: relative;
+  flex: 1;
+  overflow-x: auto;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+svg#plexus {
+  width: 100%;
+  min-width: 820px;
+  margin: 0 auto;
+  height: auto;
+  max-height: 660px;
+  user-select: none;
+}
+
+.is-hidden { display: none !important; }
+
+/* 3D 视图：舞台颜色随主题变化，见 extra.css */
+.viewport3d {
+  position: relative;
+  height: clamp(520px, 66vh, 700px);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+.viewport3d:active { cursor: grabbing; }
+canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.hud-top {
+  position: absolute; top: 10px; left: 12px; right: 12px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px;
+  pointer-events: none;
+}
+.hud-group {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  pointer-events: auto;
+  background: rgba(16, 25, 43, 0.78); border: 1px solid #243454; padding: 5px 8px; border-radius: 10px;
+}
+.hud-label { font-size: 11px; color: #8ea1be; font-weight: 600; }
+.hud-pill {
+  border: 1px solid #243454; background: rgba(23, 35, 59, 0.9); color: #e9f0fb;
+  padding: 3px 9px; border-radius: 999px; font-size: 11.5px; cursor: pointer; transition: all 0.15s;
+}
+.hud-pill:hover { border-color: #38bdf8; }
+.hud-pill.active { background: #38bdf8; border-color: #38bdf8; color: #05101d; font-weight: 600; }
+.hud-bottom {
+  position: absolute; bottom: 10px; left: 12px; max-width: calc(100% - 24px);
+  pointer-events: none;
+  font-size: 11.5px; line-height: 1.5; color: #8ea1be;
+  background: rgba(16, 25, 43, 0.78); border: 1px solid #243454; padding: 6px 12px; border-radius: 10px;
+}
+
+.stage-header { font-size: 13px; font-weight: 700; fill: var(--muted); }
+.stage-sub { font-size: 10.5px; fill: var(--muted); opacity: 0.78; }
+.stage-divider { stroke: var(--border); stroke-width: 1; stroke-dasharray: 4 5; }
+
+.edge {
+  fill: none;
+  stroke-width: 3.1;
+  stroke-linecap: round;
+  transition: opacity 0.2s, stroke-width 0.2s, stroke 0.2s;
+  opacity: 0.7;
+}
+
+.edge.posterior { stroke-dasharray: 7 4; }
+.edge.collateral-edge { stroke-width: 2.1; stroke-dasharray: 3 3; opacity: 0.58; }
+.edge.dim { opacity: 0.1; }
+.edge.highlight { opacity: 1; stroke-width: 4.8; filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.35)); }
+.edge.lesion-downstream { stroke: var(--lesion-color) !important; opacity: 1; stroke-width: 4.4; }
+
+.pulse-edge {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-dasharray: 6 24;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.pulse-on .pulse-edge.active-pulse {
+  opacity: 0.9;
+  animation: flowPulse 1.1s linear infinite;
+}
+
+@keyframes flowPulse {
+  from { stroke-dashoffset: 30; }
+  to { stroke-dashoffset: 0; }
+}
+
+.node-group { cursor: pointer; transition: opacity 0.2s; }
+.node-group.dim { opacity: 0.2; }
+.node-rect { rx: 10; ry: 10; fill: var(--surface); stroke-width: 2; transition: all 0.18s; }
+.node-group:hover .node-rect { stroke-width: 3; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12)); }
+.node-group.selected .node-rect { stroke-width: 3.2; filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.38)); }
+.node-group.lesion-site .node-rect { stroke: var(--lesion-color) !important; fill: rgba(220, 38, 38, 0.13); stroke-width: 3.2; }
+
+.node-label { font-size: 12px; font-weight: 600; fill: var(--text); pointer-events: none; }
+.node-sub { font-size: 9.8px; fill: var(--muted); pointer-events: none; }
+.collateral-rect + text + .node-sub { font-size: 9.4px; }
+.collateral-rect { rx: 7; ry: 7; fill: var(--surface-2); stroke: var(--collateral-color); stroke-width: 1.4; }
+.collateral-label { font-size: 10.3px; font-weight: 500; fill: var(--text); pointer-events: none; }
+
+
+/* Right Column: Limb Atlas + Inspector */
+.side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.limb-card {
+  padding: 14px;
+  gap: 10px;
+}
+
+.limb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.limb-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.seg-group {
+  display: inline-flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+
+.seg-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.limb-svg-box {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 8px 6px 4px;
+  position: relative;
+}
+
+svg#limbSvg {
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  height: auto;
+  display: block;
+  user-select: none;
+}
+
+
+.limb-view-title {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+
+.zone-shape {
+  cursor: pointer;
+  fill: var(--muscle-base);
+  stroke: var(--skin-stroke);
+  stroke-width: 0.8;
+  fill-opacity: 0.78;
+  transition: fill 0.18s, fill-opacity 0.18s, stroke 0.18s, stroke-width 0.18s;
+}
+
+.zone-shape:hover {
+  fill-opacity: 0.95;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+}
+
+.zone-shape.active-motor {
+  fill: var(--muscle-active);
+  fill-opacity: 0.72;
+  stroke: var(--muscle-active);
+  stroke-width: 1.8;
+}
+
+.zone-shape.active-sensory {
+  fill: var(--sensory-active);
+  fill-opacity: 0.65;
+  stroke: var(--sensory-active);
+  stroke-width: 1.8;
+}
+
+.zone-shape.active-lesion {
+  fill: var(--lesion-color);
+  fill-opacity: 0.72;
+  stroke: var(--lesion-color);
+  stroke-width: 2;
+}
+
+.zone-shape.active-lesion-partial {
+  fill: var(--lesion-color);
+  fill-opacity: 0.26;
+  stroke: var(--lesion-color);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 3;
+}
+
+
+.limb-status {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.mini-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.mini-chip:hover { border-color: var(--accent); }
+.mini-chip.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
+
+/* Inspector Card */
+.inspector {
+  padding: 16px;
+  gap: 10px;
+}
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tag.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
+
+.inspector h2 { font-size: 18px; font-weight: 700; line-height: 1.3; margin-top: 2px; }
+.inspector .en-name { font-size: 12px; color: var(--muted); }
+
+.info-block {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+
+.info-block h3 {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.info-block p { font-size: 12.6px; line-height: 1.52; color: var(--text); }
+
+.quiz-box {
+  border: 1.5px dashed var(--accent);
+  background: var(--accent-soft);
+  border-radius: 12px;
+  padding: 11px;
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.quiz-box.show { display: flex; }
+.quiz-q { font-size: 13px; font-weight: 600; line-height: 1.48; }
+.quiz-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+.quiz-feedback { font-size: 12px; font-weight: 600; }
+.quiz-feedback.ok { color: #059669; }
+.quiz-feedback.err { color: #dc2626; }
+
+/* 损伤部位（平面）选择条 */
+.level-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
+.level-bar .seg-btn.active { color: var(--lesion-color); }
+
+/* 上肢图 */
+.limb-fill { fill: var(--surface); }
+.limb-contour { fill: none; stroke: var(--skin-stroke); stroke-width: 1.3; stroke-linejoin: round; pointer-events: none; }
+.limb-mark { fill: none; stroke: var(--skin-stroke); stroke-width: 1; stroke-dasharray: 3 2.5; opacity: 0.85; pointer-events: none; }
+.zone-label {
+  font-size: 10.5px; font-weight: 600; fill: var(--text); pointer-events: none;
+  paint-order: stroke; stroke: var(--surface-2); stroke-width: 2.6px; stroke-linejoin: round;
+}
+.zone-label.big { font-size: 12.5px; font-weight: 800; }
+.zone-label.on { fill: var(--accent); font-weight: 800; }
+.zone-label.on.lesion { fill: var(--lesion-color); }
+.zone-leader { stroke: var(--muted); stroke-width: 0.7; opacity: 0.75; pointer-events: none; }
+.zone-leader-dot { fill: var(--muted); pointer-events: none; }
+.zone-leader.on { stroke: var(--accent); stroke-width: 1.1; opacity: 1; }
+.zone-leader-dot.on { fill: var(--accent); }
+.zone-leader.on.lesion { stroke: var(--lesion-color); }
+.zone-leader-dot.on.lesion { fill: var(--lesion-color); }
+/* 皮节：未选中时也用淡色区分五条带 */
+.zone-shape[data-zone="d_c5"]:not([class*="active"]):not(.picked) { fill: #f59e0b; fill-opacity: 0.22; }
+.zone-shape[data-zone="d_c6"]:not([class*="active"]):not(.picked) { fill: #10b981; fill-opacity: 0.22; }
+.zone-shape[data-zone="d_c7"]:not([class*="active"]):not(.picked) { fill: #3b82f6; fill-opacity: 0.24; }
+.zone-shape[data-zone="d_c8"]:not([class*="active"]):not(.picked) { fill: #8b5cf6; fill-opacity: 0.22; }
+.zone-shape[data-zone="d_t1"]:not([class*="active"]):not(.picked) { fill: #ec4899; fill-opacity: 0.2; }
+.zone-shape.picked { fill: var(--accent); fill-opacity: 0.5; stroke: var(--accent); stroke-width: 2; }
+
+kbd {
+  font-family: inherit; font-size: 0.92em; padding: 0 5px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--surface-2);
+}
+
+/* ---------- 投影模式：放大字号，图撑满窗口高度 ---------- */
+@media screen {
+  body.present .brand p, body.present .hint-footer, body.present .legend { display: none; }
+  body.present .brand h1 { font-size: 19px; }
+  body.present .btn, body.present .pill { font-size: 14.5px; padding: 7px 13px; }
+  body.present .seg-btn { font-size: 14px; padding: 6px 12px; }
+  body.present .lesion-label { font-size: 14.5px; }
+  body.present .node-label { font-size: 14.5px; }
+  body.present .node-sub { font-size: 11.5px; }
+  body.present .collateral-label { font-size: 12px; }
+  body.present .stage-header { font-size: 15.5px; }
+  body.present .stage-sub { font-size: 12.5px; }
+  body.present .limb-title { font-size: 16.5px; }
+  body.present .limb-status { font-size: 14.5px; }
+  body.present .mini-chip { font-size: 13.5px; padding: 3px 10px; }
+  body.present .zone-label { font-size: 11.5px; }
+  body.present .zone-label.big { font-size: 13.5px; }
+  body.present .tag { font-size: 13.5px; }
+  body.present .inspector h2 { font-size: 23px; }
+  body.present .inspector .en-name { font-size: 14.5px; }
+  body.present .info-block h3 { font-size: 13.5px; }
+  body.present .info-block p { font-size: 16px; }
+  body.present .quiz-q { font-size: 16.5px; }
+  body.present .quiz-meta, body.present .quiz-feedback { font-size: 14.5px; }
+  body.present .hud-pill, body.present .hud-bottom { font-size: 13.5px; }
+}
+@media screen and (min-width: 1241px) {
+  body.present { height: 100vh; overflow: hidden; }
+  body.present .main-grid {
+    min-height: 0; max-width: none; padding: 10px 14px 12px; align-items: stretch;
+    grid-template-columns: minmax(0, 1.5fr) minmax(460px, 0.85fr);
+  }
+  body.present .main-grid > .card { min-height: 0; }
+  body.present .side-col { min-height: 0; overflow-y: auto; }
+  body.present .side-col > .card { flex-shrink: 0; }
+  body.present .svg-wrap { min-height: 0; overflow: hidden; padding: 6px; }
+  body.present svg#plexus { min-width: 0; max-height: none; width: 100%; height: 100%; }
+  body.present .viewport3d { height: auto; flex: 1; min-height: 0; }
+}
+
+/* ---------- 打印讲义：浅色、单栏通路图 + 上肢图与说明并排 ---------- */
+@media print {
+  @page { margin: 12mm; }
+  :root, [data-theme="dark"] {
+    --bg: #ffffff; --surface: #ffffff; --surface-2: #f3f5f9; --border: #cfd6e2; --text: #111827; --muted: #4b5563;
+    --accent: #1d4ed8; --accent-soft: #e0ecff;
+    --root-color: #2563eb; --trunk-color: #0891b2; --ant-color: #059669; --post-color: #d97706;
+    --cord-color: #7c3aed; --branch-color: #e11d48; --collateral-color: #64748b; --lesion-color: #dc2626;
+    --skin-base: #eef2f7; --skin-stroke: #94a3b8; --muscle-base: #e2e8f0; --muscle-active: #2563eb; --sensory-active: #0891b2;
+    --shadow: none;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body, body.present { display: block; min-height: 0; height: auto; overflow: visible; background: #fff; }
+  header { position: static; padding: 0 0 8px; border-bottom: 1px solid var(--border); }
+  .toolbar, #viewTabs, .legend, .hint-footer, .viewport3d, .quiz-box, #limbModeTabs, .level-hint, .pulse-edge,
+  .pill:not(.active), #levelBar .seg-btn:not(.active), body:not(.has-lesion) .lesion-bar { display: none !important; }
+  .main-grid { display: block; padding: 10px 0 0; max-width: none; }
+  .card { box-shadow: none; break-inside: avoid; margin-bottom: 10px; }
+  .subbar { background: none; }
+  .svg-wrap, .svg-wrap.is-hidden { display: flex !important; min-height: 0; overflow: visible; padding: 4px; }
+  svg#plexus { min-width: 0; max-height: none; }
+  .side-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  .mini-chip { border-color: var(--border); }
+}

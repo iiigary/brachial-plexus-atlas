@@ -1,0 +1,2657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臂丛神经联动可视化 | Brachial Plexus Atlas</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef2f8;
+    --border: #dce3ee;
+    --text: #132033;
+    --muted: #5a6a82;
+    --accent: #2563eb;
+    --accent-soft: #e0ecff;
+    --root-color: #2563eb;
+    --trunk-color: #0891b2;
+    --ant-color: #059669;
+    --post-color: #d97706;
+    --cord-color: #7c3aed;
+    --branch-color: #e11d48;
+    --collateral-color: #64748b;
+    --lesion-color: #dc2626;
+    --skin-base: #eef2f7;
+    --skin-stroke: #94a3b8;
+    --muscle-base: #e2e8f0;
+    --muscle-active: #2563eb;
+    --sensory-active: #0891b2;
+    --shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  }
+
+  [data-theme="dark"] {
+    --bg: #0b1120;
+    --surface: #131c2e;
+    --surface-2: #1b2740;
+    --border: #263554;
+    --text: #e8eef8;
+    --muted: #94a5bf;
+    --accent: #60a5fa;
+    --accent-soft: #1a2c4e;
+    --root-color: #60a5fa;
+    --trunk-color: #22d3ee;
+    --ant-color: #34d399;
+    --post-color: #fbbf24;
+    --cord-color: #a78bfa;
+    --branch-color: #fb7185;
+    --collateral-color: #94a3b8;
+    --lesion-color: #f87171;
+    --skin-base: #1e293b;
+    --skin-stroke: #475569;
+    --muscle-base: #25334a;
+    --muscle-active: #60a5fa;
+    --sensory-active: #22d3ee;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 22px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2563eb, #0891b2);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .brand h1 { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
+  .brand p { font-size: 12px; color: var(--muted); }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 6px 11px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.16s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn:hover { border-color: var(--accent); background: var(--surface-2); }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .main-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) 460px;
+    align-items: start;
+    gap: 16px;
+    padding: 16px 22px 24px;
+    max-width: 1680px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1240px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .subbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .lesion-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .lesion-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+  .pill {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+
+  .pill:hover { border-color: var(--lesion-color); color: var(--lesion-color); }
+  .pill.active { background: var(--lesion-color); border-color: var(--lesion-color); color: #fff; }
+
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .svg-wrap {
+    position: relative;
+    flex: 1;
+    overflow-x: auto;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+  }
+
+  svg#plexus {
+    width: 100%;
+    min-width: 820px;
+    margin: 0 auto;
+    height: auto;
+    max-height: 660px;
+    user-select: none;
+  }
+
+  .is-hidden { display: none !important; }
+
+  /* 3D 空间示意视图：画布固定为深色舞台，不随主题变化 */
+  .viewport3d {
+    position: relative;
+    height: clamp(520px, 66vh, 700px);
+    overflow: hidden;
+    background: radial-gradient(circle at 48% 46%, #13203a 0%, #090f1d 68%, #050811 100%);
+    cursor: grab;
+    touch-action: none;
+  }
+  .viewport3d:active { cursor: grabbing; }
+  canvas#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .hud-top {
+    position: absolute; top: 10px; left: 12px; right: 12px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px;
+    pointer-events: none;
+  }
+  .hud-group {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+    pointer-events: auto;
+    background: rgba(16, 25, 43, 0.78); border: 1px solid #243454; padding: 5px 8px; border-radius: 10px;
+  }
+  .hud-label { font-size: 11px; color: #8ea1be; font-weight: 600; }
+  .hud-pill {
+    border: 1px solid #243454; background: rgba(23, 35, 59, 0.9); color: #e9f0fb;
+    padding: 3px 9px; border-radius: 999px; font-size: 11.5px; cursor: pointer; transition: all 0.15s;
+  }
+  .hud-pill:hover { border-color: #38bdf8; }
+  .hud-pill.active { background: #38bdf8; border-color: #38bdf8; color: #05101d; font-weight: 600; }
+  .hud-bottom {
+    position: absolute; bottom: 10px; left: 12px; max-width: calc(100% - 24px);
+    pointer-events: none;
+    font-size: 11.5px; line-height: 1.5; color: #8ea1be;
+    background: rgba(16, 25, 43, 0.78); border: 1px solid #243454; padding: 6px 12px; border-radius: 10px;
+  }
+
+  .stage-header { font-size: 13px; font-weight: 700; fill: var(--muted); }
+  .stage-sub { font-size: 10.5px; fill: var(--muted); opacity: 0.78; }
+  .stage-divider { stroke: var(--border); stroke-width: 1; stroke-dasharray: 4 5; }
+
+  .edge {
+    fill: none;
+    stroke-width: 3.1;
+    stroke-linecap: round;
+    transition: opacity 0.2s, stroke-width 0.2s, stroke 0.2s;
+    opacity: 0.7;
+  }
+
+  .edge.posterior { stroke-dasharray: 7 4; }
+  .edge.collateral-edge { stroke-width: 2.1; stroke-dasharray: 3 3; opacity: 0.58; }
+  .edge.dim { opacity: 0.1; }
+  .edge.highlight { opacity: 1; stroke-width: 4.8; filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.35)); }
+  .edge.lesion-downstream { stroke: var(--lesion-color) !important; opacity: 1; stroke-width: 4.4; }
+
+  .pulse-edge {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-dasharray: 6 24;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .pulse-on .pulse-edge.active-pulse {
+    opacity: 0.9;
+    animation: flowPulse 1.1s linear infinite;
+  }
+
+  @keyframes flowPulse {
+    from { stroke-dashoffset: 30; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .node-group { cursor: pointer; transition: opacity 0.2s; }
+  .node-group.dim { opacity: 0.2; }
+  .node-rect { rx: 10; ry: 10; fill: var(--surface); stroke-width: 2; transition: all 0.18s; }
+  .node-group:hover .node-rect { stroke-width: 3; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12)); }
+  .node-group.selected .node-rect { stroke-width: 3.2; filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.38)); }
+  .node-group.lesion-site .node-rect { stroke: var(--lesion-color) !important; fill: rgba(220, 38, 38, 0.13); stroke-width: 3.2; }
+
+  .node-label { font-size: 12px; font-weight: 600; fill: var(--text); pointer-events: none; }
+  .node-sub { font-size: 9.8px; fill: var(--muted); pointer-events: none; }
+  .collateral-rect + text + .node-sub { font-size: 9.4px; }
+  .collateral-rect { rx: 7; ry: 7; fill: var(--surface-2); stroke: var(--collateral-color); stroke-width: 1.4; }
+  .collateral-label { font-size: 10.3px; font-weight: 500; fill: var(--text); pointer-events: none; }
+
+  .hint-footer {
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Right Column: Limb Atlas + Inspector */
+  .side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .limb-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .limb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .limb-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .seg-group {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .seg-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+
+  .seg-btn.active {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .limb-svg-box {
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 8px 6px 4px;
+    position: relative;
+  }
+
+  svg#limbSvg {
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+    height: auto;
+    display: block;
+    user-select: none;
+  }
+
+  .limb-outline {
+    fill: var(--skin-base);
+    stroke: var(--skin-stroke);
+    stroke-width: 1.4;
+  }
+
+  .limb-view-title {
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--muted);
+  }
+
+  .zone-shape {
+    cursor: pointer;
+    fill: var(--muscle-base);
+    stroke: var(--skin-stroke);
+    stroke-width: 0.8;
+    fill-opacity: 0.78;
+    transition: fill 0.18s, fill-opacity 0.18s, stroke 0.18s, stroke-width 0.18s;
+  }
+
+  .zone-shape:hover {
+    fill-opacity: 0.95;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+
+  .zone-shape.active-motor {
+    fill: var(--muscle-active);
+    fill-opacity: 0.72;
+    stroke: var(--muscle-active);
+    stroke-width: 1.8;
+  }
+
+  .zone-shape.active-sensory {
+    fill: var(--sensory-active);
+    fill-opacity: 0.65;
+    stroke: var(--sensory-active);
+    stroke-width: 1.8;
+  }
+
+  .zone-shape.active-lesion {
+    fill: var(--lesion-color);
+    fill-opacity: 0.72;
+    stroke: var(--lesion-color);
+    stroke-width: 2;
+  }
+
+  .zone-shape.active-lesion-partial {
+    fill: var(--lesion-color);
+    fill-opacity: 0.26;
+    stroke: var(--lesion-color);
+    stroke-width: 1.6;
+    stroke-dasharray: 4 3;
+  }
+
+
+  .limb-status {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+  }
+
+  .mini-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .mini-chip:hover { border-color: var(--accent); }
+  .mini-chip.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
+
+  /* Inspector Card */
+  .inspector {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .tag.lesion { background: rgba(220, 38, 38, 0.14); color: var(--lesion-color); }
+
+  .inspector h2 { font-size: 18px; font-weight: 700; line-height: 1.3; margin-top: 2px; }
+  .inspector .en-name { font-size: 12px; color: var(--muted); }
+
+  .info-block {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 9px 11px;
+  }
+
+  .info-block h3 {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .info-block p { font-size: 12.6px; line-height: 1.52; color: var(--text); }
+
+  .quiz-box {
+    border: 1.5px dashed var(--accent);
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 11px;
+    display: none;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .quiz-box.show { display: flex; }
+  .quiz-q { font-size: 13px; font-weight: 600; line-height: 1.48; }
+  .quiz-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+  .quiz-feedback { font-size: 12px; font-weight: 600; }
+  .quiz-feedback.ok { color: #059669; }
+  .quiz-feedback.err { color: #dc2626; }
+
+  /* 损伤部位（平面）选择条 */
+  .level-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
+  .level-bar .seg-btn.active { color: var(--lesion-color); }
+  .level-hint { font-size: 11px; color: var(--muted); }
+
+  /* 上肢图 */
+  .limb-fill { fill: var(--surface); }
+  .limb-contour { fill: none; stroke: var(--skin-stroke); stroke-width: 1.3; stroke-linejoin: round; pointer-events: none; }
+  .limb-mark { fill: none; stroke: var(--skin-stroke); stroke-width: 1; stroke-dasharray: 3 2.5; opacity: 0.85; pointer-events: none; }
+  .zone-label {
+    font-size: 10.5px; font-weight: 600; fill: var(--text); pointer-events: none;
+    paint-order: stroke; stroke: var(--surface-2); stroke-width: 2.6px; stroke-linejoin: round;
+  }
+  .zone-label.big { font-size: 12.5px; font-weight: 800; }
+  .zone-label.on { fill: var(--accent); font-weight: 800; }
+  .zone-label.on.lesion { fill: var(--lesion-color); }
+  .zone-leader { stroke: var(--muted); stroke-width: 0.7; opacity: 0.75; pointer-events: none; }
+  .zone-leader-dot { fill: var(--muted); pointer-events: none; }
+  .zone-leader.on { stroke: var(--accent); stroke-width: 1.1; opacity: 1; }
+  .zone-leader-dot.on { fill: var(--accent); }
+  .zone-leader.on.lesion { stroke: var(--lesion-color); }
+  .zone-leader-dot.on.lesion { fill: var(--lesion-color); }
+  /* 皮节：未选中时也用淡色区分五条带 */
+  .zone-shape[data-zone="d_c5"]:not([class*="active"]):not(.picked) { fill: #f59e0b; fill-opacity: 0.22; }
+  .zone-shape[data-zone="d_c6"]:not([class*="active"]):not(.picked) { fill: #10b981; fill-opacity: 0.22; }
+  .zone-shape[data-zone="d_c7"]:not([class*="active"]):not(.picked) { fill: #3b82f6; fill-opacity: 0.24; }
+  .zone-shape[data-zone="d_c8"]:not([class*="active"]):not(.picked) { fill: #8b5cf6; fill-opacity: 0.22; }
+  .zone-shape[data-zone="d_t1"]:not([class*="active"]):not(.picked) { fill: #ec4899; fill-opacity: 0.2; }
+  .zone-shape.picked { fill: var(--accent); fill-opacity: 0.5; stroke: var(--accent); stroke-width: 2; }
+
+  .kbd-hint { flex-basis: 100%; }
+  kbd {
+    font-family: inherit; font-size: 0.92em; padding: 0 5px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--surface-2);
+  }
+
+  /* ---------- 投影模式：放大字号，图撑满窗口高度 ---------- */
+  @media screen {
+    body.present .brand p, body.present .hint-footer, body.present .legend { display: none; }
+    body.present .brand h1 { font-size: 19px; }
+    body.present .btn, body.present .pill { font-size: 14.5px; padding: 7px 13px; }
+    body.present .seg-btn { font-size: 14px; padding: 6px 12px; }
+    body.present .lesion-label { font-size: 14.5px; }
+    body.present .node-label { font-size: 14.5px; }
+    body.present .node-sub { font-size: 11.5px; }
+    body.present .collateral-label { font-size: 12px; }
+    body.present .stage-header { font-size: 15.5px; }
+    body.present .stage-sub { font-size: 12.5px; }
+    body.present .limb-title { font-size: 16.5px; }
+    body.present .limb-status { font-size: 14.5px; }
+    body.present .mini-chip { font-size: 13.5px; padding: 3px 10px; }
+    body.present .zone-label { font-size: 11.5px; }
+    body.present .zone-label.big { font-size: 13.5px; }
+    body.present .tag { font-size: 13.5px; }
+    body.present .inspector h2 { font-size: 23px; }
+    body.present .inspector .en-name { font-size: 14.5px; }
+    body.present .info-block h3 { font-size: 13.5px; }
+    body.present .info-block p { font-size: 16px; }
+    body.present .quiz-q { font-size: 16.5px; }
+    body.present .quiz-meta, body.present .quiz-feedback { font-size: 14.5px; }
+    body.present .hud-pill, body.present .hud-bottom { font-size: 13.5px; }
+  }
+  @media screen and (min-width: 1241px) {
+    body.present { height: 100vh; overflow: hidden; }
+    body.present .main-grid {
+      min-height: 0; max-width: none; padding: 10px 14px 12px; align-items: stretch;
+      grid-template-columns: minmax(0, 1.5fr) minmax(460px, 0.85fr);
+    }
+    body.present .main-grid > .card { min-height: 0; }
+    body.present .side-col { min-height: 0; overflow-y: auto; }
+    body.present .side-col > .card { flex-shrink: 0; }
+    body.present .svg-wrap { min-height: 0; overflow: hidden; padding: 6px; }
+    body.present svg#plexus { min-width: 0; max-height: none; width: 100%; height: 100%; }
+    body.present .viewport3d { height: auto; flex: 1; min-height: 0; }
+  }
+
+  /* ---------- 打印讲义：浅色、单栏通路图 + 上肢图与说明并排 ---------- */
+  @media print {
+    @page { margin: 12mm; }
+    :root, [data-theme="dark"] {
+      --bg: #ffffff; --surface: #ffffff; --surface-2: #f3f5f9; --border: #cfd6e2; --text: #111827; --muted: #4b5563;
+      --accent: #1d4ed8; --accent-soft: #e0ecff;
+      --root-color: #2563eb; --trunk-color: #0891b2; --ant-color: #059669; --post-color: #d97706;
+      --cord-color: #7c3aed; --branch-color: #e11d48; --collateral-color: #64748b; --lesion-color: #dc2626;
+      --skin-base: #eef2f7; --skin-stroke: #94a3b8; --muscle-base: #e2e8f0; --muscle-active: #2563eb; --sensory-active: #0891b2;
+      --shadow: none;
+    }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body, body.present { display: block; min-height: 0; height: auto; overflow: visible; background: #fff; }
+    header { position: static; padding: 0 0 8px; border-bottom: 1px solid var(--border); }
+    .toolbar, #viewTabs, .legend, .hint-footer, .viewport3d, .quiz-box, #limbModeTabs, .level-hint, .pulse-edge,
+    .pill:not(.active), #levelBar .seg-btn:not(.active), body:not(.has-lesion) .lesion-bar { display: none !important; }
+    .main-grid { display: block; padding: 10px 0 0; max-width: none; }
+    .card { box-shadow: none; break-inside: avoid; margin-bottom: 10px; }
+    .subbar { background: none; }
+    .svg-wrap, .svg-wrap.is-hidden { display: flex !important; min-height: 0; overflow: visible; padding: 4px; }
+    svg#plexus { min-width: 0; max-height: none; }
+    .side-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+    .mini-chip { border-color: var(--border); }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-badge">BP</div>
+      <div>
+        <h1>臂丛神经 · 上肢肌肉与皮区联动可视化</h1>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn active" id="btnPulse" title="快捷键 空格">⚡ 冲动动画</button>
+      <button class="btn active" id="btnCollaterals" title="快捷键 C">🌿 显示旁支</button>
+      <button class="btn" id="btnQuiz" title="快捷键 Q">🎯 自测模式</button>
+      <button class="btn" id="btnPresent" title="快捷键 P；投影时 ↑↓ 或翻页笔切换预设">📽 投影</button>
+      <button class="btn" id="btnPrint" >🖨 打印</button>
+      <button class="btn" id="btnReset">↺ 重置</button>
+      <button class="btn" id="btnTheme">🌙 深色</button>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- LEFT: Brachial Plexus Diagram -->
+    <section class="card">
+      <div class="subbar">
+        <div class="seg-group" id="viewTabs" title="快捷键 V">
+          <button class="seg-btn active" data-view="2d">2D 通路图</button>
+          <button class="seg-btn" data-view="3d">3D 空间示意</button>
+        </div>
+        <div class="lesion-bar">
+          <span class="lesion-label">临床损伤模拟：</span>
+          <button class="pill" data-lesion="erb" title="快捷键 1；← → 切换损伤部位">Erb 麻痹 (上臂丛)</button>
+          <button class="pill" data-lesion="klumpke" title="快捷键 2">Klumpke 麻痹 (下臂丛)</button>
+          <button class="pill" data-lesion="radial" title="快捷键 3">桡神经 (垂腕)</button>
+          <button class="pill" data-lesion="median" title="快捷键 4">正中神经 (猿手)</button>
+          <button class="pill" data-lesion="ulnar" title="快捷键 5">尺神经 (爪形手)</button>
+          <button class="pill" data-lesion="axillary" title="快捷键 6">腋神经 (方肩)</button>
+          <button class="pill" data-lesion="long_thoracic" title="快捷键 7">胸长神经 (翼状肩胛)</button>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="dot" style="background:var(--ant-color)"></span>前股 (屈肌)</span>
+          <span class="legend-item"><span class="dot" style="background:var(--post-color)"></span>后股 (伸肌/虚线)</span>
+          <span class="legend-item"><span class="dot" style="background:var(--lesion-color)"></span>损伤受累</span>
+          <span class="legend-item"><span class="dot" style="background:var(--lesion-color);opacity:0.4"></span>部分受累</span>
+        </div>
+        <div class="level-bar is-hidden" id="levelBar"></div>
+      </div>
+
+      <div class="svg-wrap pulse-on" id="svgWrap">
+        <svg id="plexus" viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="viewport3d is-hidden" id="viewport3d">
+        <canvas id="scene"></canvas>
+        <div class="hud-top">
+          <div class="hud-group" id="camPresets">
+            <span class="hud-label">视角：</span>
+            <button class="hud-pill active" data-cam="front">前面观</button>
+            <button class="hud-pill" data-cam="top">俯视(看前后束)</button>
+            <button class="hud-pill" data-cam="lateral">外侧斜位</button>
+            <button class="hud-pill" data-cam="back">后面观</button>
+          </div>
+          <div class="hud-group" id="sceneToggles">
+            <button class="hud-pill" data-toggle="artery">腋动脉</button>
+            <button class="hud-pill" data-toggle="bones">椎体/锁骨</button>
+            <button class="hud-pill" data-toggle="labels">标签</button>
+            <button class="hud-pill" data-toggle="auto">自动旋转</button>
+          </div>
+        </div>
+        <div class="hud-bottom">示意图：仅前后关系按真实解剖</div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: Upper Limb Linkage + Inspector -->
+    <div class="side-col">
+      <section class="card limb-card">
+        <div class="limb-header">
+          <span class="limb-title">右上肢</span>
+          <div class="seg-group" id="limbModeTabs" title="快捷键 M">
+            <button class="seg-btn active" data-mode="motor">支配肌肉</button>
+            <button class="seg-btn" data-mode="cutaneous">周围皮区</button>
+            <button class="seg-btn" data-mode="dermatome">C5–T1 皮节</button>
+          </div>
+        </div>
+
+        <div class="limb-svg-box">
+          <svg id="limbSvg" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <div class="limb-status">
+          <span id="limbCaption"></span>
+        </div>
+        <div class="chip-list" id="activeChips"></div>
+      </section>
+
+      <aside class="card inspector">
+        <div class="quiz-box" id="quizBox">
+          <div class="quiz-meta">
+            <span>🎯 解剖定位自测</span>
+            <span id="quizScore">得分：0 / 0</span>
+          </div>
+          <div class="quiz-q" id="quizQuestion">请点击对应结构...</div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+          <div style="display:flex;gap:8px;margin-top:2px;">
+            <button class="btn active is-hidden" id="btnSubmitQuiz" style="flex:1;justify-content:center;">提交所选</button>
+            <button class="btn" id="btnNextQuiz" style="flex:1;justify-content:center;">下一题 →</button>
+            <button class="btn" id="btnRevealQuiz">查看答案</button>
+          </div>
+        </div>
+
+        <div id="detailContent">
+          <div class="tag-row" id="dTags"></div>
+          <h2 id="dTitle">臂丛神经总览</h2>
+          <div class="en-name" id="dSub">Brachial Plexus · 腕神経叢 (C5–T1)</div>
+
+          <div class="info-block" style="margin-top:9px;">
+            <h3>脊髓节段 & 结构定位</h3>
+            <p id="dSegments"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>空间位置关系</h3>
+            <p id="dSpatial"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>主要支配肌肉（运动）</h3>
+            <p id="dMotor"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>皮肤感觉分布</h3>
+            <p id="dSensory"></p>
+          </div>
+
+          <div class="info-block" style="margin-top:8px;">
+            <h3>临床要点</h3>
+            <p id="dClinical"></p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+// ===== PLEXUS-MODEL:BEGIN =====
+// 纤维路由模型：节段、溯源高亮、损伤受累范围都由这里推导，页面其他地方不再手写这些关系。
+// 这是唯一的数据源；修改后运行 `node tests/check-model.js` 校验。
+const PlexusModel = (() => {
+  const ROOTS = ['c5', 'c6', 'c7', 'c8', 't1'];
+
+  // 拓扑：谁发出谁。一条边存在，不代表每条根的纤维都走这条边。
+  const LINKS = [
+    ['c5', 'upper_trunk'], ['c6', 'upper_trunk'], ['c7', 'middle_trunk'], ['c8', 'lower_trunk'], ['t1', 'lower_trunk'],
+    ['upper_trunk', 'up_ant'], ['upper_trunk', 'up_post'], ['middle_trunk', 'mid_ant'], ['middle_trunk', 'mid_post'],
+    ['lower_trunk', 'low_post'], ['lower_trunk', 'low_ant'],
+    ['up_ant', 'lat_cord'], ['mid_ant', 'lat_cord'], ['up_post', 'post_cord'], ['mid_post', 'post_cord'],
+    ['low_post', 'post_cord'], ['low_ant', 'med_cord'],
+    ['lat_cord', 'musculocutaneous'], ['lat_cord', 'median'], ['post_cord', 'axillary'], ['post_cord', 'radial'],
+    ['med_cord', 'median'], ['med_cord', 'ulnar'],
+    ['c5', 'dorsal_scapular'], ['c5', 'long_thoracic'], ['c6', 'long_thoracic'], ['c7', 'long_thoracic'],
+    ['upper_trunk', 'suprascapular'], ['upper_trunk', 'subclavius_n'],
+    ['lat_cord', 'lat_pectoral'],
+    ['post_cord', 'upper_subscapular'], ['post_cord', 'thoracodorsal'], ['post_cord', 'lower_subscapular'],
+    ['med_cord', 'med_pectoral'], ['med_cord', 'med_cut_arm'], ['med_cord', 'med_cut_forearm'],
+  ];
+
+  // 各神经实际含有的节段（纤维成分）。未列出的中间结构（干/股/束）= 所有能到达它的根。
+  const COMPOSITION = {
+    musculocutaneous: ['c5', 'c6', 'c7'],
+    axillary: ['c5', 'c6'],
+    radial: ['c5', 'c6', 'c7', 'c8', 't1'],
+    median: ['c6', 'c7', 'c8', 't1'],
+    ulnar: ['c8', 't1'],
+    dorsal_scapular: ['c5'],
+    long_thoracic: ['c5', 'c6', 'c7'],
+    suprascapular: ['c5', 'c6'],
+    subclavius_n: ['c5', 'c6'],
+    lat_pectoral: ['c5', 'c6', 'c7'],
+    upper_subscapular: ['c5', 'c6'],
+    thoracodorsal: ['c6', 'c7', 'c8'],
+    lower_subscapular: ['c5', 'c6'],
+    med_pectoral: ['c8', 't1'],
+    med_cut_arm: ['c8', 't1'],
+    med_cut_forearm: ['c8', 't1'],
+  };
+
+  // 支配靶区（id 与页面里的图形区域一一对应）。
+  // F(神经, 主要节段, 分出平面 lv, 所经分支 via)
+  // lv：0 腋窝/起始处 · 1 上臂 · 2 肘/前臂近端 · 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
+  // via：该纤维走的是神经的哪条具名分支（pin 骨间后神经 · srn 桡神经浅支 · ain 骨间前神经）
+  const F = (nerve, roots, lv = 0, via) => ({ nerve, roots: roots.split(' '), lv, via });
+  const TARGETS = [
+    { id: 'm_deltoid', kind: 'motor', name: '三角肌', fibers: [F('axillary', 'c5 c6')] },
+    { id: 'm_subclavius', kind: 'motor', name: '锁骨下肌', fibers: [F('subclavius_n', 'c5 c6')] },
+    { id: 'm_pec', kind: 'motor', name: '胸大肌/胸小肌', fibers: [F('lat_pectoral', 'c5 c6 c7'), F('med_pectoral', 'c8 t1')] },
+    { id: 'm_serratus', kind: 'motor', name: '前锯肌', fibers: [F('long_thoracic', 'c5 c6 c7')] },
+    { id: 'm_biceps', kind: 'motor', name: '肱二头肌/肱肌', fibers: [F('musculocutaneous', 'c5 c6', 1)] },
+    { id: 'm_pronator', kind: 'motor', name: '旋前圆肌', fibers: [F('median', 'c6 c7', 2)] },
+    { id: 'm_flexor_med', kind: 'motor', name: '桡侧腕屈肌/指浅屈肌', fibers: [F('median', 'c7 c8 t1', 2)] },
+    { id: 'm_ain', kind: 'motor', name: '拇长屈肌/示指深屈肌', fibers: [F('median', 'c8 t1', 2, 'ain')] },
+    { id: 'm_flexor_uln', kind: 'motor', name: '尺侧腕屈肌/环小指深屈肌', fibers: [F('ulnar', 'c8 t1', 2)] },
+    { id: 'm_thenar', kind: 'motor', name: '大鱼际肌', fibers: [F('median', 'c8 t1', 4)] },
+    { id: 'm_lumb_lat', kind: 'motor', name: '第1–2蚓状肌', fibers: [F('median', 'c8 t1', 4)] },
+    { id: 'm_adductor', kind: 'motor', name: '拇收肌', fibers: [F('ulnar', 'c8 t1', 4)] },
+    { id: 'm_hypothenar', kind: 'motor', name: '小鱼际肌', fibers: [F('ulnar', 'c8 t1', 4)] },
+    { id: 'm_lumb_med', kind: 'motor', name: '第3–4蚓状肌', fibers: [F('ulnar', 'c8 t1', 4)] },
+    { id: 'm_interossei', kind: 'motor', name: '骨间肌', fibers: [F('ulnar', 'c8 t1', 4)] },
+    { id: 'm_rotator', kind: 'motor', name: '冈上/冈下肌', fibers: [F('suprascapular', 'c5 c6')] },
+    { id: 'm_rhomboid', kind: 'motor', name: '菱形肌', fibers: [F('dorsal_scapular', 'c5')] },
+    { id: 'm_teres_major', kind: 'motor', name: '大圆肌/肩胛下肌', fibers: [F('lower_subscapular', 'c5 c6'), F('upper_subscapular', 'c5 c6')] },
+    { id: 'm_latissimus', kind: 'motor', name: '背阔肌', fibers: [F('thoracodorsal', 'c6 c7 c8')] },
+    { id: 'm_triceps', kind: 'motor', name: '肱三头肌', fibers: [F('radial', 'c7 c8', 0)] },
+    { id: 'm_brachiorad', kind: 'motor', name: '肱桡肌/桡侧腕长伸肌', fibers: [F('radial', 'c5 c6', 2)] },
+    { id: 'm_ext_digits', kind: 'motor', name: '指伸肌/拇伸肌/尺侧腕伸肌', fibers: [F('radial', 'c7 c8', 2, 'pin')] },
+
+    { id: 's_axil', kind: 'cutaneous', name: '肩外侧(腋神经)', fibers: [F('axillary', 'c5 c6')] },
+    { id: 's_med_arm', kind: 'cutaneous', name: '臂内侧(臂内侧皮神经)', fibers: [F('med_cut_arm', 'c8 t1')] },
+    { id: 's_med_forearm', kind: 'cutaneous', name: '前臂内侧(前臂内侧皮神经)', fibers: [F('med_cut_forearm', 'c8 t1')] },
+    { id: 's_lat_forearm', kind: 'cutaneous', name: '前臂外侧(肌皮神经)', fibers: [F('musculocutaneous', 'c5 c6', 2)] },
+    { id: 's_palm_cut', kind: 'cutaneous', name: '手掌桡侧(正中·掌皮支)', fibers: [F('median', 'c6 c7', 2.8)] },
+    { id: 's_fingers_med', kind: 'cutaneous', name: '桡侧3.5指掌面(正中)', fibers: [F('median', 'c6 c7 c8', 4)] },
+    { id: 's_med_tips', kind: 'cutaneous', name: '桡侧3.5指中远节指背(正中)', fibers: [F('median', 'c6 c7 c8', 4)] },
+    { id: 's_hypo_palm', kind: 'cutaneous', name: '手掌尺侧(尺·掌皮支)', fibers: [F('ulnar', 'c8 t1', 2.8)] },
+    { id: 's_fingers_uln', kind: 'cutaneous', name: '尺侧1.5指掌面(尺)', fibers: [F('ulnar', 'c8 t1', 4)] },
+    { id: 's_uln_back', kind: 'cutaneous', name: '手背尺侧2.5指(尺·手背支)', fibers: [F('ulnar', 'c8 t1', 2.8)] },
+    { id: 's_rad_arm', kind: 'cutaneous', name: '臂/前臂后侧(桡)', fibers: [F('radial', 'c5 c6 c7 c8', 0)] },
+    { id: 's_rad_hand', kind: 'cutaneous', name: '手背桡侧2.5指/虎口(桡·浅支)', fibers: [F('radial', 'c6 c7', 2, 'srn')] },
+
+    { id: 'd_c5', kind: 'dermatome', name: 'C5（肩及臂外侧）', fibers: [F('c5', 'c5')] },
+    { id: 'd_c6', kind: 'dermatome', name: 'C6（前臂外侧、拇指）', fibers: [F('c6', 'c6')] },
+    { id: 'd_c7', kind: 'dermatome', name: 'C7（中指）', fibers: [F('c7', 'c7')] },
+    { id: 'd_c8', kind: 'dermatome', name: 'C8（小指、前臂内侧远端）', fibers: [F('c8', 'c8')] },
+    { id: 'd_t1', kind: 'dermatome', name: 'T1（臂内侧、前臂内侧近端）', fibers: [F('t1', 't1')] },
+  ];
+
+  // 损伤预设。每个预设有一个或多个可选「部位」：
+  //   sites  = 被切断的结构（可多个，如 C5+C6 根性撕脱）
+  //   lv     = 损伤平面：同一神经上在更近端（lv 更小）已分出的分支不受累
+  //   branch = 只损伤该神经的某条具名分支，其余分支不受累
+  const LESION_SITES = {
+    erb: { def: 'trunk', levels: [
+      { key: 'trunk', name: '上干（节后）', sites: ['upper_trunk'] },
+      { key: 'root', name: 'C5–C6 根性撕脱（节前）', sites: ['c5', 'c6'] }] },
+    klumpke: { def: 'trunk', levels: [
+      { key: 'trunk', name: '下干（节后）', sites: ['lower_trunk'] },
+      { key: 'root', name: 'C8–T1 根性撕脱（节前）', sites: ['c8', 't1'] }] },
+    radial: { def: 'groove', levels: [
+      { key: 'axilla', name: '腋部', sites: ['radial'], lv: 0 },
+      { key: 'groove', name: '桡神经沟', sites: ['radial'], lv: 1 },
+      { key: 'pin', name: '骨间后神经', sites: ['radial'], branch: 'pin' }] },
+    median: { def: 'carpal', levels: [
+      { key: 'high', name: '肘部以上', sites: ['median'], lv: 1 },
+      { key: 'ain', name: '骨间前神经', sites: ['median'], branch: 'ain' },
+      { key: 'carpal', name: '腕管', sites: ['median'], lv: 3 }] },
+    ulnar: { def: 'wrist', levels: [
+      { key: 'elbow', name: '肘管', sites: ['ulnar'], lv: 2 },
+      { key: 'wrist', name: '腕部 Guyon 管', sites: ['ulnar'], lv: 3 }] },
+    axillary: { def: 'main', levels: [{ key: 'main', name: '四边孔', sites: ['axillary'] }] },
+    long_thoracic: { def: 'main', levels: [{ key: 'main', name: '胸侧壁', sites: ['long_thoracic'] }] },
+  };
+
+  const outLinks = {};
+  LINKS.forEach(([a, b]) => (outLinks[a] = outLinks[a] || []).push(b));
+  const targetMap = Object.fromEntries(TARGETS.map(t => [t.id, t]));
+
+  function allPaths(from, to, acc = [from], out = []) {
+    if (from === to) { out.push(acc); return out; }
+    (outLinks[from] || []).forEach(n => allPaths(n, to, acc.concat(n), out));
+    return out;
+  }
+
+  // 某条根到某结构的路径（臂丛拓扑下唯一），到不了则为 null
+  const pathCache = {};
+  function pathOf(root, id) {
+    const k = root + '>' + id;
+    if (!(k in pathCache)) pathCache[k] = allPaths(root, id)[0] || null;
+    return pathCache[k];
+  }
+
+  function rootsOf(id) {
+    return COMPOSITION[id] || ROOTS.filter(r => pathOf(r, id));
+  }
+
+  // 所有「根 → 神经」的纤维路径
+  const NERVE_PATHS = [];
+  Object.keys(COMPOSITION).forEach(n => COMPOSITION[n].forEach(r => NERVE_PATHS.push(pathOf(r, n))));
+
+  function addPath(p, fromIdx, nodes, edges) {
+    for (let i = fromIdx; i < p.length; i++) {
+      nodes.add(p[i]);
+      if (i > fromIdx) edges.add(p[i - 1] + '>' + p[i]);
+    }
+  }
+
+  // 双向溯源：up = 该结构的纤维从哪些根、沿哪条路来；down = 流经该结构的纤维去往哪里
+  function trace(id) {
+    const upNodes = new Set([id]), upEdges = new Set(), downNodes = new Set([id]), downEdges = new Set();
+    rootsOf(id).forEach(r => addPath(pathOf(r, id), 0, upNodes, upEdges));
+    NERVE_PATHS.forEach(p => { const i = p.indexOf(id); if (i >= 0) addPath(p, i, downNodes, downEdges); });
+    return {
+      upNodes, upEdges, downNodes, downEdges,
+      nodes: new Set([...upNodes, ...downNodes]), edges: new Set([...upEdges, ...downEdges]),
+    };
+  }
+
+  // 单个靶区自己的路由（例如大鱼际肌只走 C8/T1 → 内侧束 → 正中神经）
+  function traceTarget(targetId) {
+    const t = targetMap[targetId];
+    if (t.kind === 'dermatome') { const tr = trace(t.fibers[0].nerve); return { nodes: tr.nodes, edges: tr.edges }; }
+    const nodes = new Set(), edges = new Set();
+    t.fibers.forEach(f => f.roots.forEach(r => addPath(pathOf(r, f.nerve), 0, nodes, edges)));
+    return { nodes, edges };
+  }
+
+  // 一条 fiber 中有多少根的纤维流经 ids 中的任一结构
+  function fiberHits(f, ids) {
+    return f.roots.filter(r => { const p = pathOf(r, f.nerve); return p && ids.some(id => p.includes(id)); }).length;
+  }
+
+  // 有纤维流经 id 的全部靶区
+  function targetsFor(id) {
+    const rs = rootsOf(id), out = new Set();
+    TARGETS.forEach(t => {
+      const hit = t.kind === 'dermatome' ? rs.includes(t.fibers[0].nerve) : t.fibers.some(f => fiberHits(f, [id]));
+      if (hit) out.add(t.id);
+    });
+    return out;
+  }
+
+  // 损伤：severity = 靶区 id → 'full'（主要节段全断）| 'partial'（部分节段断）；
+  // spared = 与损伤在同一神经上、但从损伤点近端或另一条分支走的靶区
+  function lesion(key, levelKey) {
+    const def = LESION_SITES[key];
+    const level = def.levels.find(l => l.key === levelKey) || def.levels.find(l => l.key === def.def);
+    const { sites, lv = 0, branch } = level;
+    const isNerve = sites.every(s => s in COMPOSITION);
+    const severity = new Map(), spared = [];
+    TARGETS.forEach(t => {
+      if (t.kind === 'dermatome') {
+        // 皮节只对根/干/束水平的损伤有意义；周围神经损伤按周围皮区分布
+        if (!isNerve && sites.some(s => rootsOf(s).includes(t.fibers[0].nerve))) severity.set(t.id, 'full');
+        return;
+      }
+      let total = 0, hit = 0, bypass = false;
+      t.fibers.forEach(f => {
+        total += f.roots.length;
+        const n = fiberHits(f, sites);
+        if (!n) return;
+        if (sites.includes(f.nerve) && (branch ? f.via !== branch : f.lv < lv)) bypass = true;
+        else hit += n;
+      });
+      if (hit) severity.set(t.id, hit === total ? 'full' : 'partial');
+      else if (bypass) spared.push(t.id);
+    });
+    const tr = { upNodes: new Set(), upEdges: new Set(), downNodes: new Set(), downEdges: new Set(), nodes: new Set(), edges: new Set() };
+    sites.forEach(s => { const one = trace(s); Object.keys(tr).forEach(k => one[k].forEach(v => tr[k].add(v))); });
+    return {
+      key, level: level.key, levelName: level.name, sites: new Set(sites), isNerve, branch: !!branch,
+      // 节前 = 全部损伤点都在根；Horner 征 = T1 根在发出白交通支之前受损
+      preganglionic: sites.every(s => ROOTS.includes(s)), horner: sites.includes('t1'),
+      severity, spared, ...tr,
+    };
+  }
+
+  function segLabel(id) {
+    const idx = rootsOf(id).map(r => ROOTS.indexOf(r));
+    const names = idx.map(i => ROOTS[i].toUpperCase());
+    const contiguous = idx.every((v, i) => i === 0 || v === idx[i - 1] + 1);
+    return names.length > 1 && contiguous ? names[0] + '–' + names[names.length - 1] : names.join(', ');
+  }
+
+  return {
+    ROOTS, LINKS, COMPOSITION, TARGETS, LESION_SITES,
+    target: id => targetMap[id], pathOf, rootsOf, trace, traceTarget, targetsFor, lesion, segLabel,
+  };
+})();
+// ===== PLEXUS-MODEL:END =====
+
+const STAGES = [
+  { key: 'root', x: 70, title: '根 Roots', sub: '脊神经前支 (5)' },
+  { key: 'trunk', x: 255, title: '干 Trunks', sub: '斜角肌间隙 (3)' },
+  { key: 'division', x: 450, title: '股 Divisions', sub: '锁骨后方 (前3/后3)' },
+  { key: 'cord', x: 655, title: '束 Cords', sub: '腋动脉周围 (3)' },
+  { key: 'branch', x: 885, title: '终末支 Branches', sub: '上肢五大主干 (5)' },
+];
+
+const NODES = [
+  // Roots
+  { id: 'c5', stage: 'root', x: 70, y: 120, w: 96, h: 44, label: 'C5 神经根', sub: '第5颈神经前支', en: 'C5 Anterior Ramus',
+    motor: '参与支配三角肌、冈上/下肌、菱形肌、肱二头肌、肱桡肌、前锯肌上部',
+    sensory: '肩外侧及上臂外侧上部（C5 皮节）',
+    clinical: '参与构成上干、肩胛背神经与胸长神经；损伤常见于上臂丛牵拉伤（Erb 麻痹）。' },
+  { id: 'c6', stage: 'root', x: 70, y: 210, w: 96, h: 44, label: 'C6 神经根', sub: '第6颈神经前支', en: 'C6 Anterior Ramus',
+    motor: '参与支配肱二头肌、肱桡肌、旋前圆肌、桡侧腕伸肌、胸大肌、背阔肌',
+    sensory: '前臂外侧、拇指及示指（C6 皮节）',
+    clinical: '与 C5 共同汇成上干；肱二头肌反射与肱桡肌反射中枢在 C5–C6。' },
+  { id: 'c7', stage: 'root', x: 70, y: 310, w: 96, h: 44, label: 'C7 神经根', sub: '第7颈神经前支', en: 'C7 Anterior Ramus',
+    motor: '参与支配肱三头肌、腕伸肌、指伸肌、胸大肌、背阔肌、前锯肌',
+    sensory: '中指及手掌/手背中央区（C7 皮节）',
+    clinical: '独自延续为中干；肱三头肌反射主要反映 C7 节段功能。' },
+  { id: 'c8', stage: 'root', x: 70, y: 410, w: 96, h: 44, label: 'C8 神经根', sub: '第8颈神经前支', en: 'C8 Anterior Ramus',
+    motor: '参与支配指屈肌、手内在肌（大小鱼际、骨间肌、蚓状肌）、部分伸指肌',
+    sensory: '前臂内侧远端、环指尺侧及小指（C8 皮节）',
+    clinical: '与 T1 汇成下干；损伤可致手内在肌无力与爪形手表现。' },
+  { id: 't1', stage: 'root', x: 70, y: 500, w: 96, h: 44, label: 'T1 神经根', sub: '第1胸神经前支', en: 'T1 Anterior Ramus',
+    motor: '主要支配手部精细内在肌（骨间肌、蚓状肌、鱼际肌）',
+    sensory: '上臂及前臂内侧近端（T1 皮节）',
+    clinical: '眼部交感节前纤维经 T1 根的白交通支离开，不进入下干。所以 T1 根性撕脱伴同侧 Horner 综合征，而单纯下干损伤没有。' },
+
+  // Trunks
+  { id: 'upper_trunk', stage: 'trunk', x: 255, y: 165, w: 108, h: 48, label: '上干', sub: 'Upper Trunk', en: 'Superior / Upper Trunk',
+    motor: '肩外展与外旋肌群（三角肌、冈上/下肌）、肘屈肌群（肱二头肌、肱肌、肱桡肌）',
+    sensory: '肩外侧、前臂外侧、拇指与示指区域（C5–C6 皮节）',
+    clinical: '在 Erb 点汇聚，并发出肩胛上神经与锁骨下肌神经（干部仅有的两条分支）；分娩牵拉或摔伤致头肩分离可引起 Erb-Duchenne 麻痹（“侍者小费手”）。' },
+  { id: 'middle_trunk', stage: 'trunk', x: 255, y: 310, w: 108, h: 48, label: '中干', sub: 'Middle Trunk', en: 'Middle Trunk',
+    motor: '肱三头肌、前臂伸肌与部分屈肌',
+    sensory: '中指为主的 C7 皮节',
+    clinical: '完全由 C7 神经根延续而成，前股汇入外侧束，后股汇入后束。' },
+  { id: 'lower_trunk', stage: 'trunk', x: 255, y: 455, w: 108, h: 48, label: '下干', sub: 'Lower Trunk', en: 'Inferior / Lower Trunk',
+    motor: '全部手内在肌及尺侧屈腕/屈指肌',
+    sensory: '上臂/前臂内侧、尺侧 1.5 指（C8–T1 皮节）',
+    clinical: '跨越第 1 肋，易受颈肋或肺尖肿瘤压迫；过度上牵上肢可致 Klumpke 麻痹。单纯下干损伤不出现 Horner 征。' },
+
+  // Divisions
+  { id: 'up_ant', stage: 'division', x: 450, y: 130, w: 106, h: 40, label: '上干前股', sub: 'Anterior', en: 'Anterior Division (Upper)', divisionType: 'ant',
+    motor: '汇入外侧束，参与支配上肢前群屈肌（肱二头肌、肱肌、旋前圆肌等）',
+    sensory: '前臂外侧及桡侧手掌',
+    clinical: '在锁骨后方由上干发出，与中干前股合成外侧束。' },
+  { id: 'up_post', stage: 'division', x: 450, y: 205, w: 106, h: 40, label: '上干后股', sub: 'Posterior', en: 'Posterior Division (Upper)', divisionType: 'post',
+    motor: '汇入后束，支配三角肌、小圆肌、肩胛下肌及部分伸肌',
+    sensory: '肩外侧及上臂/前臂后侧',
+    clinical: '三干后股全部汇合为后束，供应整个上肢后侧伸肌隔室。' },
+  { id: 'mid_ant', stage: 'division', x: 450, y: 280, w: 106, h: 40, label: '中干前股', sub: 'Anterior', en: 'Anterior Division (Middle)', divisionType: 'ant',
+    motor: '汇入外侧束，参与肌皮神经、正中神经外侧根与胸外侧神经',
+    sensory: '手掌桡侧及中指',
+    clinical: '与上干前股共同组成外侧束。' },
+  { id: 'mid_post', stage: 'division', x: 450, y: 350, w: 106, h: 40, label: '中干后股', sub: 'Posterior', en: 'Posterior Division (Middle)', divisionType: 'post',
+    motor: '汇入后束，重点参与桡神经（肱三头肌、伸腕伸指肌）及胸背神经',
+    sensory: '前臂后侧及手背',
+    clinical: '是桡神经 C7 纤维的核心通道。' },
+  { id: 'low_post', stage: 'division', x: 450, y: 425, w: 106, h: 40, label: '下干后股', sub: 'Posterior', en: 'Posterior Division (Lower)', divisionType: 'post',
+    motor: '汇入后束，主要经桡神经支配前臂远端伸肌（伸指/伸拇肌）',
+    sensory: '前臂后侧远端',
+    clinical: '与上、中干后股汇合为后束。' },
+  { id: 'low_ant', stage: 'division', x: 450, y: 495, w: 106, h: 40, label: '下干前股', sub: 'Anterior', en: 'Anterior Division (Lower)', divisionType: 'ant',
+    motor: '直接延续为内侧束，支配尺神经及正中神经内侧根所控屈肌与手内在肌',
+    sensory: '臂内侧、前臂内侧及尺侧 1.5 指',
+    clinical: '独自构成内侧束，是手部精细运动的核心通路。' },
+
+  // Cords
+  { id: 'lat_cord', stage: 'cord', x: 655, y: 165, w: 112, h: 52, label: '外侧束', sub: 'Lateral Cord', en: 'Lateral Cord (腋动脉外侧)',
+    motor: '肱二头肌、喙肱肌、肱肌、胸大肌锁骨部及正中神经上段屈肌',
+    sensory: '前臂外侧及桡侧手掌',
+    clinical: '位于腋动脉第 2 段外侧；发出胸外侧神经，终分为肌皮神经与正中神经外侧根。分支口诀 LLM：Lateral pectoral、Lateral root of median、Musculocutaneous。' },
+  { id: 'post_cord', stage: 'cord', x: 655, y: 325, w: 112, h: 52, label: '后束', sub: 'Posterior Cord', en: 'Posterior Cord (腋动脉后方)',
+    motor: '三角肌、小圆肌、背阔肌、肩胛下肌、大圆肌、肱三头肌及前臂全部伸肌',
+    sensory: '肩外侧、臂后、前臂后、手背桡侧 2.5 指',
+    clinical: '由全部三个后股汇合而成；腋杖压迫腋窝可同时累及后束引发垂腕与肩外展无力。分支口诀 ULTRA：Upper subscapular、Lower subscapular、Thoracodorsal、Radial、Axillary。' },
+  { id: 'med_cord', stage: 'cord', x: 655, y: 485, w: 112, h: 52, label: '内侧束', sub: 'Medial Cord', en: 'Medial Cord (腋动脉内侧)',
+    motor: '手部全部内在肌、尺侧腕屈肌、指深屈肌尺侧半、胸小肌及胸大肌胸肋部',
+    sensory: '臂内侧、前臂内侧及尺侧 1.5 指',
+    clinical: '发出胸内侧神经、臂及前臂内侧皮神经，终分为尺神经与正中神经内侧根。分支口诀 M4U：Medial pectoral、Medial cutaneous of arm、Medial cutaneous of forearm、Median（内侧根）、Ulnar。' },
+
+  // Terminal Branches
+  { id: 'musculocutaneous', stage: 'branch', x: 885, y: 110, w: 144, h: 48, label: '肌皮神经', sub: 'Musculocutaneous', en: 'Musculocutaneous Nerve (C5–C7)',
+    motor: '喙肱肌、肱二头肌、肱肌（穿喙肱肌下行）',
+    sensory: '终支为前臂外侧皮神经，支配前臂外侧皮肤',
+    clinical: '损伤表现为肘关节屈曲与前臂旋后力量减弱，伴前臂外侧感觉减退。' },
+  { id: 'axillary', stage: 'branch', x: 885, y: 210, w: 144, h: 48, label: '腋神经', sub: 'Axillary Nerve', en: 'Axillary Nerve (C5–C6)',
+    motor: '三角肌、小圆肌',
+    sensory: '肩外侧三角肌表面皮肤（“徽章区”）',
+    clinical: '绕肱骨外科颈经四边孔穿行；肩关节前脱位或肱骨外科颈骨折易损伤，致“方肩”畸形及肩外展障碍。' },
+  { id: 'radial', stage: 'branch', x: 885, y: 310, w: 144, h: 48, label: '桡神经', sub: 'Radial Nerve', en: 'Radial Nerve (C5–T1)',
+    motor: '肱三头肌、肘肌、肱桡肌、旋后肌及前臂全部伸腕/伸指肌',
+    sensory: '臂后、前臂后及手背桡侧 2.5 指（虎口区最恒定）',
+    clinical: '紧贴肱骨干桡神经沟走行；肱骨中段骨折或“周末夜麻痹”压迫可致典型“垂腕”畸形。' },
+  { id: 'median', stage: 'branch', x: 885, y: 410, w: 144, h: 48, label: '正中神经', sub: 'Median Nerve', en: 'Median Nerve (C5/C6–T1)',
+    motor: '前臂大部分屈肌与旋前肌、大鱼际肌（除拇收肌）、第 1–2 蚓状肌',
+    sensory: '手掌桡侧（掌皮支）、桡侧 3.5 指掌面及其中远节指背',
+    clinical: '由外侧束外侧根与内侧束内侧根汇合呈“M”形；腕管综合征可致桡侧 3.5 指夜间麻痛及大鱼际萎缩（猿手）；掌皮支不经腕管，手掌感觉保留。' },
+  { id: 'ulnar', stage: 'branch', x: 885, y: 510, w: 144, h: 48, label: '尺神经', sub: 'Ulnar Nerve', en: 'Ulnar Nerve (C8–T1)',
+    motor: '尺侧腕屈肌、指深屈肌尺侧半、小鱼际肌、骨间肌、第 3–4 蚓状肌、拇收肌',
+    sensory: '手掌尺侧及尺侧 1.5 指掌面（小指及环指尺侧半）、手背尺侧 2.5 指',
+    clinical: '经肱骨内上髁后方尺神经沟。腕部（Guyon 管）损伤呈典型“爪形手”；肘部损伤因环、小指指深屈肌同时瘫痪，爪形反而较轻（尺神经悖论）。夹纸试验（Froment 征）阳性。' },
+
+  // Collaterals（第二行文字是节段，由模型推导，不在这里写）
+  { id: 'dorsal_scapular', stage: 'collateral', x: 160, y: 66, w: 84, h: 34, label: '肩胛背神经', en: 'Dorsal Scapular Nerve',
+    motor: '大、小菱形肌，肩胛提肌', sensory: '纯运动神经', clinical: '直接发自 C5 根，穿中斜角肌下行。菱形肌受累说明损伤在根部（节前），是鉴别根性撕脱与上干损伤的标志之一。' },
+  { id: 'long_thoracic', stage: 'collateral', dock: 'gap', x: 160, y: 260, w: 72, h: 38, label: '胸长神经', en: 'Long Thoracic Nerve',
+    motor: '前锯肌', sensory: '纯运动神经', clinical: '由 C5–C7 根直接发出，沿胸侧壁下行，乳腺/腋窝清扫或重物压肩易损伤，致典型“翼状肩胛”。' },
+  { id: 'suprascapular', stage: 'collateral', x: 345, y: 66, w: 84, h: 34, label: '肩胛上神经', en: 'Suprascapular Nerve',
+    motor: '冈上肌（启动肩外展 0–15°）、冈下肌（肩外旋）', sensory: '肩关节囊本体感觉', clinical: '经肩胛切迹下行，上干损伤（Erb 麻痹）时常受累。' },
+  { id: 'subclavius_n', stage: 'collateral', x: 348, y: 248, w: 92, h: 34, label: '锁骨下肌神经', en: 'Nerve to Subclavius',
+    motor: '锁骨下肌', sensory: '纯运动神经', clinical: '发自上干前面，在锁骨后方下行；可发出副膈神经。' },
+  { id: 'lat_pectoral', stage: 'collateral', x: 762, y: 66, w: 88, h: 34, label: '胸外侧神经', en: 'Lateral Pectoral Nerve',
+    motor: '胸大肌（主要为锁骨部）', sensory: '无皮肤感觉', clinical: '发自外侧束，穿锁胸筋膜进入胸大肌深面。' },
+  { id: 'upper_subscapular', stage: 'collateral', x: 762, y: 232, w: 88, h: 34, label: '上肩胛下神经', en: 'Upper Subscapular Nerve',
+    motor: '肩胛下肌上部', sensory: '纯运动神经', clinical: '发自后束，是后束口诀 ULTRA 里的 U。' },
+  { id: 'thoracodorsal', stage: 'collateral', x: 762, y: 272, w: 88, h: 34, label: '胸背神经', en: 'Thoracodorsal Nerve',
+    motor: '背阔肌', sensory: '纯运动神经', clinical: '发自后束，位于上、下肩胛下神经之间；腋窝手术中需注意保护。' },
+  { id: 'lower_subscapular', stage: 'collateral', x: 762, y: 380, w: 88, h: 34, label: '下肩胛下神经', en: 'Lower Subscapular Nerve',
+    motor: '肩胛下肌下部、大圆肌', sensory: '纯运动神经', clinical: '发自后束，是后束口诀 ULTRA 里的 L。' },
+  { id: 'med_cut_arm', stage: 'collateral', x: 762, y: 420, w: 88, h: 34, label: '臂内侧皮神经', en: 'Medial Cutaneous Nerve of Arm',
+    motor: '纯感觉神经', sensory: '臂内侧下部皮肤', clinical: '发自内侧束，常与肋间臂神经（T2）交通。' },
+  { id: 'med_cut_forearm', stage: 'collateral', x: 762, y: 548, w: 88, h: 34, label: '前臂内侧皮神经', en: 'Medial Cutaneous Nerve of Forearm',
+    motor: '纯感觉神经', sensory: '前臂内侧皮肤', clinical: '发自内侧束，伴贵要静脉下行。' },
+  { id: 'med_pectoral', stage: 'collateral', x: 762, y: 586, w: 88, h: 34, label: '胸内侧神经', en: 'Medial Pectoral Nerve',
+    motor: '胸小肌、胸大肌胸肋部', sensory: '无皮肤感觉', clinical: '发自内侧束，穿过胸小肌后进入胸大肌。' },
+];
+
+// 3D 空间示意坐标：X 内侧(脊柱)→外侧(上肢)，Y 上→下，Z 后(深)→前(浅)。short = 3D 中的短标签。
+const NODE_3D = {
+  c5: { x: -215, y: -125, z: -8, r: 9, color: '#38bdf8', short: 'C5',
+    spatial: '自 C4–C5 椎间孔穿出，位于前、中斜角肌间隙最上方。' },
+  c6: { x: -215, y: -62, z: -4, r: 9, color: '#38bdf8', short: 'C6',
+    spatial: '自 C5–C6 椎间孔穿出，斜向外下方与 C5 汇合为上干。' },
+  c7: { x: -215, y: 0, z: 0, r: 9.5, color: '#38bdf8', short: 'C7',
+    spatial: '居臂丛中轴位置，独自水平向外延续为中干。' },
+  c8: { x: -215, y: 62, z: -4, r: 9, color: '#38bdf8', short: 'C8',
+    spatial: '自 C7–T1 椎间孔穿出，与 T1 汇合为下干。' },
+  t1: { x: -215, y: 125, z: -10, r: 9, color: '#38bdf8', short: 'T1',
+    spatial: '紧贴第 1 肋颈与胸膜顶，邻近交感干星状神经节。' },
+  upper_trunk: { x: -115, y: -92, z: 4, r: 11, color: '#06b6d4', short: '上干',
+    spatial: '位于颈后三角斜角肌间隙外侧，体表投影对应 Erb 点，位置表浅。' },
+  middle_trunk: { x: -115, y: 0, z: 2, r: 10.5, color: '#06b6d4', short: '中干',
+    spatial: '由 C7 神经根直接延续，位于上干与下干之间，向锁骨后方下行。' },
+  lower_trunk: { x: -115, y: 92, z: -2, r: 11, color: '#06b6d4', short: '下干',
+    spatial: '跨越第 1 肋上面、位于锁骨下动脉后下方，易受颈肋或胸廓出口卡压。' },
+  up_ant: { x: -12, y: -96, z: 34, r: 4.5, color: '#34d399', short: '上前股',
+    spatial: '在锁骨后方自上干分出并向前外侧走行（+Z），与中干前股汇成外侧束；股部不发出任何分支。' },
+  up_post: { x: -12, y: -62, z: -42, r: 4.5, color: '#fbbf24', short: '上后股',
+    spatial: '在锁骨后方明显向背侧深面（-Z）折转，绕至腋动脉后方汇入后束；股部无分支。' },
+  mid_ant: { x: -12, y: -26, z: 38, r: 4.5, color: '#34d399', short: '中前股',
+    spatial: '在锁骨后方向前外上方斜行（+Z），与上干前股共同合成外侧束；股部无分支。' },
+  mid_post: { x: -12, y: 6, z: -52, r: 4.5, color: '#fbbf24', short: '中后股',
+    spatial: '向深面（-Z）走行至腋动脉正后方，构成后束中轴；股部无分支。' },
+  low_post: { x: -12, y: 54, z: -42, r: 4.5, color: '#fbbf24', short: '下后股',
+    spatial: '自下干向背侧深面（-Z）斜上汇入后束，在腋动脉后方与上、中后股会师；股部无分支。' },
+  low_ant: { x: -12, y: 94, z: 32, r: 4.5, color: '#34d399', short: '下前股',
+    spatial: '在锁骨后方偏向前内侧（+Z），独自延续为内侧束；股部无分支。' },
+  lat_cord: { x: 98, y: -64, z: 48, r: 11.5, color: '#34d399', short: '外侧束',
+    spatial: '位于腋动脉第 2 段的前外上方（+Z, -Y），发出肌皮神经与正中神经外侧根。' },
+  post_cord: { x: 98, y: 6, z: -60, r: 12, color: '#fbbf24', short: '后束',
+    spatial: '深藏于腋动脉正后方（-Z），由全部三条后股汇合而成！切换「俯视」最直观。' },
+  med_cord: { x: 98, y: 86, z: 42, r: 11.5, color: '#10b981', short: '内侧束',
+    spatial: '位于腋动脉第 2 段的前内下方（+Z, +Y），发出尺神经与正中神经内侧根。' },
+  musculocutaneous: { x: 238, y: -116, z: 58, r: 10.5, color: '#60a5fa', short: '肌皮神经',
+    spatial: '自外侧束发出，向前外侧斜穿喙肱肌，行于肱二头肌与肱肌之间。' },
+  axillary: { x: 226, y: -44, z: -84, r: 10, color: '#f59e0b', short: '腋神经',
+    spatial: '自后束发出后急剧向后外侧（-Z）穿四边孔，紧贴肱骨外科颈后方绕行至三角肌深面。' },
+  radial: { x: 244, y: 24, z: -74, r: 11.5, color: '#fbbf24', short: '桡神经',
+    spatial: '后束的直接粗大延续，居于深面后方（-Z），经肱三头肌裂孔绕行肱骨干桡神经沟。' },
+  median: { x: 244, y: 42, z: 66, r: 11.5, color: '#34d399', short: '正中神经',
+    spatial: '由外侧束外侧根与内侧束内侧根在腋动脉正前方（+Z）锐角汇合而成，构成经典“M”形。' },
+  ulnar: { x: 238, y: 122, z: 34, r: 10.5, color: '#10b981', short: '尺神经',
+    spatial: '内侧束的直接延续，沿腋动脉及肱动脉内侧下行，经肱骨内上髁后方尺神经沟。' },
+  suprascapular: { x: -45, y: -152, z: -26, r: 6.5, color: '#94a3b8', short: '肩胛上N',
+    spatial: '自上干发出，向后外上方（-Z, -Y）经肩胛切迹至冈上窝与冈下窝。' },
+  long_thoracic: { x: -115, y: 162, z: -34, r: 6.5, color: '#94a3b8', short: '胸长N',
+    spatial: '由 C5–C7 根部发出，穿中斜角肌后沿胸侧壁垂直下行至前锯肌。' },
+  thoracodorsal: { x: 162, y: 74, z: -78, r: 6.5, color: '#94a3b8', short: '胸背N',
+    spatial: '发自腋动脉后方的后束，沿肩胛下肌前面向后下方（-Z）至背阔肌。' },
+  dorsal_scapular: { x: -150, y: -178, z: -44, r: 6.5, color: '#94a3b8', short: '肩胛背N',
+    spatial: '自 C5 神经根发出，穿中斜角肌向后下方（-Z）行至肩胛骨内侧缘深面。' },
+  lat_pectoral: { x: 160, y: -112, z: 84, r: 6.5, color: '#94a3b8', short: '胸外侧N',
+    spatial: '发自外侧束，向前（+Z）穿锁胸筋膜进入胸大肌深面。' },
+  med_pectoral: { x: 160, y: 134, z: 80, r: 6.5, color: '#94a3b8', short: '胸内侧N',
+    spatial: '发自内侧束，向前（+Z）穿胸小肌后进入胸大肌。' },
+  subclavius_n: { x: -66, y: -40, z: 46, r: 6.5, color: '#94a3b8', short: '锁骨下肌N',
+    spatial: '自上干前面发出，向前下方（+Z）在锁骨后方至锁骨下肌。' },
+  upper_subscapular: { x: 140, y: -34, z: -96, r: 6.5, color: '#94a3b8', short: '上肩胛下N',
+    spatial: '发自后束后面，向后（-Z）进入肩胛下肌上部。' },
+  lower_subscapular: { x: 176, y: 48, z: -104, r: 6.5, color: '#94a3b8', short: '下肩胛下N',
+    spatial: '发自后束后面，在胸背神经外侧向后下方（-Z）至肩胛下肌下部与大圆肌。' },
+  med_cut_arm: { x: 176, y: 170, z: 22, r: 6.5, color: '#94a3b8', short: '臂内侧皮N',
+    spatial: '发自内侧束，沿腋静脉内侧下行，分布于臂内侧皮肤。' },
+  med_cut_forearm: { x: 206, y: 150, z: 62, r: 6.5, color: '#94a3b8', short: '前臂内侧皮N',
+    spatial: '发自内侧束，行于腋动、静脉之间，伴贵要静脉至前臂内侧。' },
+};
+
+const EDGES = [
+  { from: 'c5', to: 'upper_trunk', type: 'main' },
+  { from: 'c6', to: 'upper_trunk', type: 'main' },
+  { from: 'c7', to: 'middle_trunk', type: 'main' },
+  { from: 'c8', to: 'lower_trunk', type: 'main' },
+  { from: 't1', to: 'lower_trunk', type: 'main' },
+
+  { from: 'upper_trunk', to: 'up_ant', type: 'ant' },
+  { from: 'upper_trunk', to: 'up_post', type: 'post' },
+  { from: 'middle_trunk', to: 'mid_ant', type: 'ant' },
+  { from: 'middle_trunk', to: 'mid_post', type: 'post' },
+  { from: 'lower_trunk', to: 'low_post', type: 'post' },
+  { from: 'lower_trunk', to: 'low_ant', type: 'ant' },
+
+  { from: 'up_ant', to: 'lat_cord', type: 'ant' },
+  { from: 'mid_ant', to: 'lat_cord', type: 'ant' },
+  { from: 'up_post', to: 'post_cord', type: 'post' },
+  { from: 'mid_post', to: 'post_cord', type: 'post' },
+  { from: 'low_post', to: 'post_cord', type: 'post' },
+  { from: 'low_ant', to: 'med_cord', type: 'ant' },
+
+  { from: 'lat_cord', to: 'musculocutaneous', type: 'ant' },
+  { from: 'lat_cord', to: 'median', type: 'ant' },
+  { from: 'post_cord', to: 'axillary', type: 'post' },
+  { from: 'post_cord', to: 'radial', type: 'post' },
+  { from: 'med_cord', to: 'median', type: 'ant' },
+  { from: 'med_cord', to: 'ulnar', type: 'ant' },
+
+  { from: 'c5', to: 'dorsal_scapular', type: 'collateral' },
+  { from: 'c5', to: 'long_thoracic', type: 'collateral' },
+  { from: 'c6', to: 'long_thoracic', type: 'collateral' },
+  { from: 'c7', to: 'long_thoracic', type: 'collateral' },
+  { from: 'upper_trunk', to: 'suprascapular', type: 'collateral' },
+  { from: 'lat_cord', to: 'lat_pectoral', type: 'collateral' },
+  { from: 'post_cord', to: 'thoracodorsal', type: 'collateral' },
+  { from: 'med_cord', to: 'med_pectoral', type: 'collateral' },
+  { from: 'upper_trunk', to: 'subclavius_n', type: 'collateral' },
+  { from: 'post_cord', to: 'upper_subscapular', type: 'collateral' },
+  { from: 'post_cord', to: 'lower_subscapular', type: 'collateral' },
+  { from: 'med_cord', to: 'med_cut_arm', type: 'collateral' },
+  { from: 'med_cord', to: 'med_cut_forearm', type: 'collateral' },
+];
+
+// ==================== 右侧上肢图 ====================
+// 只画一遍前面观（右臂，拇指在外侧 = 画面左侧）；后面观是它的水平镜像。
+// 所有分区都被轮廓裁剪，所以分区只需要画对内部边界，外缘会自动贴合轮廓。
+const LIMB_W = 440;
+const LIMB_ARM = 'M 100 58 C 82 58, 71 70, 71 90 C 71 120, 76 160, 78 188 C 73 198, 73 212, 76 226 '
+  + 'C 80 256, 84 284, 85 302 C 82 305, 79 308, 77 312 L 62 332 C 57 340, 54 348, 57 354 C 60 359, 66 356, 68 350 L 78 336 '
+  + 'L 78.5 388 Q 78.5 393, 83 393 Q 87.5 393, 87.5 388 L 87.5 354 '
+  + 'L 88.5 354 L 88.5 394 Q 88.5 399, 93 399 Q 97.5 399, 97.5 394 L 97.5 354 '
+  + 'L 98.5 354 L 98.5 389 Q 98.5 394, 103 394 Q 107.5 394, 107.5 389 L 107.5 353 '
+  + 'L 108.5 353 L 108.5 378 Q 108.5 383, 113 383 Q 117.5 383, 117.5 378 L 117.5 346 '
+  + 'C 118 330, 116 314, 111 302 C 113 270, 117 235, 119 212 C 120 200, 118 192, 117 186 C 119 160, 121 135, 122 116';
+const LIMB_TORSO = 'M 214 34 L 192 34 C 190 48, 172 54, 140 57 L 100 58 L 122 116 C 127 150, 129 190, 130 232 L 214 232 Z';
+const LIMB_TORSO_EDGE = 'M 214 34 L 192 34 C 190 48, 172 54, 140 57 L 100 58 M 122 116 C 127 150, 129 190, 130 232';
+// 骨性标志（只在「支配肌肉」里画）：前面是锁骨，后面是肩胛冈与肩胛骨内侧缘
+const LIMB_MARKS = {
+  a: 'M 208 62 C 182 57, 152 67, 112 61',
+  p: 'M 184 86 L 112 63 M 184 70 L 184 126 L 177 158',
+};
+
+// v：a 前面观 / p 后面观（坐标都按前面观写，后面观渲染时镜像）
+// t：图上的短标签；lab：[x, y, 对齐]；pt：引线指向的点（没有 pt = 标签直接写在分区里）
+const DELTOID_D = 'M 106 56 L 60 56 L 60 124 L 82 135 C 93 114, 103 90, 106 56 Z';
+const AXIL_D = 'M 60 72 L 94 72 C 96 96, 92 118, 86 137 L 60 137 Z';
+const C5_D = 'M 60 56 L 104 56 C 101 100, 98 150, 97 192 L 60 192 Z';
+const LIMB_ZONES = {
+  motor: [
+    { id: 'm_deltoid', d: DELTOID_D, v: 'a', t: '三角肌', lab: [54, 86, 'end'], pt: [76, 92] },
+    { id: 'm_subclavius', d: 'M 198 66 L 148 64 L 148 71 L 198 74 Z', v: 'a', t: '锁骨下肌', lab: [150, 46, 'end'], pt: [166, 68] },
+    { id: 'm_pec', d: 'M 210 76 L 148 75 L 108 72 C 106 86, 102 98, 98 108 C 120 126, 165 136, 210 130 Z', v: 'a', t: '胸大肌', lab: [165, 106, 'middle'] },
+    { id: 'm_serratus', d: 'M 118 124 C 132 132, 144 138, 153 141 L 151 202 L 120 206 Z', v: 'a', t: '前锯肌', lab: [141, 176, 'middle'] },
+    { id: 'm_biceps', d: 'M 96 112 C 86 130, 83 160, 85 186 L 124 186 L 124 116 Z', v: 'a', t: '肱二头肌', lab: [54, 152, 'end'], pt: [90, 152] },
+    { id: 'm_pronator', d: 'M 122 189 L 104 189 L 78 229 L 82 245 Z', v: 'a', t: '旋前圆肌', lab: [54, 216, 'end'], pt: [88, 224] },
+    { id: 'm_flexor_med', d: 'M 108 208 L 103 265 L 66 265 L 66 247 L 82 246 Z', v: 'a', t: '指浅屈肌', lab: [54, 258, 'end'], pt: [88, 256] },
+    { id: 'm_ain', d: 'M 66 268 L 103 268 L 101 300 L 66 300 Z', v: 'a', t: '拇长屈肌', lab: [54, 288, 'end'], pt: [90, 286] },
+    { id: 'm_flexor_uln', d: 'M 124 192 L 109 210 L 104 268 L 102 300 L 124 300 Z', v: 'a', t: '尺侧腕屈肌', lab: [134, 262, 'start'], pt: [112, 258] },
+    { id: 'm_thenar', d: 'M 88 304 L 70 308 L 70 334 L 92 333 C 94 324, 93 312, 91 304 Z', v: 'a', t: '大鱼际肌', lab: [54, 318, 'end'], pt: [82, 320] },
+    { id: 'm_adductor', d: 'M 94 306 L 103 306 L 103 335 L 79 345 L 79 336 L 94 334 Z', v: 'a', t: '拇收肌', lab: [134, 320, 'start'], pt: [99, 322] },
+    { id: 'm_hypothenar', d: 'M 105 304 C 104 318, 105 334, 108 346 L 122 346 L 122 300 Z', v: 'a', t: '小鱼际肌', lab: [134, 302, 'start'], pt: [113, 314] },
+    { id: 'm_lumb_lat', d: 'M 79 347 L 98 339 L 98 356 L 79 356 Z', v: 'a', t: '1–2蚓状肌', lab: [54, 378, 'end'], pt: [86, 352] },
+    { id: 'm_lumb_med', d: 'M 99 338.5 L 104 336.5 C 105 340, 106 344, 109 348 L 120 348 L 120 356 L 99 356 Z', v: 'a', t: '3–4蚓状肌', lab: [134, 352, 'start'], pt: [110, 352] },
+
+    { id: 'm_deltoid', d: DELTOID_D, v: 'p', t: '三角肌', lab: [54, 86, 'end'], pt: [76, 92] },
+    { id: 'm_rotator', d: 'M 184 70 L 122 60 L 108 64 L 104 96 L 114 97 L 182 136 Z', v: 'p', t: '冈上/冈下肌', lab: [146, 90, 'middle'] },
+    { id: 'm_rhomboid', d: 'M 212 62 L 186 80 L 186 124 L 212 104 Z', v: 'p', t: '菱形肌', lab: [199, 97, 'middle'] },
+    { id: 'm_teres_major', d: 'M 183 139 L 116 100 L 120 118 L 177 157 Z', v: 'p', t: '大圆肌', lab: [149, 132, 'middle'], rot: 31 },
+    { id: 'm_latissimus', d: 'M 212 122 L 187 150 L 177 161 L 124 122 L 130 232 L 212 232 Z', v: 'p', t: '背阔肌', lab: [172, 198, 'middle'] },
+    { id: 'm_triceps', d: 'M 82 137 C 90 122, 96 110, 100 100 L 124 116 L 124 187 L 87 187 L 85 167 L 66 161 L 66 132 Z', v: 'p', t: '肱三头肌', lab: [54, 150, 'end'], pt: [92, 150] },
+    { id: 'm_brachiorad', d: 'M 66 163 L 84 169 L 88 252 L 66 263 Z', v: 'p', t: '肱桡肌', lab: [54, 210, 'end'], pt: [78, 210] },
+    { id: 'm_ext_digits', d: 'M 88 190 L 124 190 L 124 300 L 66 300 L 66 266 L 89 255 Z', v: 'p', t: '指伸肌群', lab: [54, 276, 'end'], pt: [94, 274] },
+    { id: 'm_interossei', d: 'M 80 310 L 118 304 L 119 350 L 79 352 Z', v: 'p', t: '骨间肌', lab: [134, 330, 'start'], pt: [106, 330] },
+  ],
+
+  cutaneous: [
+    { id: 's_axil', d: AXIL_D, v: 'a', t: '腋神经', lab: [54, 106, 'end'], pt: [78, 106] },
+    { id: 's_med_arm', d: 'M 106 118 L 126 114 L 126 189 L 104 189 Z', v: 'a', t: '臂内侧皮神经', lab: [134, 156, 'start'], pt: [114, 152] },
+    { id: 's_lat_forearm', d: 'M 66 191 L 98 191 L 98 301 L 66 301 Z', v: 'a', t: '肌皮神经', lab: [54, 248, 'end'], pt: [82, 248] },
+    { id: 's_med_forearm', d: 'M 98 191 L 126 191 L 126 301 L 98 301 Z', v: 'a', t: '前臂内侧皮神经', lab: [134, 252, 'start'], pt: [110, 248] },
+    { id: 's_palm_cut', d: 'M 77.5 303 L 103 303 L 103 352.5 L 78 352.5 Z', v: 'a', t: '正中掌皮支', lab: [54, 316, 'end'], pt: [88, 324] },
+    { id: 's_fingers_med', d: 'M 77.5 312 L 77.5 337 L 68 362 L 48 362 L 48 330 Z M 78 352.5 H 103 V 402 H 78 Z', v: 'a', t: '正中 3½指', lab: [54, 388, 'end'], pt: [83, 380] },
+    { id: 's_hypo_palm', d: 'M 103 303 L 124 299 L 124 352.5 L 103 352.5 Z', v: 'a', t: '尺掌皮支', lab: [134, 324, 'start'], pt: [111, 326] },
+    { id: 's_fingers_uln', d: 'M 103 352.5 H 124 V 402 H 103 Z', v: 'a', t: '尺 1½指', lab: [134, 378, 'start'], pt: [113, 370] },
+
+    { id: 's_axil', d: AXIL_D, v: 'p', t: '腋神经', lab: [54, 106, 'end'], pt: [78, 106] },
+    { id: 's_rad_arm', d: 'M 66 139 L 86 137 L 100 104 L 126 114 L 126 190 L 108 190 L 105 301 L 85 301 L 82 190 L 66 190 Z', v: 'p', t: '桡神经', lab: [134, 156, 'start'], pt: [108, 152] },
+    { id: 's_lat_forearm', d: 'M 66 191 L 82 191 L 85 301 L 66 301 Z', v: 'p', t: '肌皮神经', lab: [54, 248, 'end'], pt: [76, 248] },
+    { id: 's_med_forearm', d: 'M 108 191 L 126 191 L 126 301 L 105 301 Z', v: 'p', t: '前臂内侧皮神经', lab: [134, 252, 'start'], pt: [114, 248] },
+    { id: 's_rad_hand', d: 'M 93 303 L 93 367 L 78 367 L 78 339 L 48 339 L 48 303 Z', v: 'p', t: '桡神经浅支', lab: [54, 318, 'end'], pt: [84, 322] },
+    { id: 's_med_tips', d: 'M 48 339 H 77.6 V 364 H 48 Z M 78 367 H 103 V 402 H 78 Z', v: 'p', t: '正中神经', lab: [54, 390, 'end'], pt: [83, 384] },
+    { id: 's_uln_back', d: 'M 93 302 H 124 V 402 H 103 V 367 H 93 Z', v: 'p', t: '尺神经手背支', lab: [134, 342, 'start'], pt: [108, 336] },
+  ],
+
+  dermatome: [
+    { id: 'd_c5', d: C5_D, v: 'a', t: 'C5', lab: [84, 134, 'middle'] },
+    { id: 'd_t1', d: 'M 101 112 C 99 150, 98 175, 97 192 L 97 238 L 126 250 L 126 112 Z', v: 'a', t: 'T1', lab: [110, 172, 'middle'] },
+    { id: 'd_c6', d: 'M 48 192 L 97 192 L 97 238 L 96 300 L 93 306 L 88 353 L 88 402 L 48 402 Z', v: 'a', t: 'C6', lab: [84, 258, 'middle'] },
+    { id: 'd_c7', d: 'M 96 300 L 99 306 L 98 353 L 98 402 L 88 402 L 88 353 L 93 306 Z', v: 'a', t: 'C7', lab: [93, 413, 'middle'] },
+    { id: 'd_c8', d: 'M 97 238 L 126 250 L 126 402 L 98 402 L 98 353 L 99 306 L 96 300 Z', v: 'a', t: 'C8', lab: [109, 284, 'middle'] },
+
+    { id: 'd_c5', d: C5_D, v: 'p', t: 'C5', lab: [82, 134, 'middle'] },
+    { id: 'd_t1', d: 'M 101 112 C 99 150, 98 175, 97 192 L 105 240 L 126 250 L 126 112 Z', v: 'p', t: 'T1', lab: [112, 172, 'middle'] },
+    { id: 'd_c6', d: 'M 48 192 L 97 192 L 89 240 L 90 300 L 88 353 L 88 402 L 48 402 Z', v: 'p', t: 'C6', lab: [79, 258, 'middle'] },
+    { id: 'd_c7', d: 'M 97 192 L 105 240 L 102 300 L 98 353 L 98 402 L 88 402 L 88 353 L 90 300 L 89 240 Z', v: 'p', t: 'C7', lab: [96.5, 278, 'middle'] },
+    { id: 'd_c8', d: 'M 105 240 L 126 250 L 126 402 L 98 402 L 98 353 L 102 300 Z', v: 'p', t: 'C8', lab: [114, 292, 'middle'] },
+  ],
+};
+
+// 损伤说明文字。levels 的键与模型 LESION_SITES 里各预设的部位一一对应。
+const LESIONS = {
+  erb: {
+    title: 'Erb-Duchenne 麻痹（上臂丛损伤）',
+    sub: 'Upper Plexus Lesion (C5–C6)',
+    spatial: '上干位于斜角肌间隙外侧（Erb 点），位置表浅；C5、C6 根则在更内侧紧贴椎间孔。根部发出的肩胛背神经、胸长神经不经过上干。',
+    levels: {
+      trunk: {
+        segments: '受损部位：上干（Erb 点），属节后损伤。',
+        motor: '三角肌、冈上/下肌（肩外展、外旋丧失），肱二头肌、肱肌、肱桡肌（屈肘、旋后丧失）。菱形肌（肩胛背神经）与前锯肌（胸长神经）在根部就已分出，不受累。',
+        sensory: '上臂外侧、前臂外侧及拇指区感觉减退（C5–C6 皮节）。',
+        clinical: '“侍者小费手”（Waiter\'s tip）：上肢内收、内旋、肘伸直、前臂旋前。与根性撕脱的鉴别点：菱形肌、前锯肌功能保留，无 Horner 征；节后损伤有自行恢复或手术修复的可能。'
+      },
+      root: {
+        segments: '受损部位：C5、C6 神经根自脊髓撕脱，属节前损伤。',
+        motor: '除上干损伤的全部表现外，菱形肌（肩胛背神经，C5）瘫痪，前锯肌（胸长神经，C5–C7）部分受累。这两块肌肉受累是损伤在根部的标志。',
+        sensory: 'C5–C6 皮节感觉丧失。后根神经节仍与周围支相连，所以感觉神经动作电位反而保留，这是肌电图上判断节前损伤的依据。',
+        clinical: '同样呈“侍者小费手”，但多出翼状肩胛、肩胛骨内侧缘外移。节前损伤不能自行恢复，也无法直接缝合，常需神经移位。C5–C6 撕脱不出现 Horner 征（眼部交感纤维走 T1）。'
+      }
+    }
+  },
+  klumpke: {
+    title: 'Klumpke 麻痹（下臂丛损伤）',
+    sub: 'Lower Plexus Lesion (C8–T1)',
+    spatial: '下干跨越第 1 肋上面；T1 根在更内侧紧贴第 1 肋颈与星状神经节，眼部交感节前纤维就在这里经白交通支离开 T1 根。',
+    levels: {
+      trunk: {
+        segments: '受损部位：下干（C8、T1 汇合之后），属节后损伤。',
+        motor: '手部全部内在肌（骨间肌、蚓状肌、大小鱼际）及尺侧屈腕/屈指肌瘫痪；胸大肌胸肋部部分受累。',
+        sensory: '臂内侧、前臂内侧及尺侧 1.5 指感觉减退（C8–T1 皮节）。',
+        clinical: '“爪形手”。单纯下干损伤不出现 Horner 征：T1 的交感节前纤维在根部就经白交通支离开，不经过下干。'
+      },
+      root: {
+        segments: '受损部位：C8、T1 神经根撕脱，属节前损伤。',
+        motor: '手部全部内在肌及尺侧屈腕/屈指肌瘫痪，运动表现与下干损伤相同。',
+        sensory: 'C8–T1 皮节感觉丧失；感觉神经动作电位保留（节前损伤）。',
+        clinical: '爪形手合并同侧 Horner 综合征（上睑下垂、瞳孔缩小、面部无汗）。Horner 征说明 T1 在发出白交通支之前就已受损，是根性（节前）损伤的标志，预后差。经典描述的“Klumpke 麻痹 + Horner 征”就是这一型。'
+      }
+    }
+  },
+  radial: {
+    title: '桡神经损伤',
+    sub: 'Radial Nerve Palsy (C5–T1)',
+    spatial: '桡神经是后束的直接延续，居腋动脉后方深面，绕肱骨干桡神经沟下行，在肘部分为浅支（感觉）与深支（骨间后神经，运动）。',
+    levels: {
+      axilla: {
+        segments: '受损部位：腋部高位（如腋杖压迫）。',
+        motor: '肱三头肌、肱桡肌、伸腕肌、伸指/伸拇肌全部瘫痪：伸肘无力、垂腕、垂指。',
+        sensory: '臂后、前臂后及手背桡侧 2.5 指（虎口区）感觉减退。',
+        clinical: '“腋杖麻痹”。与桡神经沟平面的区别在于肱三头肌也受累，肱三头肌反射减弱。'
+      },
+      groove: {
+        segments: '受损部位：肱骨桡神经沟（肱骨中段骨折、“周末夜麻痹”）。',
+        motor: '肱桡肌、伸腕肌、伸指/伸拇肌瘫痪；肱三头肌的分支在近端已发出，伸肘保留。',
+        sensory: '手背桡侧及虎口区感觉减退。',
+        clinical: '典型“垂腕”（Wrist drop）：不能伸腕，也不能伸掌指关节。'
+      },
+      pin: {
+        segments: '受损部位：骨间后神经（桡神经深支，常在旋后肌管 / Frohse 弓处卡压）。',
+        motor: '指伸肌、拇长/短伸肌、尺侧腕伸肌瘫痪；肱桡肌与桡侧腕长伸肌的分支在更近端发出，不受累。',
+        sensory: '纯运动支，无皮肤感觉障碍（桡神经浅支不受累）。',
+        clinical: '只垂指、不垂腕：伸腕仍能完成，但因尺侧腕伸肌无力而偏向桡侧。'
+      }
+    }
+  },
+  median: {
+    title: '正中神经损伤',
+    sub: 'Median Nerve Palsy (C6–T1)',
+    spatial: '正中神经由外侧束外侧根与内侧束内侧根在腋动脉前方合成“M”形，沿上臂前内侧下行；在前臂发出骨间前神经，主干经腕管入手。',
+    levels: {
+      high: {
+        segments: '受损部位：肘部或肘部以上（如肱骨髁上骨折）。',
+        motor: '旋前圆肌、桡侧腕屈肌、指浅屈肌、拇长屈肌、示/中指指深屈肌及大鱼际肌、第 1–2 蚓状肌全部受累：前臂旋前、屈腕无力，拇、示指不能屈曲。',
+        sensory: '手掌桡侧、桡侧 3.5 指掌面及其中远节指背感觉减退（掌皮支也受累）。',
+        clinical: '握拳时拇、示指（及中指）屈不下去，呈“祝福手”（Benediction sign）；同时有猿手。'
+      },
+      ain: {
+        segments: '受损部位：骨间前神经（正中神经在前臂发出的纯运动支）。',
+        motor: '拇长屈肌、示（中）指指深屈肌、旋前方肌瘫痪；旋前圆肌、指浅屈肌和大鱼际肌不受累。',
+        sensory: '纯运动支，无皮肤感觉障碍。',
+        clinical: '拇指指间关节与示指远侧指间关节不能屈曲，捏不成“O”形，即 OK 征异常（Kiloh–Nevin 综合征）。'
+      },
+      carpal: {
+        segments: '受损部位：腕管（最常见的周围神经卡压）。',
+        motor: '大鱼际肌萎缩（拇指对掌障碍）、第 1–2 蚓状肌无力；前臂屈肌的分支在近端已发出，不受累。',
+        sensory: '桡侧 3.5 指掌面及其中远节指背麻木。手掌皮肤感觉保留：掌皮支在腕管近端就已分出，从腕管表面走过。',
+        clinical: '夜间麻痛，Tinel 征、Phalen 试验阳性，晚期大鱼际扁平呈“猿手”（Ape hand）。手掌麻不麻，可用来区分腕管综合征与更近端的正中神经损伤。'
+      }
+    }
+  },
+  ulnar: {
+    title: '尺神经损伤',
+    sub: 'Ulnar Nerve Palsy (C8–T1)',
+    spatial: '尺神经是内侧束的延续，沿肱动脉内侧下行，经肱骨内上髁后方的尺神经沟入前臂，在腕部经 Guyon 管入手。',
+    levels: {
+      elbow: {
+        segments: '受损部位：肘部（肘管 / 肱骨内上髁后方）。',
+        motor: '尺侧腕屈肌、环小指指深屈肌，以及小鱼际肌、骨间肌、第 3–4 蚓状肌、拇收肌全部瘫痪。',
+        sensory: '手掌尺侧、尺侧 1.5 指掌面及手背尺侧感觉减退（掌皮支、手背支都受累）。',
+        clinical: '尺神经悖论：损伤越靠近端，爪形反而越轻，因为环、小指的指深屈肌也瘫了，指间关节屈不起来。Froment 征阳性，手内在肌萎缩。'
+      },
+      wrist: {
+        segments: '受损部位：腕部（Guyon 管）。',
+        motor: '小鱼际肌、骨间肌、第 3–4 蚓状肌、拇收肌瘫痪；尺侧腕屈肌与指深屈肌的分支在前臂已发出，不受累。',
+        sensory: '尺侧 1.5 指掌面感觉减退；手背尺侧（手背支）与手掌尺侧（掌皮支）在腕部近端已分出，感觉保留。',
+        clinical: '典型“爪形手”：指深屈肌完好而蚓状肌瘫痪，环、小指掌指关节过伸、指间关节屈曲，爪形最明显。夹纸试验（Froment 征）阳性。'
+      }
+    }
+  },
+  axillary: {
+    title: '腋神经损伤（方肩畸形）',
+    sub: 'Axillary Nerve Palsy (C5–C6)',
+    spatial: '自后束发出后急剧向后外侧穿四边孔绕肱骨外科颈，在 3D 视图里转到「后面观」看得最清楚。',
+    levels: {
+      main: {
+        segments: '受损部位：腋神经（四边孔 / 肱骨外科颈处）。',
+        motor: '三角肌与小圆肌瘫痪，肩外展（15–90°）显著无力。',
+        sensory: '肩外侧三角肌表面“徽章区”感觉减退或消失。',
+        clinical: '常见于肩关节前脱位或肱骨外科颈骨折，三角肌萎缩后肩部轮廓变平呈“方肩”。'
+      }
+    }
+  },
+  long_thoracic: {
+    title: '胸长神经损伤（翼状肩胛）',
+    sub: 'Long Thoracic Nerve Palsy (C5–C7)',
+    spatial: '胸长神经直接发自 C5–C7 神经根，不经过干、股、束，穿中斜角肌后沿胸侧壁下行。',
+    levels: {
+      main: {
+        segments: '受损部位：胸长神经（由 C5–C7 神经根直接发出）。',
+        motor: '前锯肌瘫痪，肩胛骨无法紧贴胸壁及向上旋转。',
+        sensory: '纯运动神经，无皮肤感觉障碍。',
+        clinical: '双手推墙时患侧肩胛骨内侧缘明显向后翘起，呈典型“翼状肩胛”。'
+      }
+    }
+  }
+};
+
+// 自测题库。两种题：
+//   target = 在神经通路图上点出一个结构；
+//   zones  = 在上肢图上点出某个损伤受累的全部区域（答案由模型推导，不在这里写）。
+const QUIZ_BANK = [
+  { target: 'upper_trunk', q: '【临床定位】难产牵拉导致“侍者小费手”（Erb 麻痹），菱形肌与前锯肌功能正常，请点击受损结构：' },
+  { target: 't1', q: '【临床定位】爪形手合并同侧 Horner 综合征。Horner 征说明哪一条神经根在根部（节前）受损？' },
+  { target: 'lower_trunk', q: '【临床定位】颈肋压迫致手内在肌萎缩、前臂内侧麻木，没有 Horner 征，请点击受压的“干”：' },
+  { target: 'radial', q: '【临床定位】肱骨中段骨折后出现“垂腕”与虎口区麻木，请点击受损神经：' },
+  { target: 'ulnar', q: '【临床定位】小指麻木、夹纸试验（Froment 征）阳性、环小指爪形手，请点击受损神经：' },
+  { target: 'median', q: '【临床定位】腕管综合征导致大鱼际萎缩、桡侧 3.5 指麻木，请点击受损神经：' },
+  { target: 'axillary', q: '【临床定位】肩关节前脱位后出现“方肩”与肩外侧徽章区感觉减退，请点击受损神经：' },
+  { target: 'musculocutaneous', q: '【解剖溯源】发自外侧束、穿过喙肱肌并支配肱二头肌的终末支是哪一条？' },
+  { target: 'post_cord', q: '【解剖结构】由上、中、下三干的后股全部汇合而成的“束”是哪一个？' },
+  { target: 'long_thoracic', q: '【临床定位】腋窝清扫术后出现“翼状肩胛”（前锯肌瘫痪），请点击受损旁支：' },
+  { target: 'middle_trunk', q: '【解剖结构】唯一由单一脊神经根（C7）直接延续而成的“干”是哪一个？' },
+  { target: 'suprascapular', q: '【临床定位】肩胛切迹处卡压，冈上肌、冈下肌萎缩，肩外旋无力，请点击受损旁支：' },
+  { target: 'dorsal_scapular', q: '【解剖溯源】直接发自 C5 根、支配菱形肌的旁支是哪一条？（它受累提示根性损伤）' },
+  { target: 'thoracodorsal', q: '【临床定位】腋窝手术后引体向上无力、背阔肌萎缩，请点击受损旁支：' },
+  { target: 'lower_subscapular', q: '【解剖溯源】后束口诀 ULTRA 里的 L，支配大圆肌和肩胛下肌下部的是哪一条？' },
+  { target: 'lat_cord', q: '【解剖结构】发出肌皮神经和正中神经外侧根的“束”是哪一个？' },
+  { target: 'med_cord', q: '【解剖结构】发出尺神经、正中神经内侧根以及臂、前臂内侧皮神经的“束”是哪一个？' },
+  { target: 'med_cut_forearm', q: '【解剖溯源】发自内侧束、伴贵要静脉下行、支配前臂内侧皮肤的是哪一条？' },
+  { target: 'subclavius_n', q: '【解剖溯源】除肩胛上神经外，上干发出的另一条分支是哪一条？' },
+  { target: 'c7', q: '【节段定位】肱三头肌反射减弱、中指麻木，最可能是哪一条神经根受累？' },
+  { zones: { lesion: 'median', level: 'carpal', mode: 'cutaneous' }, q: '【反向题】腕管综合征：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'ulnar', level: 'wrist', mode: 'motor' }, q: '【反向题】尺神经在腕部（Guyon 管）受损：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'ulnar', level: 'elbow', mode: 'cutaneous' }, q: '【反向题】尺神经在肘管受损：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'radial', level: 'groove', mode: 'motor' }, q: '【反向题】肱骨中段骨折伤及桡神经沟处的桡神经：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'radial', level: 'pin', mode: 'cutaneous' }, q: '【反向题】骨间后神经卡压：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'median', level: 'ain', mode: 'motor' }, q: '【反向题】骨间前神经损伤（OK 征异常）：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'axillary', level: 'main', mode: 'cutaneous' }, q: '【反向题】腋神经损伤：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'klumpke', level: 'trunk', mode: 'dermatome' }, q: '【反向题】下干损伤：点出所有受累的皮节。' },
+  { zones: { lesion: 'erb', level: 'trunk', mode: 'dermatome' }, q: '【反向题】上干损伤（Erb 麻痹）：点出所有受累的皮节。' },
+  { zones: { lesion: 'median', level: 'high', mode: 'cutaneous' }, q: '【反向题】正中神经在肘部以上受损：点出所有感觉减退的皮区。（和腕管综合征比，多了哪一块？）' },
+];
+
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+const svg = document.getElementById('plexus');
+const limbSvg = document.getElementById('limbSvg');
+const svgWrap = document.getElementById('svgWrap');
+
+let state = {
+  selectedId: null,
+  hoverId: null,
+  lesionKey: null,
+  lesionLevel: null, // 损伤部位；null = 该预设的默认部位
+  limbMode: 'motor', // 'motor' | 'cutaneous' | 'dermatome'
+  selectedZoneId: null,
+  showCollaterals: true,
+  pulse: true,
+  quizMode: false,
+  quizIdx: 0,
+  quizRight: 0,
+  quizTotal: 0,
+  quizAnswered: false,
+  quizPicks: new Set(), // 反向题里点选的上肢图区域
+  present: false,
+  dark: false,
+  view: '2d', // '2d' | '3d'
+  show3d: { artery: true, bones: true, labels: true, auto: false }
+};
+
+function getColorForNode(n) {
+  if (n.stage === 'root') return 'var(--root-color)';
+  if (n.stage === 'trunk') return 'var(--trunk-color)';
+  if (n.stage === 'division') return n.divisionType === 'post' ? 'var(--post-color)' : 'var(--ant-color)';
+  if (n.stage === 'cord') return 'var(--cord-color)';
+  if (n.stage === 'branch') return 'var(--branch-color)';
+  return 'var(--collateral-color)';
+}
+
+function getEdgeColor(e) {
+  if (e.type === 'post') return 'var(--post-color)';
+  if (e.type === 'ant') return 'var(--ant-color)';
+  if (e.type === 'collateral') return 'var(--collateral-color)';
+  return 'var(--trunk-color)';
+}
+
+function buildCurve(fromNode, toNode, isCollateral) {
+  const x1 = fromNode.x + fromNode.w / 2;
+  const y1 = fromNode.y;
+  const x2 = toNode.x - toNode.w / 2;
+  const y2 = toNode.y;
+  if (isCollateral && toNode.dock === 'gap') {
+    // 夹在「根」「干」两列之间的旁支（胸长神经）：从各条根的右缘出发，接到节点的上/下缘，
+    // 这样连线不会穿过别的根。
+    const down = toNode.y > fromNode.y;
+    const sx = x1, sy = fromNode.y + (down ? 13 : -13);
+    const far = Math.abs(toNode.y - fromNode.y) > 100;
+    const tx = toNode.x + (down ? (far ? 8 : -14) : 0);
+    const ty = toNode.y + (down ? -toNode.h / 2 : toNode.h / 2);
+    return `M ${sx} ${sy} C ${tx} ${sy}, ${tx} ${sy}, ${tx} ${ty}`;
+  }
+  if (isCollateral) {
+    const sx = fromNode.x;
+    const sy = toNode.y < fromNode.y ? fromNode.y - fromNode.h / 2 : fromNode.y + fromNode.h / 2;
+    const tx = toNode.x - toNode.w / 2;
+    const ty = toNode.y;
+    const mx = (sx + tx) / 2;
+    return `M ${sx} ${sy} C ${sx} ${ty}, ${mx} ${ty}, ${tx} ${ty}`;
+  }
+  const dx = (x2 - x1) * 0.52;
+  return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+}
+
+function createSvgEl(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+// ---- 状态操作（按钮、键盘、网址都走这里） ----
+function clearFocus() {
+  state.selectedId = null;
+  state.hoverId = null;
+  state.lesionKey = null;
+  state.lesionLevel = null;
+  state.selectedZoneId = null;
+}
+
+function exitQuiz() {
+  if (!state.quizMode) return;
+  state.quizMode = false;
+  state.quizPicks = new Set();
+  renderPlexusSVG();
+}
+
+function setLesion(key, level) {
+  exitQuiz();
+  state.lesionKey = key || null;
+  state.lesionLevel = key ? (level || null) : null;
+  state.selectedId = null;
+  state.selectedZoneId = null;
+  if (key === 'long_thoracic' && !state.showCollaterals) {
+    state.showCollaterals = true;
+    renderPlexusSVG();
+  }
+  updateUI();
+}
+
+function currentLevel() {
+  if (!state.lesionKey) return null;
+  return state.lesionLevel || PlexusModel.LESION_SITES[state.lesionKey].def;
+}
+
+function stepLevel(delta) {
+  if (!state.lesionKey) return;
+  const levels = PlexusModel.LESION_SITES[state.lesionKey].levels;
+  const i = levels.findIndex(l => l.key === currentLevel());
+  const j = Math.max(0, Math.min(levels.length - 1, i + delta));
+  if (j !== i) setLesion(state.lesionKey, levels[j].key);
+}
+
+function stepLesion(delta) {
+  const seq = [null, ...LESION_KEYS];
+  const i = seq.indexOf(state.lesionKey);
+  setLesion(seq[(i + delta + seq.length) % seq.length]);
+}
+
+function setLimbMode(mode) {
+  state.limbMode = mode;
+  state.selectedZoneId = null;
+  renderLimbSVG();
+  updateUI();
+}
+
+// 自测时是否把节点名字换成「？」（反向题考的是右侧图，不用藏名字）
+function labelsHidden() {
+  return state.quizMode && !state.quizAnswered && !currentQuiz().zones;
+}
+
+function renderPlexusSVG() {
+  svg.innerHTML = '';
+  const bgRect = createSvgEl('rect', { x: 0, y: 0, width: 1060, height: 620, fill: 'transparent' });
+  bgRect.addEventListener('click', () => {
+    if (state.quizMode) return;
+    clearFocus();
+    updateUI();
+  });
+  svg.appendChild(bgRect);
+
+  STAGES.forEach((s, idx) => {
+    const t1 = createSvgEl('text', { x: s.x, y: 24, 'text-anchor': 'middle', class: 'stage-header' });
+    t1.textContent = s.title;
+    svg.appendChild(t1);
+    const t2 = createSvgEl('text', { x: s.x, y: 40, 'text-anchor': 'middle', class: 'stage-sub' });
+    t2.textContent = s.sub;
+    svg.appendChild(t2);
+    if (idx < STAGES.length - 1) {
+      const midX = (s.x + STAGES[idx + 1].x) / 2;
+      svg.appendChild(createSvgEl('line', { x1: midX, y1: 48, x2: midX, y2: 610, class: 'stage-divider' }));
+    }
+  });
+
+  const edgeLayer = createSvgEl('g');
+  const pulseLayer = createSvgEl('g');
+
+  EDGES.forEach((e) => {
+    if (e.type === 'collateral' && !state.showCollaterals) return;
+    const d = buildCurve(nodeMap[e.from], nodeMap[e.to], e.type === 'collateral');
+    edgeLayer.appendChild(createSvgEl('path', {
+      d,
+      class: `edge ${e.type === 'post' ? 'posterior' : ''} ${e.type === 'collateral' ? 'collateral-edge' : ''}`,
+      stroke: getEdgeColor(e),
+      'data-from': e.from,
+      'data-to': e.to
+    }));
+    pulseLayer.appendChild(createSvgEl('path', {
+      d,
+      class: 'pulse-edge',
+      'data-from': e.from,
+      'data-to': e.to
+    }));
+  });
+
+  svg.appendChild(edgeLayer);
+  svg.appendChild(pulseLayer);
+
+  const hideLabel = labelsHidden();
+  const nodeLayer = createSvgEl('g');
+  NODES.forEach(n => {
+    const isCol = n.stage === 'collateral';
+    if (isCol && !state.showCollaterals) return;
+    const g = createSvgEl('g', { class: 'node-group', 'data-id': n.id });
+
+    g.appendChild(createSvgEl('rect', {
+      x: n.x - n.w / 2, y: n.y - n.h / 2, width: n.w, height: n.h,
+      class: isCol ? 'node-rect collateral-rect' : 'node-rect',
+      stroke: getColorForNode(n)
+    }));
+
+    // 旁支的第二行是节段，由模型推导
+    const subText = isCol ? PlexusModel.segLabel(n.id) : n.sub;
+    const label = createSvgEl('text', {
+      x: n.x, y: n.y - (isCol ? 2 : 4), 'text-anchor': 'middle',
+      class: isCol ? 'collateral-label' : 'node-label'
+    });
+    label.textContent = hideLabel ? '？' : n.label;
+    g.appendChild(label);
+
+    const sub = createSvgEl('text', { x: n.x, y: n.y + (isCol ? 11 : 13), 'text-anchor': 'middle', class: 'node-sub' });
+    sub.textContent = hideLabel ? (isCol ? '旁支' : n.stage.toUpperCase()) : subText;
+    g.appendChild(sub);
+
+    g.addEventListener('mouseenter', () => {
+      if (state.quizMode) return;
+      state.hoverId = n.id;
+      applyAllHighlights();
+    });
+    g.addEventListener('mouseleave', () => {
+      if (state.quizMode) return;
+      state.hoverId = null;
+      applyAllHighlights();
+    });
+    g.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (state.quizMode) { handleQuizAnswer(n.id); return; }
+      const next = state.selectedId === n.id && !state.selectedZoneId ? null : n.id;
+      clearFocus();
+      state.selectedId = next;
+      updateUI();
+    });
+
+    nodeLayer.appendChild(g);
+  });
+
+  svg.appendChild(nodeLayer);
+}
+
+function renderLimbSVG() {
+  limbSvg.innerHTML = '';
+
+  const defs = createSvgEl('defs');
+  const clip = createSvgEl('clipPath', { id: 'limbClip' });
+  clip.appendChild(createSvgEl('path', { d: LIMB_TORSO }));
+  clip.appendChild(createSvgEl('path', { d: LIMB_ARM }));
+  defs.appendChild(clip);
+  limbSvg.appendChild(defs);
+
+  [['前面观（掌侧）', 110], ['后面观（背侧）', LIMB_W - 110]].forEach(([txt, x]) => {
+    const t = createSvgEl('text', { x, y: 15, 'text-anchor': 'middle', class: 'limb-view-title' });
+    t.textContent = txt;
+    limbSvg.appendChild(t);
+  });
+
+  const labelLayer = createSvgEl('g');
+  const big = state.limbMode === 'dermatome';
+
+  ['a', 'p'].forEach(v => {
+    const flip = v === 'p';
+    const fx = x => flip ? LIMB_W - x : x;
+    const g = createSvgEl('g', flip ? { transform: `translate(${LIMB_W},0) scale(-1,1)` } : {});
+    g.appendChild(createSvgEl('path', { d: LIMB_TORSO, class: 'limb-fill' }));
+    g.appendChild(createSvgEl('path', { d: LIMB_ARM, class: 'limb-fill' }));
+
+    const zoneLayer = createSvgEl('g', { 'clip-path': 'url(#limbClip)' });
+    LIMB_ZONES[state.limbMode].filter(z => z.v === v).forEach(z => {
+      const t = PlexusModel.target(z.id);
+      const p = createSvgEl('path', { d: z.d, class: 'zone-shape', 'data-zone': z.id });
+      p.addEventListener('click', () => {
+        if (state.quizMode) { toggleQuizPick(z.id); return; }
+        selectZone(z.id);
+      });
+      const titleEl = createSvgEl('title');
+      titleEl.textContent = t.name;
+      p.appendChild(titleEl);
+      zoneLayer.appendChild(p);
+
+      const [lx0, ly, a0] = z.lab;
+      const lx = fx(lx0);
+      const anchor = !flip || a0 === 'middle' ? a0 : (a0 === 'end' ? 'start' : 'end');
+      if (z.pt) {
+        const ex = lx + (anchor === 'end' ? 2.5 : -2.5);
+        labelLayer.appendChild(createSvgEl('line', {
+          x1: ex, y1: ly - 3.5, x2: fx(z.pt[0]), y2: z.pt[1], class: 'zone-leader', 'data-zone': z.id
+        }));
+        labelLayer.appendChild(createSvgEl('circle', { cx: fx(z.pt[0]), cy: z.pt[1], r: 1.5, class: 'zone-leader-dot', 'data-zone': z.id }));
+      }
+      const attrs = { x: lx, y: ly, 'text-anchor': anchor, class: 'zone-label' + (big ? ' big' : ''), 'data-zone': z.id };
+      if (z.rot) attrs.transform = `rotate(${flip ? -z.rot : z.rot} ${lx} ${ly - 3})`;
+      const lbl = createSvgEl('text', attrs);
+      lbl.textContent = z.t;
+      labelLayer.appendChild(lbl);
+    });
+    g.appendChild(zoneLayer);
+
+    g.appendChild(createSvgEl('path', { d: LIMB_ARM + ' ' + LIMB_TORSO_EDGE, class: 'limb-contour' }));
+    if (state.limbMode === 'motor') g.appendChild(createSvgEl('path', { d: LIMB_MARKS[v], class: 'limb-mark' }));
+    limbSvg.appendChild(g);
+  });
+
+  limbSvg.appendChild(labelLayer);
+}
+
+function selectZone(zoneId) {
+  const t = PlexusModel.target(zoneId);
+  const nerve = t.fibers[0].nerve;
+  clearFocus();
+  state.selectedId = nerve;
+  state.selectedZoneId = zoneId;
+  if (nodeMap[nerve].stage === 'collateral' && !state.showCollaterals) {
+    state.showCollaterals = true;
+    renderPlexusSVG();
+  }
+  updateUI();
+}
+
+// 当前要高亮的内容，全部来自 PlexusModel（纤维路由），不再按图的连通性推断
+let ctxCache = { key: null, value: null };
+function getActiveNodeContext() {
+  const key = [state.lesionKey, state.lesionLevel, state.hoverId, state.selectedId, state.selectedZoneId].join('|');
+  if (key !== ctxCache.key) ctxCache = { key, value: buildNodeContext() };
+  return ctxCache.value;
+}
+
+// sites = 要打上「选中/损伤点」标记的节点（根性撕脱时不止一个）
+function buildNodeContext() {
+  if (state.lesionKey) {
+    return { ...PlexusModel.lesion(state.lesionKey, state.lesionLevel), isLesion: true };
+  }
+  const one = id => ({ ...PlexusModel.trace(id), activeId: id, sites: new Set([id]), isLesion: false });
+  if (state.hoverId) return one(state.hoverId);
+  if (!state.selectedId) return null;
+  if (state.selectedZoneId) {
+    return {
+      ...PlexusModel.traceTarget(state.selectedZoneId),
+      activeId: state.selectedId, sites: new Set([state.selectedId]), zoneId: state.selectedZoneId, isLesion: false
+    };
+  }
+  return one(state.selectedId);
+}
+
+function applyAllHighlights() {
+  const ctx = getActiveNodeContext();
+  const nodeEls = svg.querySelectorAll('.node-group');
+  const edgeEls = svg.querySelectorAll('.edge');
+  const pulseEls = svg.querySelectorAll('.pulse-edge');
+  const keyOf = el => el.getAttribute('data-from') + '>' + el.getAttribute('data-to');
+
+  if (!ctx) {
+    nodeEls.forEach(el => el.classList.remove('dim', 'selected', 'lesion-site'));
+    edgeEls.forEach(el => el.classList.remove('dim', 'highlight', 'lesion-downstream'));
+    pulseEls.forEach(el => el.classList.add('active-pulse'));
+    applyLimbHighlights(null);
+    return;
+  }
+
+  nodeEls.forEach(el => {
+    const id = el.getAttribute('data-id');
+    el.classList.toggle('dim', !ctx.nodes.has(id));
+    el.classList.toggle('lesion-site', ctx.isLesion && ctx.sites.has(id));
+    el.classList.toggle('selected', !ctx.isLesion && ctx.sites.has(id));
+  });
+
+  if (ctx.isLesion) {
+    edgeEls.forEach(el => {
+      const isDown = ctx.downEdges.has(keyOf(el));
+      const isUp = ctx.upEdges.has(keyOf(el));
+      el.classList.toggle('lesion-downstream', isDown);
+      el.classList.toggle('highlight', isUp && !isDown);
+      el.classList.toggle('dim', !isDown && !isUp);
+    });
+    pulseEls.forEach(el => el.classList.toggle('active-pulse', ctx.upEdges.has(keyOf(el)) && !ctx.downEdges.has(keyOf(el))));
+  } else {
+    edgeEls.forEach(el => {
+      const onPath = ctx.edges.has(keyOf(el));
+      el.classList.toggle('highlight', onPath);
+      el.classList.toggle('dim', !onPath);
+      el.classList.remove('lesion-downstream');
+    });
+    pulseEls.forEach(el => el.classList.toggle('active-pulse', ctx.edges.has(keyOf(el))));
+  }
+
+  applyLimbHighlights(ctx);
+}
+
+function applyLimbHighlights(ctx) {
+  const zoneEls = limbSvg.querySelectorAll('.zone-shape');
+  const labelEls = limbSvg.querySelectorAll('.zone-label, .zone-leader, .zone-leader-dot');
+  const activeChips = document.getElementById('activeChips');
+  const caption = document.getElementById('limbCaption');
+  activeChips.innerHTML = '';
+  zoneEls.forEach(el => {
+    el.classList.remove('active-motor', 'active-sensory', 'active-lesion', 'active-lesion-partial');
+    el.classList.toggle('picked', state.quizMode && state.quizPicks.has(el.getAttribute('data-zone')));
+  });
+  labelEls.forEach(el => el.classList.remove('on', 'lesion'));
+
+  if (state.quizMode && !state.quizAnswered && currentQuiz().zones) {
+    caption.textContent = `已选 ${state.quizPicks.size} 个`;
+    return;
+  }
+  if (!ctx) {
+    caption.textContent = '';
+    return;
+  }
+
+  const isMotor = state.limbMode === 'motor';
+  const zoneTarget = ctx.zoneId ? PlexusModel.target(ctx.zoneId) : null;
+  const siteName = ctx.isLesion ? ctx.levelName : nodeMap[ctx.activeId].label;
+
+  // 靶区 id → 高亮样式
+  const hits = new Map();
+  if (ctx.isLesion) {
+    ctx.severity.forEach((sev, id) => hits.set(id, sev === 'full' ? 'active-lesion' : 'active-lesion-partial'));
+  } else {
+    const ids = zoneTarget ? [ctx.zoneId] : PlexusModel.targetsFor(ctx.activeId);
+    ids.forEach(id => hits.set(id, isMotor ? 'active-motor' : 'active-sensory'));
+  }
+
+  const matched = new Map();
+  zoneEls.forEach(el => {
+    const id = el.getAttribute('data-zone');
+    if (!hits.has(id)) return;
+    el.classList.add(hits.get(id));
+    matched.set(id, hits.get(id) === 'active-lesion-partial');
+  });
+  labelEls.forEach(el => {
+    if (!hits.has(el.getAttribute('data-zone'))) return;
+    el.classList.add('on');
+    if (ctx.isLesion) el.classList.add('lesion');
+  });
+
+  // 同一神经上没被这次损伤波及的分支
+  const spared = ctx.isLesion
+    ? ctx.spared.map(id => PlexusModel.target(id)).filter(t => t.kind === state.limbMode).map(t => t.name)
+    : [];
+  const sparedNote = !spared.length ? ''
+    : ctx.branch ? ` · 只伤到${ctx.levelName}这一条分支，同一神经的其余分支保留：${spared.join('、')}`
+    : ` · 损伤在${ctx.levelName}，更近端已分出的分支保留：${spared.join('、')}`;
+
+  if (ctx.isLesion && state.limbMode === 'dermatome' && ctx.isNerve) {
+    caption.textContent = '周围神经损伤不按皮节分布，请看「周围皮区」';
+  } else if (matched.size === 0) {
+    caption.textContent = ctx.isLesion
+      ? `${siteName}损伤不累及当前图中的${isMotor ? '肌肉' : '皮区'}${sparedNote}`
+      : (isMotor
+        ? `「${siteName}」为纯感觉神经，或图中没有画出它支配的肌肉`
+        : `「${siteName}」为纯运动神经，无独立皮肤感觉区`);
+  } else if (ctx.isLesion) {
+    caption.textContent = (isMotor ? '受累肌肉' : '感觉减退区域') + sparedNote;
+  } else if (zoneTarget) {
+    const segs = PlexusModel.ROOTS.filter(r => zoneTarget.fibers.some(f => f.roots.includes(r))).map(r => r.toUpperCase()).join('、');
+    caption.textContent = zoneTarget.kind === 'dermatome'
+      ? `已从「${zoneTarget.name}」定位至 ${siteName}`
+      : `已从「${zoneTarget.name}」反向溯源至 ${siteName}（主要节段 ${segs}）`;
+  } else {
+    caption.textContent = '';
+  }
+
+  matched.forEach((partial, id) => {
+    const chip = document.createElement('span');
+    chip.className = `mini-chip ${ctx.isLesion ? 'lesion' : ''}`;
+    const name = PlexusModel.target(id).name;
+    chip.textContent = partial ? `${name}（部分）` : name;
+    chip.addEventListener('click', () => { if (!state.quizMode) selectZone(id); });
+    activeChips.appendChild(chip);
+  });
+}
+
+function updateInspector() {
+  const dTags = document.getElementById('dTags');
+  const dTitle = document.getElementById('dTitle');
+  const dSub = document.getElementById('dSub');
+  const dSegments = document.getElementById('dSegments');
+  const dMotor = document.getElementById('dMotor');
+  const dSensory = document.getElementById('dSensory');
+  const dClinical = document.getElementById('dClinical');
+  const dSpatial = document.getElementById('dSpatial');
+
+  if (state.lesionKey) {
+    const L = LESIONS[state.lesionKey];
+    const ctx = PlexusModel.lesion(state.lesionKey, state.lesionLevel);
+    const T = L.levels[ctx.level];
+    let tags = `<span class="tag lesion">临床损伤模拟</span><span class="tag lesion">部位：${ctx.levelName}</span>`;
+    if (!ctx.isNerve) {
+      tags += `<span class="tag">${ctx.preganglionic ? '节前（根性）损伤' : '节后损伤'}</span>`
+        + `<span class="tag">Horner 征：${ctx.horner ? '有' : '无'}</span>`;
+    }
+    dTags.innerHTML = tags;
+    dTitle.textContent = L.title;
+    dSub.textContent = L.sub;
+    dSegments.textContent = T.segments;
+    dMotor.textContent = T.motor;
+    dSensory.textContent = T.sensory;
+    dClinical.textContent = T.clinical;
+    dSpatial.textContent = L.spatial;
+    return;
+  }
+
+  if (!state.selectedId) {
+    dTags.innerHTML = `<span class="tag">总览模式</span><span class="tag">C5–T1</span>`;
+    dTitle.textContent = '臂丛神经总览';
+    dSub.textContent = 'Brachial Plexus · 腕神経叢 (C5–T1)';
+    dSegments.textContent = '由 C5–C8 及 T1 脊神经前支组成，经前、中斜角肌间隙穿出，跨越第 1 肋进入腋窝。';
+    dMotor.textContent = '前股系统（外侧束、内侧束）主要支配屈肌群；后股系统全部汇合为后束，支配伸肌群。';
+    dSensory.textContent = '皮节：C5 肩及臂外侧，C6 前臂外侧与拇指，C7 中指，C8 小指与前臂内侧远端，T1 臂内侧。';
+    dClinical.textContent = '上臂丛损伤（Erb）累及肩外展与屈肘；下臂丛损伤（Klumpke）累及手内在肌。';
+    dSpatial.textContent = '三干的后股向深面汇合于腋动脉后方形成后束；前股居于动脉前方形成外侧束与内侧束，并在动脉前方合成“M”形正中神经。';
+    return;
+  }
+
+  const n = nodeMap[state.selectedId];
+  const stageNames = { root: '神经根', trunk: '神经干', division: '神经股', cord: '神经束', branch: '终末支', collateral: '重要旁支' };
+  dTags.innerHTML = `<span class="tag">${stageNames[n.stage]}</span><span class="tag">节段：${PlexusModel.segLabel(n.id)}</span>`;
+  dTitle.textContent = n.label;
+  dSub.textContent = n.en;
+  dSegments.textContent = `脊髓节段来源：${PlexusModel.segLabel(n.id)}`;
+  dMotor.textContent = n.motor;
+  dSensory.textContent = n.sensory;
+  dClinical.textContent = n.clinical;
+  dSpatial.textContent = NODE_3D[n.id].spatial;
+}
+
+function updateLevelBar() {
+  const bar = document.getElementById('levelBar');
+  const def = state.lesionKey ? PlexusModel.LESION_SITES[state.lesionKey] : null;
+  const show = !!def && def.levels.length > 1;
+  bar.classList.toggle('is-hidden', !show);
+  if (!show) { bar.innerHTML = ''; return; }
+  const cur = currentLevel();
+  bar.innerHTML = '<span class="lesion-label">损伤部位：</span><div class="seg-group">'
+    + def.levels.map(l => `<button class="seg-btn${l.key === cur ? ' active' : ''}" data-level="${l.key}">${l.name}</button>`).join('')
+    + '</div>';
+}
+
+function updateUI() {
+  document.querySelectorAll('.pill[data-lesion]').forEach(p => {
+    p.classList.toggle('active', p.dataset.lesion === state.lesionKey);
+  });
+  document.querySelectorAll('#limbModeTabs .seg-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === state.limbMode);
+  });
+  document.body.classList.toggle('has-lesion', !!state.lesionKey);
+  svgWrap.classList.toggle('pulse-on', state.pulse);
+  document.getElementById('btnPulse').classList.toggle('active', state.pulse);
+  document.getElementById('btnCollaterals').classList.toggle('active', state.showCollaterals);
+  document.getElementById('btnQuiz').classList.toggle('active', state.quizMode);
+  document.getElementById('btnPresent').classList.toggle('active', state.present);
+  document.getElementById('quizBox').classList.toggle('show', state.quizMode);
+  document.getElementById('btnSubmitQuiz').classList.toggle('is-hidden',
+    !(state.quizMode && !state.quizAnswered && currentQuiz().zones));
+  updateLevelBar();
+  applyAllHighlights();
+  updateInspector();
+  syncViewUI();
+  writeHash();
+}
+
+// ---- 自测 ----
+let quizOrder = [];
+function currentQuiz() {
+  return QUIZ_BANK[quizOrder[state.quizIdx % quizOrder.length]];
+}
+
+function showQuizScore() {
+  document.getElementById('quizScore').textContent = `得分：${state.quizRight} / ${state.quizTotal}`;
+}
+
+function setQuizFeedback(text, cls) {
+  const fb = document.getElementById('quizFeedback');
+  fb.textContent = text;
+  fb.className = 'quiz-feedback' + (cls ? ' ' + cls : '');
+}
+
+function loadQuizQuestion() {
+  // 每做完一轮重新洗牌
+  if (state.quizIdx % QUIZ_BANK.length === 0 || !quizOrder.length) {
+    quizOrder = QUIZ_BANK.map((_, i) => i);
+    for (let i = quizOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [quizOrder[i], quizOrder[j]] = [quizOrder[j], quizOrder[i]];
+    }
+  }
+  const item = currentQuiz();
+  state.quizAnswered = false;
+  state.quizPicks = new Set();
+  clearFocus();
+  if (item.zones) state.limbMode = item.zones.mode;
+  document.getElementById('quizQuestion').textContent = item.zones
+    ? item.q + '（在上肢图上点选，可以为空）'
+    : item.q;
+  setQuizFeedback('');
+  showQuizScore();
+  renderPlexusSVG();
+  renderLimbSVG();
+  updateUI();
+}
+
+function handleQuizAnswer(clickedId) {
+  const item = currentQuiz();
+  if (state.quizAnswered || item.zones) return;
+  state.quizAnswered = true;
+  state.quizTotal++;
+  if (clickedId === item.target) {
+    state.quizRight++;
+    setQuizFeedback(`✅ 回答正确！就是「${nodeMap[item.target].label}」。`, 'ok');
+  } else {
+    setQuizFeedback(`❌ 你点了「${nodeMap[clickedId].label}」，正确答案是「${nodeMap[item.target].label}」。`, 'err');
+  }
+  state.selectedId = item.target;
+  showQuizScore();
+  renderPlexusSVG();
+  updateUI();
+}
+
+function toggleQuizPick(zoneId) {
+  if (state.quizAnswered || !currentQuiz().zones) return;
+  if (state.quizPicks.has(zoneId)) state.quizPicks.delete(zoneId);
+  else state.quizPicks.add(zoneId);
+  applyAllHighlights();
+}
+
+// 反向题：把点选的区域和模型算出的受累区域比对。reveal = 直接看答案，不计分
+function submitZoneQuiz(reveal) {
+  const item = currentQuiz();
+  if (state.quizAnswered || !item.zones) return;
+  const L = PlexusModel.lesion(item.zones.lesion, item.zones.level);
+  const answer = [...L.severity.keys()].filter(id => PlexusModel.target(id).kind === item.zones.mode);
+  const names = ids => ids.map(id => PlexusModel.target(id).name).join('、');
+  const answerText = answer.length ? names(answer) : '没有（这个部位的损伤不影响这一类区域）';
+  state.quizAnswered = true;
+  if (reveal) {
+    setQuizFeedback(`💡 答案：${answerText}。`);
+  } else {
+    state.quizTotal++;
+    const missed = answer.filter(id => !state.quizPicks.has(id));
+    const extra = [...state.quizPicks].filter(id => !answer.includes(id));
+    if (!missed.length && !extra.length) {
+      state.quizRight++;
+      setQuizFeedback(`✅ 完全正确：${answerText}。`, 'ok');
+    } else {
+      setQuizFeedback('❌ ' + [missed.length ? `漏选：${names(missed)}` : '', extra.length ? `多选：${names(extra)}` : '']
+        .filter(Boolean).join('；') + '。红色为正确答案。', 'err');
+    }
+  }
+  state.quizPicks = new Set();
+  state.lesionKey = item.zones.lesion;
+  state.lesionLevel = item.zones.level;
+  showQuizScore();
+  renderPlexusSVG();
+  updateUI();
+}
+
+// ==================== 3D 空间示意视图 ====================
+// 与 2D 图共用同一份 state 与 PlexusModel，只是另一种画法。
+const viewport3d = document.getElementById('viewport3d');
+const canvas = document.getElementById('scene');
+const ctx3d = canvas.getContext('2d');
+const LESION_3D_COLOR = '#f43f5e';
+const EDGE_3D_COLOR = { main: '#38bdf8', ant: '#34d399', post: '#fbbf24', collateral: '#94a3b8' };
+const FONT_3D = '-apple-system, "PingFang SC", sans-serif';
+
+const DEFAULT_CAM = { yaw: 0.24, pitch: -0.18, zoom: 1.0 };
+const PRESET_VIEWS = {
+  front: DEFAULT_CAM,
+  top: { yaw: 0.0, pitch: -1.35, zoom: 1.05 },
+  lateral: { yaw: -0.95, pitch: -0.22, zoom: 1.08 },
+  back: { yaw: Math.PI - 0.24, pitch: -0.15, zoom: 1.0 }
+};
+const cam = { yaw: 0.24, pitch: -0.18, zoom: 1.0, targetYaw: 0.24, targetPitch: -0.18, targetZoom: 1.0, fov: 760 };
+
+let dragging = false, dragMoved = false, lastX = 0, lastY = 0;
+let projectedNodes = [];
+let vpW = 0, vpH = 0, rafId = null;
+
+function sampleCurve3D(a, b, steps = 16) {
+  const dx = (b.x - a.x) * 0.52;
+  const p1 = { x: a.x + dx, y: a.y, z: a.z }, p2 = { x: b.x - dx, y: b.y, z: b.z };
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, u = 1 - t;
+    const k0 = u * u * u, k1 = 3 * u * u * t, k2 = 3 * u * t * t, k3 = t * t * t;
+    pts.push({
+      x: k0 * a.x + k1 * p1.x + k2 * p2.x + k3 * b.x,
+      y: k0 * a.y + k1 * p1.y + k2 * p2.y + k3 * b.y,
+      z: k0 * a.z + k1 * p1.z + k2 * p2.z + k3 * b.z
+    });
+  }
+  return pts;
+}
+
+// 锁骨下动脉 → 腋动脉：自下干前下方进入，行于三束之间
+const ARTERY_PTS = [];
+for (let i = 0; i <= 28; i++) {
+  const t = i / 28, k = Math.pow(1 - t, 1.8);
+  ARTERY_PTS.push({ x: -172 + t * 432, y: 128 * k + 8 * (1 - k) + Math.sin(t * Math.PI) * 6, z: 24 * (1 - t) + 6 * t });
+}
+// 锁骨：位于“股”的前方，分隔锁骨上部（根/干）与锁骨下部（束/终末支）
+const CLAVICLE_PTS = [];
+for (let i = 0; i <= 22; i++) {
+  const t = i / 22;
+  CLAVICLE_PTS.push({ x: -18 + Math.sin(t * Math.PI * 1.4) * 12, y: -158 + t * 316, z: 82 + Math.sin(t * Math.PI) * 10 });
+}
+// 每条根内侧的示意方块（代表其出椎间孔处，不是逐块椎体）
+const VERTEBRAE = PlexusModel.ROOTS.map(r => ({ x: -268, y: NODE_3D[r].y, z: -18 }));
+
+const EDGE_SAMPLES = EDGES.map(e => {
+  const toStage = nodeMap[e.to].stage;
+  return {
+    key: e.from + '>' + e.to,
+    collateral: e.type === 'collateral',
+    color: (toStage === 'cord' || toStage === 'branch') ? NODE_3D[e.to].color : EDGE_3D_COLOR[e.type],
+    r: e.type === 'collateral' ? 1.9 : (e.type === 'main' ? 3.4 : 3.2),
+    pts: sampleCurve3D(NODE_3D[e.from], NODE_3D[e.to])
+  };
+});
+
+function project(p) {
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const x1 = p.x * cy - p.z * sy, z1 = p.x * sy + p.z * cy;
+  const y2 = p.y * cp - z1 * sp, z2 = p.y * sp + z1 * cp;
+  const scale = (cam.fov / (cam.fov - z2)) * cam.zoom * Math.min(vpW / 680, vpH / 470, 1.35);
+  return { sx: vpW * 0.5 + x1 * scale, sy: vpH * 0.52 + y2 * scale, z: z2, scale };
+}
+
+function resizeCanvas() {
+  const rect = viewport3d.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  vpW = rect.width; vpH = rect.height;
+  canvas.width = vpW * dpr;
+  canvas.height = vpH * dpr;
+  ctx3d.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(resizeCanvas).observe(viewport3d);
+
+function render(ts) {
+  const timeSec = ts * 0.001;
+  const show = state.show3d;
+  if (show.auto && !dragging) cam.targetYaw += 0.0055;
+  cam.yaw += (cam.targetYaw - cam.yaw) * 0.12;
+  cam.pitch += (cam.targetPitch - cam.pitch) * 0.12;
+  cam.zoom += (cam.targetZoom - cam.zoom) * 0.12;
+
+  ctx3d.clearRect(0, 0, vpW, vpH);
+  const hl = getActiveNodeContext();
+  const hideNames = labelsHidden();
+  const drawList = [];
+  const stroke = (a, b, color, width) => {
+    ctx3d.beginPath();
+    ctx3d.moveTo(a.sx, a.sy);
+    ctx3d.lineTo(b.sx, b.sy);
+    ctx3d.lineCap = 'round';
+    ctx3d.strokeStyle = color;
+    ctx3d.lineWidth = width;
+    ctx3d.stroke();
+  };
+  const caption = (text, p, dy, color) => drawList.push({ z: p.z + 3, draw: () => {
+    ctx3d.font = `600 11px ${FONT_3D}`;
+    ctx3d.fillStyle = color;
+    ctx3d.textAlign = 'center';
+    ctx3d.fillText(text, p.sx, p.sy + dy * p.scale);
+  }});
+
+  // 1. 参考网格
+  const gridLine = (p, q) => {
+    const a = project(p), b = project(q);
+    drawList.push({ z: (a.z + b.z) / 2 - 400, draw: () => stroke(a, b, 'rgba(148, 163, 184, 0.07)', 1) });
+  };
+  for (let gx = -260; gx <= 260; gx += 65) gridLine({ x: gx, y: 185, z: -110 }, { x: gx, y: 185, z: 110 });
+  for (let gz = -110; gz <= 110; gz += 55) gridLine({ x: -260, y: 185, z: gz }, { x: 260, y: 185, z: gz });
+
+  // 2. 骨性标志
+  if (show.bones) {
+    VERTEBRAE.forEach(v => {
+      const p = project(v);
+      drawList.push({ z: p.z, draw: () => {
+        const rw = 20 * p.scale, rh = 16 * p.scale;
+        ctx3d.fillStyle = 'rgba(203, 213, 225, 0.16)';
+        ctx3d.strokeStyle = 'rgba(203, 213, 225, 0.34)';
+        ctx3d.lineWidth = 1.2;
+        ctx3d.beginPath();
+        ctx3d.roundRect(p.sx - rw, p.sy - rh, rw * 2, rh * 2, 6 * p.scale);
+        ctx3d.fill();
+        ctx3d.stroke();
+      }});
+    });
+    for (let i = 0; i < CLAVICLE_PTS.length - 1; i++) {
+      const a = project(CLAVICLE_PTS[i]), b = project(CLAVICLE_PTS[i + 1]);
+      const sc = (a.scale + b.scale) / 2;
+      drawList.push({ z: (a.z + b.z) / 2, draw: () => {
+        stroke(a, b, 'rgba(226, 232, 240, 0.22)', 15 * sc);
+        stroke(a, b, 'rgba(248, 250, 252, 0.18)', 5 * sc);
+      }});
+    }
+    if (show.labels) caption('锁骨', project(CLAVICLE_PTS[10]), -14, 'rgba(226, 232, 240, 0.65)');
+  }
+
+  // 3. 腋动脉
+  if (show.artery) {
+    const beat = 1 + Math.sin(timeSec * 4.5) * 0.04;
+    for (let i = 0; i < ARTERY_PTS.length - 1; i++) {
+      const a = project(ARTERY_PTS[i]), b = project(ARTERY_PTS[i + 1]);
+      const sc = (a.scale + b.scale) / 2 * beat;
+      drawList.push({ z: (a.z + b.z) / 2, draw: () => {
+        stroke(a, b, 'rgba(220, 38, 38, 0.52)', 14.5 * sc);
+        stroke(a, b, 'rgba(252, 165, 165, 0.32)', 4.2 * sc);
+      }});
+    }
+    if (show.labels) caption('腋动脉', project(ARTERY_PTS[14]), 18, '#fca5a5');
+  }
+
+  // 4. 神经（分段、按深度排序）
+  EDGE_SAMPLES.forEach((edge, eIdx) => {
+    if (edge.collateral && !state.showCollaterals) return;
+    let alpha = 0.85, color = edge.color, widthBoost = 1.0, showPulse = state.pulse;
+    if (hl) {
+      if (hl.isLesion && hl.downEdges.has(edge.key)) { color = LESION_3D_COLOR; alpha = 1.0; widthBoost = 1.35; showPulse = false; }
+      else if (hl.isLesion && hl.upEdges.has(edge.key)) { alpha = 0.95; widthBoost = 1.2; }
+      else if (!hl.isLesion && hl.edges.has(edge.key)) { alpha = 1.0; widthBoost = 1.32; }
+      else { alpha = 0.13; showPulse = false; }
+    }
+
+    const pts = edge.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = project(pts[i]), b = project(pts[i + 1]);
+      const w = edge.r * (a.scale + b.scale) / 2 * widthBoost;
+      drawList.push({ z: (a.z + b.z) / 2, draw: () => {
+        ctx3d.globalAlpha = alpha;
+        stroke(a, b, color, w * 2.1);
+        stroke(a, b, 'rgba(255,255,255,0.34)', w * 0.65);
+        ctx3d.globalAlpha = 1;
+      }});
+    }
+
+    if (showPulse) {
+      const idxF = ((timeSec * 0.55 + eIdx * 0.17) % 1) * (pts.length - 1);
+      const i0 = Math.floor(idxF), f = idxF - i0;
+      const p0 = pts[i0], p1 = pts[Math.min(i0 + 1, pts.length - 1)];
+      const pp = project({ x: p0.x + (p1.x - p0.x) * f, y: p0.y + (p1.y - p0.y) * f, z: p0.z + (p1.z - p0.z) * f });
+      drawList.push({ z: pp.z + 1, draw: () => {
+        const rad = 9.1 * pp.scale;
+        const grad = ctx3d.createRadialGradient(pp.sx, pp.sy, 0, pp.sx, pp.sy, rad);
+        grad.addColorStop(0, 'rgba(255,255,255,0.98)');
+        grad.addColorStop(0.45, color);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx3d.fillStyle = grad;
+        ctx3d.beginPath();
+        ctx3d.arc(pp.sx, pp.sy, rad, 0, Math.PI * 2);
+        ctx3d.fill();
+      }});
+    }
+  });
+
+  // 5. 节点
+  projectedNodes = [];
+  NODES.forEach(n => {
+    if (n.stage === 'collateral' && !state.showCollaterals) return;
+    const n3 = NODE_3D[n.id];
+    const p = project(n3);
+    const radius = n3.r * p.scale;
+    projectedNodes.push({ id: n.id, sx: p.sx, sy: p.sy, z: p.z, r: Math.max(radius, 11) });
+
+    const related = !hl || hl.nodes.has(n.id);
+    const isFocal = !!hl && hl.sites.has(n.id);
+    const nodeColor = hl && hl.isLesion && hl.downNodes.has(n.id) ? LESION_3D_COLOR : n3.color;
+
+    drawList.push({ z: p.z + 2, draw: () => {
+      ctx3d.globalAlpha = related ? 0.96 : 0.16;
+      if (isFocal) {
+        const pulse = 1 + Math.sin(timeSec * 6) * 0.2;
+        const halo = ctx3d.createRadialGradient(p.sx, p.sy, radius * 0.6, p.sx, p.sy, radius * 2.7 * pulse);
+        halo.addColorStop(0, hl.isLesion ? 'rgba(244,63,94,0.75)' : 'rgba(56,189,248,0.7)');
+        halo.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx3d.fillStyle = halo;
+        ctx3d.beginPath();
+        ctx3d.arc(p.sx, p.sy, radius * 2.7 * pulse, 0, Math.PI * 2);
+        ctx3d.fill();
+      }
+
+      const g = ctx3d.createRadialGradient(p.sx - radius * 0.32, p.sy - radius * 0.32, radius * 0.1, p.sx, p.sy, radius);
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.38, nodeColor);
+      g.addColorStop(1, '#0b1222');
+      ctx3d.fillStyle = g;
+      ctx3d.beginPath();
+      ctx3d.arc(p.sx, p.sy, radius, 0, Math.PI * 2);
+      ctx3d.fill();
+
+      if (show.labels && related) {
+        const text = hideNames ? '？' : n3.short;
+        const fontSize = Math.max(10, Math.min(13, 11.5 * p.scale));
+        ctx3d.font = `${isFocal ? '700' : '600'} ${fontSize}px ${FONT_3D}`;
+        ctx3d.textAlign = 'center';
+        const ly = p.sy - radius - 6;
+        const tw = ctx3d.measureText(text).width;
+        ctx3d.fillStyle = 'rgba(8, 13, 26, 0.72)';
+        ctx3d.beginPath();
+        ctx3d.roundRect(p.sx - tw / 2 - 5, ly - fontSize + 1, tw + 10, fontSize + 5, 4);
+        ctx3d.fill();
+        ctx3d.fillStyle = isFocal ? '#ffffff' : '#e2e8f0';
+        ctx3d.fillText(text, p.sx, ly);
+      }
+      ctx3d.globalAlpha = 1;
+    }});
+  });
+
+  // 画家算法：由远及近
+  drawList.sort((a, b) => a.z - b.z);
+  for (const item of drawList) item.draw();
+
+  // 只在 3D 视图可见时持续绘制
+  rafId = state.view === '3d' ? requestAnimationFrame(render) : null;
+}
+
+function hitTestNode(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let best = null;
+  for (const pn of projectedNodes) {
+    if (Math.hypot(mx - pn.sx, my - pn.sy) <= pn.r + 5 && (!best || pn.z > best.z)) best = pn;
+  }
+  return best ? best.id : null;
+}
+
+function setHover3D(id) {
+  if (state.quizMode) id = null;
+  viewport3d.style.cursor = id ? 'pointer' : '';
+  if (id === state.hoverId) return;
+  state.hoverId = id;
+  applyAllHighlights();
+}
+
+canvas.addEventListener('pointerdown', e => {
+  dragging = true;
+  dragMoved = false;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!dragging) { setHover3D(hitTestNode(e)); return; }
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  if (Math.hypot(dx, dy) > 2) dragMoved = true;
+  cam.targetYaw += dx * 0.0085;
+  cam.targetPitch = Math.max(-1.42, Math.min(1.42, cam.targetPitch + dy * 0.0085));
+  lastX = e.clientX;
+  lastY = e.clientY;
+  if (dragMoved) setCamPreset(null);
+});
+
+canvas.addEventListener('pointerup', e => {
+  dragging = false;
+  if (dragMoved) return;
+  const id = hitTestNode(e);
+  if (state.quizMode) { if (id) handleQuizAnswer(id); return; }
+  const next = id && state.selectedId !== id ? id : null;
+  clearFocus();
+  state.selectedId = next;
+  updateUI();
+});
+canvas.addEventListener('pointercancel', () => { dragging = false; });
+canvas.addEventListener('pointerleave', () => { if (!dragging) setHover3D(null); });
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  cam.targetZoom = Math.max(0.58, Math.min(1.9, cam.targetZoom - e.deltaY * 0.001));
+}, { passive: false });
+
+function setCamPreset(name) {
+  if (name) {
+    const v = PRESET_VIEWS[name];
+    cam.targetYaw = v.yaw; cam.targetPitch = v.pitch; cam.targetZoom = v.zoom;
+    state.show3d.auto = false;
+  }
+  document.querySelectorAll('#camPresets .hud-pill').forEach(b => b.classList.toggle('active', b.dataset.cam === name));
+  syncViewUI();
+}
+function resetCamera() { setCamPreset('front'); }
+
+function setView(view) {
+  state.view = view;
+  state.hoverId = null;
+  updateUI();
+  if (view === '3d') {
+    resizeCanvas();
+    if (rafId === null) rafId = requestAnimationFrame(render);
+  }
+}
+
+function syncViewUI() {
+  svgWrap.classList.toggle('is-hidden', state.view !== '2d');
+  viewport3d.classList.toggle('is-hidden', state.view !== '3d');
+  document.querySelectorAll('#viewTabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.view === state.view));
+  document.querySelectorAll('#sceneToggles .hud-pill').forEach(b => b.classList.toggle('active', state.show3d[b.dataset.toggle]));
+}
+
+document.querySelectorAll('#viewTabs .seg-btn').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+document.querySelectorAll('#camPresets .hud-pill').forEach(b => b.addEventListener('click', () => setCamPreset(b.dataset.cam)));
+document.querySelectorAll('#sceneToggles .hud-pill').forEach(b => b.addEventListener('click', () => {
+  state.show3d[b.dataset.toggle] = !state.show3d[b.dataset.toggle];
+  syncViewUI();
+}));
+
+// Event bindings
+const LESION_KEYS = [...document.querySelectorAll('.pill[data-lesion]')].map(b => b.dataset.lesion);
+
+document.querySelectorAll('.pill[data-lesion]').forEach(btn => {
+  btn.addEventListener('click', () => setLesion(state.lesionKey === btn.dataset.lesion ? null : btn.dataset.lesion));
+});
+
+document.getElementById('levelBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-level]');
+  if (b) setLesion(state.lesionKey, b.dataset.level);
+});
+
+document.querySelectorAll('#limbModeTabs .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (state.quizMode && !state.quizAnswered && currentQuiz().zones) return;
+    setLimbMode(btn.dataset.mode);
+  });
+});
+
+function togglePulse() { state.pulse = !state.pulse; updateUI(); }
+function toggleCollaterals() { state.showCollaterals = !state.showCollaterals; renderPlexusSVG(); updateUI(); }
+function toggleQuiz() {
+  const on = !state.quizMode;
+  clearFocus();
+  state.quizPicks = new Set();
+  state.quizMode = on;
+  if (on) { state.showCollaterals = true; loadQuizQuestion(); }
+  else { renderPlexusSVG(); updateUI(); }
+}
+function nextQuiz() { if (state.quizMode) { state.quizIdx++; loadQuizQuestion(); } }
+function revealQuiz() {
+  if (!state.quizMode || state.quizAnswered) return;
+  const item = currentQuiz();
+  if (item.zones) { submitZoneQuiz(true); return; }
+  state.quizAnswered = true;
+  state.selectedId = item.target;
+  setQuizFeedback(`💡 答案是「${nodeMap[item.target].label}」。`);
+  renderPlexusSVG();
+  updateUI();
+}
+function setTheme(dark) {
+  state.dark = dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('btnTheme').textContent = dark ? '☀️ 浅色' : '🌙 深色';
+}
+// 投影模式：放大字号，图撑满窗口高度
+function setPresent(on) {
+  state.present = on;
+  document.body.classList.toggle('present', on);
+}
+function resetAll() {
+  clearFocus();
+  state.quizMode = false;
+  state.quizPicks = new Set();
+  state.show3d = { artery: true, bones: true, labels: true, auto: false };
+  resetCamera();
+  renderPlexusSVG();
+  updateUI();
+}
+
+document.getElementById('btnPulse').addEventListener('click', togglePulse);
+document.getElementById('btnCollaterals').addEventListener('click', toggleCollaterals);
+document.getElementById('btnQuiz').addEventListener('click', toggleQuiz);
+document.getElementById('btnNextQuiz').addEventListener('click', nextQuiz);
+document.getElementById('btnRevealQuiz').addEventListener('click', revealQuiz);
+document.getElementById('btnSubmitQuiz').addEventListener('click', () => submitZoneQuiz(false));
+document.getElementById('btnReset').addEventListener('click', resetAll);
+document.getElementById('btnTheme').addEventListener('click', () => { setTheme(!state.dark); updateUI(); });
+document.getElementById('btnPresent').addEventListener('click', () => { setPresent(!state.present); updateUI(); });
+document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+// ---- 键盘快捷键 ----
+// 数字键 = 损伤预设，←/→ = 损伤部位，空格 = 冲动动画；投影模式下 ↑/↓ 与翻页键（翻页笔）逐个切换预设
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest('input, textarea, select')) return;
+  const k = e.key, lower = k.toLowerCase();
+  const pager = state.present && !state.quizMode;
+  let handled = true;
+
+  if (k === ' ') togglePulse();
+  else if (lower === 'p') { setPresent(!state.present); updateUI(); }
+  else if (lower === 'q') toggleQuiz();
+  else if (lower === 'v') setView(state.view === '2d' ? '3d' : '2d');
+  else if (state.quizMode) {
+    if (lower === 'n' || k === 'ArrowRight' || k === 'PageDown') nextQuiz();
+    else if (k === 'Enter' && currentQuiz().zones) submitZoneQuiz(false);
+    else handled = false;
+  }
+  else if (k >= '1' && k <= '9' && LESION_KEYS[+k - 1]) setLesion(state.lesionKey === LESION_KEYS[+k - 1] ? null : LESION_KEYS[+k - 1]);
+  else if (k === '0' || k === 'Escape') { clearFocus(); updateUI(); }
+  else if ((k === 'ArrowRight' || k === 'ArrowLeft') && state.lesionKey) stepLevel(k === 'ArrowRight' ? 1 : -1);
+  else if (pager && (k === 'ArrowDown' || k === 'PageDown')) stepLesion(1);
+  else if (pager && (k === 'ArrowUp' || k === 'PageUp')) stepLesion(-1);
+  else if (lower === 'm') { const modes = ['motor', 'cutaneous', 'dermatome']; setLimbMode(modes[(modes.indexOf(state.limbMode) + 1) % 3]); }
+  else if (lower === 'c') toggleCollaterals();
+  else handled = false;
+
+  if (handled) {
+    e.preventDefault();
+    // 空格/回车会再次触发刚点过的按钮，先让它失焦
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur();
+  }
+});
+
+// ---- 用网址记住状态 ----
+// 例：brachial_plexus.html#lesion=erb&level=root　或　#node=radial&view=3d　或　#lesion=median&limb=cutaneous&present=1
+function writeHash() {
+  if (state.quizMode) return;
+  const p = new URLSearchParams();
+  if (state.lesionKey) {
+    p.set('lesion', state.lesionKey);
+    if (currentLevel() !== PlexusModel.LESION_SITES[state.lesionKey].def) p.set('level', currentLevel());
+  } else if (state.selectedZoneId) p.set('zone', state.selectedZoneId);
+  else if (state.selectedId) p.set('node', state.selectedId);
+  if (state.limbMode !== 'motor' && !state.selectedZoneId) p.set('limb', state.limbMode);
+  if (state.view === '3d') p.set('view', '3d');
+  if (state.present) p.set('present', '1');
+  if (state.dark) p.set('theme', 'dark');
+  const h = p.toString();
+  if ((location.hash || '#') === '#' + h) return;
+  try {
+    history.replaceState(null, '', h ? '#' + h : location.pathname + location.search);
+  } catch (err) {
+    // 某些预览环境不允许改地址，忽略即可
+  }
+}
+
+function applyHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const own = (o, key) => key != null && Object.prototype.hasOwnProperty.call(o, key);
+  state.quizMode = false;
+  state.quizPicks = new Set();
+  clearFocus();
+
+  const limb = p.get('limb');
+  if (own(LIMB_ZONES, limb)) state.limbMode = limb;
+
+  const lesion = p.get('lesion'), zone = p.get('zone'), node = p.get('node');
+  if (own(PlexusModel.LESION_SITES, lesion)) {
+    state.lesionKey = lesion;
+    const level = p.get('level');
+    state.lesionLevel = PlexusModel.LESION_SITES[lesion].levels.some(l => l.key === level) ? level : null;
+  } else if (zone && PlexusModel.target(zone)) {
+    const t = PlexusModel.target(zone);
+    state.selectedZoneId = zone;
+    state.selectedId = t.fibers[0].nerve;
+    state.limbMode = t.kind;
+  } else if (own(nodeMap, node)) {
+    state.selectedId = node;
+  }
+  if (state.lesionKey === 'long_thoracic' || (state.selectedId && nodeMap[state.selectedId].stage === 'collateral')) state.showCollaterals = true;
+
+  setTheme(p.get('theme') === 'dark');
+  setPresent(p.get('present') === '1');
+  renderPlexusSVG();
+  renderLimbSVG();
+  setView(p.get('view') === '3d' ? '3d' : '2d');
+}
+
+window.addEventListener('hashchange', applyHash);
+applyHash();
+</script>
+</body>
+</html>

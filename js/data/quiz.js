@@ -1,0 +1,73 @@
+// 自测题库。三种题：
+//   target = 在神经通路图上点出一个结构；
+//   zones  = 在上肢图上点出某个损伤受累的全部区域（答案由模型推导，不在这里写）；
+//   case   = 病例定位：读病史和查体，在通路图上点出损伤部位。答后用模型演示该处损伤。
+//            expect 写的是题干里描述的表现，测试会用模型核对它与答案一致（full 完全瘫痪/缺失、partial 部分、none 不受累）。
+// 选择题不在这里写，由 js/quizgen.js 按模型数据生成。
+export const QUIZ_BANK = [
+  { target: 'upper_trunk', q: '【临床定位】难产牵拉导致“侍者小费手”（Erb 麻痹），菱形肌与前锯肌功能正常，请点击受损结构：' },
+  { target: 't1', q: '【临床定位】爪形手合并同侧 Horner 综合征。Horner 征说明哪一条神经根在根部（节前）受损？' },
+  { target: 'lower_trunk', q: '【临床定位】颈肋压迫致手内在肌萎缩、前臂内侧麻木，没有 Horner 征，请点击受压的“干”：' },
+  { target: 'radial', q: '【临床定位】肱骨中段骨折后出现“垂腕”与虎口区麻木，请点击受损神经：' },
+  { target: 'ulnar', q: '【临床定位】小指麻木、夹纸试验（Froment 征）阳性、环小指爪形手，请点击受损神经：' },
+  { target: 'median', q: '【临床定位】腕管综合征导致大鱼际萎缩、桡侧 3.5 指麻木，请点击受损神经：' },
+  { target: 'axillary', q: '【临床定位】肩关节前脱位后出现“方肩”与肩外侧徽章区感觉减退，请点击受损神经：' },
+  { target: 'musculocutaneous', q: '【解剖溯源】发自外侧束、穿过喙肱肌并支配肱二头肌的终末支是哪一条？' },
+  { target: 'post_cord', q: '【解剖结构】由上、中、下三干的后股全部汇合而成的“束”是哪一个？' },
+  { target: 'long_thoracic', q: '【临床定位】腋窝清扫术后出现“翼状肩胛”（前锯肌瘫痪），请点击受损旁支：' },
+  { target: 'middle_trunk', q: '【解剖结构】唯一由单一脊神经根（C7）直接延续而成的“干”是哪一个？' },
+  { target: 'suprascapular', q: '【临床定位】肩胛切迹处卡压，冈上肌、冈下肌萎缩，肩外旋无力，请点击受损旁支：' },
+  { target: 'dorsal_scapular', q: '【解剖溯源】直接发自 C5 根、支配菱形肌的旁支是哪一条？（它受累提示根性损伤）' },
+  { target: 'thoracodorsal', q: '【临床定位】腋窝手术后引体向上无力、背阔肌萎缩，请点击受损旁支：' },
+  { target: 'lower_subscapular', q: '【解剖溯源】后束口诀 ULTRA 里的 L，支配大圆肌和肩胛下肌下部的是哪一条？' },
+  { target: 'lat_cord', q: '【解剖结构】发出肌皮神经和正中神经外侧根的“束”是哪一个？' },
+  { target: 'med_cord', q: '【解剖结构】发出尺神经、正中神经内侧根以及臂、前臂内侧皮神经的“束”是哪一个？' },
+  { target: 'med_cut_forearm', q: '【解剖溯源】发自内侧束、伴贵要静脉下行、支配前臂内侧皮肤的是哪一条？' },
+  { target: 'subclavius_n', q: '【解剖溯源】除肩胛上神经外，上干发出的另一条分支是哪一条？' },
+  { target: 'c7', q: '【节段定位】肱三头肌反射减弱、中指麻木，最可能是哪一条神经根受累？' },
+  { zones: { lesion: 'median', level: 'carpal', mode: 'cutaneous' }, q: '【反向题】腕管综合征：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'ulnar', level: 'wrist', mode: 'motor' }, q: '【反向题】尺神经在腕部（Guyon 管）受损：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'ulnar', level: 'elbow', mode: 'cutaneous' }, q: '【反向题】尺神经在肘管受损：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'radial', level: 'groove', mode: 'motor' }, q: '【反向题】肱骨中段骨折伤及桡神经沟处的桡神经：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'radial', level: 'pin', mode: 'cutaneous' }, q: '【反向题】骨间后神经卡压：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'median', level: 'ain', mode: 'motor' }, q: '【反向题】骨间前神经损伤（OK 征异常）：点出所有瘫痪的肌肉。' },
+  { zones: { lesion: 'axillary', level: 'main', mode: 'cutaneous' }, q: '【反向题】腋神经损伤：点出所有感觉减退的皮区。' },
+  { zones: { lesion: 'klumpke', level: 'trunk', mode: 'dermatome' }, q: '【反向题】下干损伤：点出所有受累的皮节。' },
+  { zones: { lesion: 'erb', level: 'trunk', mode: 'dermatome' }, q: '【反向题】上干损伤（Erb 麻痹）：点出所有受累的皮节。' },
+  { zones: { lesion: 'median', level: 'high', mode: 'cutaneous' }, q: '【反向题】正中神经在肘部以上受损：点出所有感觉减退的皮区。（和腕管综合征比，多了哪一块？）' },
+];
+
+// 病例定位题。部分改编自 rjg/brachialplexus 的教学病例（MIT），已译为中文并修正
+// （原第 9 例把屈肘无力归于后束；屈肘主要靠来自外侧束的肌皮神经）。
+export const CASES = [
+  { target: 'c5', q: '【病例】高中棒球投手，球速明显下降。查体：肩外展、外旋无力，菱形肌也无力；肩外侧至上臂外侧呈皮节分布的麻木。请点击受损结构：',
+    expect: { full: ['m_rhomboid', 'd_c5'], partial: ['m_deltoid', 'm_rotator', 'm_biceps'], none: ['m_triceps', 'm_thenar'] } },
+  { target: 'c6', q: '【病例】颈部疼痛向拇指放射。前臂外侧至拇指皮节分布麻木，屈肘与伸腕无力，肱桡肌反射减弱。请点击受损结构：',
+    expect: { full: ['d_c6'], partial: ['m_biceps', 'm_brachiorad'], none: ['m_hypothenar', 'm_interossei'] } },
+  { target: 'c7', q: '【病例】钢琴教师练琴困难：示指、中指麻木（只在手指和手掌），伸腕、伸肘无力，肱三头肌反射减弱。请点击受损结构：',
+    expect: { full: ['d_c7'], partial: ['m_triceps'], none: ['m_deltoid', 'm_rhomboid'] } },
+  { target: 'c8', q: '【病例】小指麻木，并沿前臂内侧远端向上延伸（皮节分布）；屈指、屈腕无力，伸腕正常。请点击受损结构：',
+    expect: { full: ['d_c8'], partial: ['m_flexor_uln'], none: ['m_deltoid', 'm_biceps'] } },
+  { target: 'axillary', q: '【病例】腋窝后方被刀刺伤后，不能外展上臂，肩外侧上臂上部一块皮肤麻木，肩部轮廓变平。请点击受损结构：',
+    expect: { full: ['m_deltoid', 'm_teres_minor', 's_axil'], none: ['m_rotator', 'm_biceps', 'm_triceps'] } },
+  { target: 'lat_cord', q: '【病例】锁骨下方刺伤：屈肘无力，前臂旋前、屈腕力量减弱；前臂外侧感觉减退但不按皮节分布；伸肘与手内在肌正常。请点击受损结构：',
+    expect: { full: ['m_coraco', 'm_pronator', 's_lat_forearm'], partial: ['m_biceps', 'm_flexor_med'], none: ['m_triceps', 'm_thenar', 'm_deltoid'] } },
+  { target: 'musculocutaneous', q: '【病例】腋窝前壁被刺伤：屈肘明显无力（前臂旋后位最明显），前臂外侧麻木，肩、腕、手的肌力都正常。请点击受损结构：',
+    expect: { full: ['m_coraco', 's_lat_forearm'], partial: ['m_biceps'], none: ['m_pronator', 'm_deltoid', 'm_brachiorad'] } },
+  { target: 'post_cord', q: '【病例】肩部外伤后：肩外侧和上臂后侧麻木，不能外展肩关节，也不能伸肘、伸腕、伸指；屈肘力量基本正常。请点击受损结构：',
+    expect: { full: ['m_deltoid', 'm_triceps', 'm_ext_digits', 'm_latissimus', 's_axil', 's_rad_arm'], partial: ['m_biceps'], none: ['m_coraco', 'm_thenar'] } },
+  { target: 'radial', q: '【病例】长期使用腋杖的老人：伸肘、伸腕、伸指都无力，上臂后侧和虎口区麻木，肩外展正常。请点击受损结构：',
+    expect: { full: ['m_triceps', 'm_ext_digits', 's_rad_arm', 's_rad_hand'], partial: ['m_biceps'], none: ['m_deltoid', 'm_coraco'] } },
+  { target: 'ulnar', q: '【病例】肘内侧被玻璃划伤：手掌尺侧和小指麻木，手指分开、并拢无力，夹纸试验阳性；拇指对掌正常。请点击受损结构：',
+    expect: { full: ['m_interossei', 'm_hypothenar', 'm_adductor', 's_fingers_uln'], none: ['m_thenar', 'm_flexor_med'] } },
+  { target: 'median', q: '【病例】肘上方刀刺伤：握拳时拇指、示指屈不下去，前臂旋前无力，手掌桡侧及桡侧 3.5 指麻木。请点击受损结构：',
+    expect: { full: ['m_pronator', 'm_thenar', 'm_ain', 's_palm_cut', 's_fingers_med'], none: ['m_flexor_uln', 'm_hypothenar'] } },
+  { target: 'med_cord', q: '【病例】腋窝刺伤：手内在肌全部无力（包括大鱼际），尺侧 1.5 指、臂内侧和前臂内侧麻木；伸腕、伸指正常，无 Horner 征。请点击受损结构：',
+    expect: { full: ['m_thenar', 'm_interossei', 's_med_arm', 's_med_forearm', 's_fingers_uln'], none: ['m_ext_digits', 'm_triceps'] } },
+  { target: 'ain', q: '【病例】前臂骨折复位后：拇指末节和示指末节不能屈，捏东西时捏成“泪滴”形而不是“O”形，皮肤感觉完全正常。请点击受损结构：',
+    expect: { full: ['m_ain', 'm_pq'], none: ['m_thenar', 'm_pronator', 's_fingers_med'] } },
+  { target: 'pin', q: '【病例】桡骨头脱位后：掌指关节不能伸直（垂指），但能伸腕，伸腕时手偏向桡侧；没有感觉障碍。请点击受损结构：',
+    expect: { full: ['m_ext_digits'], none: ['m_brachiorad', 's_rad_hand', 'm_triceps'] } },
+  { target: 'srn', q: '【病例】手铐取下后，虎口区和手背桡侧麻木刺痛，伸腕、伸指力量完全正常。请点击受损结构：',
+    expect: { full: ['s_rad_hand'], none: ['m_ext_digits', 'm_brachiorad'] } },
+];

@@ -7,7 +7,7 @@ OUT="臂丛神经图谱-U盘版"
 
 rm -rf "$OUT"
 mkdir "$OUT"
-cp -R index.html css js vendor assets CREDITS.md serve.ps1 serve.py start.command "$OUT/"
+cp -R index.html css js vendor assets CREDITS.md LICENSE serve.ps1 serve.py start.command "$OUT/"
 # .bat 必须是 CRLF 换行，否则 Windows 的 cmd 可能解析出错
 perl -pe 's/\r?\n/\r\n/' start.bat > "$OUT/start.bat"
 cat > "$OUT/使用说明.txt" <<'EOF'
@@ -18,6 +18,8 @@ Mac：双击 start.command（需要已安装 Python 3）。
 
 不要直接双击 index.html，那样页面打不开。
 在线版：https://iiigary.github.io/brachial-plexus-atlas/
+
+许可证与素材署名见 LICENSE 和 CREDITS.md。
 EOF
 perl -pi -e 's/\r?\n/\r\n/' "$OUT/使用说明.txt"
 find "$OUT" -name .DS_Store -delete

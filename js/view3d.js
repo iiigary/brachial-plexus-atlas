@@ -1,11 +1,17 @@
-// 3D 解剖示意：three.js 渲染骨骼、动脉、臂丛与上肢神经走行、肌肉纤维。
+// 3D 解剖视图：three.js 渲染骨骼、动脉、臂丛与上肢神经走行、肌肉。
 // 与 2D 图共用同一份 state 和高亮上下文（app.getActiveNodeContext），只是另一种画法。
 // 第一次切到 3D 时才创建 WebGL，没有 WebGL 的浏览器显示提示，不影响其余功能。
+//
+// 几何有两套来源，坐标约定相同（右臂外侧为 +X，渲染时取反）：
+//   真实走行：assets/plexus/plexus3d.json（Z-Anatomy 神经与动脉中心线，配准到 BodyParts3D 骨骼/肌肉；
+//            由 tools/zanatomy/build-plexus3d.mjs 生成），骨骼与肌肉用 assets/limb 和 assets/plexus 的网格；
+//   示意模型：js/data/anatomy3d.js，真实走行加载失败时使用。
 import * as THREE from 'three';
 import { OrbitControls } from '../vendor/OrbitControls.js';
 import { PlexusModel } from './model.js';
 import { NODES, EDGES } from './data/nodes.js';
-import { ANCHORS, COURSES, EDGE_VIA, EDGE_START, BONES, ARTERIES, CAMERA_VIEWS, MUSCLE_FIBERS } from './data/anatomy3d.js';
+import * as SCHEMATIC from './data/anatomy3d.js';
+import { loadMeshPack, fetchJson } from './meshpack.js';
 import { state } from './state.js';
 import { getActiveNodeContext, labelsHidden, onNodeHover, onNodeClick, onBackgroundClick, onZoneClick } from './app.js';
 
@@ -20,7 +26,9 @@ labelBox.appendChild(leaderSvg);
 const leaderPool = [];
 const fallback = document.getElementById('hud3dFallback');
 const captionEl = document.getElementById('hud3dCaption');
-const DEFAULT_CAPTION = captionEl.textContent;
+const SCHEMATIC_CAPTION = captionEl.textContent;
+const REAL_CAPTION = '真实走行（束段为补画）· 拖动旋转 · 滚轮缩放 · 右键平移';
+let defaultCaption = SCHEMATIC_CAPTION;
 
 // 数据按右上肢书写（外侧为正）；把外侧取反，右臂就出现在画面左侧，如同面对患者
 const V = p => new THREE.Vector3(-p[0], p[1], p[2]);
@@ -52,7 +60,9 @@ const PALETTES = {
 };
 let C = PALETTES.light.C, NODE_COLOR = PALETTES.light.NODE;
 const NODE_R = { root: 0.42, trunk: 0.5, division: 0.3, cord: 0.55, branch: 0.48, collateral: 0.28, subbranch: 0.32 };
-const TUBE_R = { root: 0.3, branch: 0.3, collateral: 0.17, subbranch: 0.2 };
+// 干、束只有真实走行里才有自身走行（示意模型里它们只是一个点）
+const TUBE_R = { root: 0.3, trunk: 0.32, cord: 0.3, branch: 0.3, collateral: 0.17, subbranch: 0.2 };
+const TWIG_R = { collateral: 0.07 }; // 细枝（肌支、指神经等），其余 0.1
 const EDGE_R = { main: 0.32, ant: 0.27, post: 0.27, collateral: 0.15 };
 const edgeColor = type => ({ main: C.root, ant: C.ant, post: C.post, collateral: C.collateral })[type];
 
@@ -71,8 +81,9 @@ const LABEL_ALONG = { branch: 0.22, collateral: 0.45, subbranch: 0.35 };
 // 标签优先级：互相遮挡时先放高的，被挡住的暂时隐藏，放大视图后会自动出现
 const LABEL_PRI = { root: 30, trunk: 28, cord: 26, branch: 24, subbranch: 16, division: 12, collateral: 10 };
 
-let ready = false, failed = false, running = false;
+let ready = false, failed = false, running = false, building = false;
 let renderer, scene, camera, controls;
+let G = null; // 当前几何来源，见 realGeometry / schematicGeometry
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const nodeObjs = {}; // id → { group, mat, base, halo, label, r }
@@ -86,6 +97,42 @@ let camTween = null;
 let activePreset = 'front';
 let lastCtx = null;
 
+// ---------- 几何来源 ----------
+// 两套来源整理成同一个形状：锚点、自身走行、细枝、连线路径、动脉、预设视角、结构标签
+function realGeometry(d) {
+  return {
+    real: true,
+    ANCHORS: d.anchors, COURSES: d.courses, EXTRAS: d.extras,
+    edgePath: key => d.edges[key],
+    ARTERIES: d.arteries, CAMERA_VIEWS: d.cameraViews, CTX_LABELS: d.ctxLabels,
+    drawnNodes: new Set(d.drawn.nodes), adjusted: new Set(d.adjusted),
+  };
+}
+
+function schematicGeometry() {
+  const S = SCHEMATIC;
+  return {
+    real: false,
+    ANCHORS: S.ANCHORS, COURSES: S.COURSES, EXTRAS: {},
+    edgePath: (key, e) => [S.EDGE_START[key] || S.ANCHORS[e.from], ...(S.EDGE_VIA[key] || []), S.ANCHORS[e.to]],
+    ARTERIES: S.ARTERIES, CAMERA_VIEWS: S.CAMERA_VIEWS,
+    CTX_LABELS: [
+      { text: '锁骨', pos: [9, 1.6, 2.6], layer: 'bones' }, { text: '肱骨', pos: [19.4, -20, -2.6], layer: 'bones' },
+      { text: '第 1 肋', pos: [6.6, -6.4, 2.6], layer: 'bones' }, { text: '肩胛骨', pos: [11, -12, -9], layer: 'bones' },
+      { text: '腋动脉', pos: [13.4, -7.4, 0.9], layer: 'artery', cls: 'artery' },
+    ],
+    drawnNodes: new Set(), adjusted: new Set(),
+  };
+}
+
+// 真实走行 + 骨骼/肌肉网格；任何一份失败都整体退回示意模型
+async function loadReal() {
+  const [data, limb, extra] = await Promise.all([
+    fetchJson('assets/plexus/plexus3d.json'), loadMeshPack('assets/limb/meshes'), loadMeshPack('assets/plexus/meshes'),
+  ]);
+  return { data, parts: [...limb, ...extra] };
+}
+
 // ---------- 几何 ----------
 function curveOf(points) {
   const pts = points.map(V);
@@ -94,7 +141,7 @@ function curveOf(points) {
 
 function tubeMesh(points, r, mat, segs) {
   const curve = curveOf(points);
-  const geo = new THREE.TubeGeometry(curve, segs || Math.max(12, points.length * 12), r, 10, false);
+  const geo = new THREE.TubeGeometry(curve, segs || Math.max(16, Math.ceil(curve.getLength() * 3)), r, 10, false);
   return { mesh: new THREE.Mesh(geo, mat), curve };
 }
 
@@ -121,10 +168,13 @@ function makeLabel(text, cls) {
   return el;
 }
 
-function buildBones() {
+// parts：真实网格（网格坐标即渲染坐标，直接放进场景）；没有则画示意骨骼
+function buildBones(parts) {
   const g = groups.bones = new THREE.Group();
-  const mat = mats.bone = new THREE.MeshStandardMaterial({ color: C.bone, roughness: 0.85, transparent: true, opacity: C.boneOpacity, depthWrite: false, side: THREE.DoubleSide });
-  BONES.forEach(b => {
+  const mat = mats.bone = new THREE.MeshStandardMaterial({ color: C.bone, roughness: 0.85, transparent: true, opacity: C.boneOpacity, depthWrite: false,
+    side: parts ? THREE.FrontSide : THREE.DoubleSide });
+  if (parts) parts.filter(p => p.kind === 'bone' || p.kind === 'rib').forEach(p => g.add(new THREE.Mesh(p.geometry, mat)));
+  else SCHEMATIC.BONES.forEach(b => {
     (b.tubes || []).forEach(t => g.add(tubeMesh(t, b.r, mat).mesh));
     (b.spheres || []).forEach(([c, r]) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), mat); m.position.copy(V(c)); g.add(m); });
     (b.ellipsoids || []).forEach(([c, s]) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat); m.position.copy(V(c)); m.scale.set(...s); g.add(m); });
@@ -132,16 +182,18 @@ function buildBones() {
     if (b.plate) g.add(plateMesh(b.plate, mat));
   });
   scene.add(g);
-  [['锁骨', [9, 1.6, 2.6]], ['肱骨', [19.4, -20, -2.6]], ['第 1 肋', [6.6, -6.4, 2.6]], ['肩胛骨', [11, -12, -9]]]
-    .forEach(([t, p]) => ctxLabels.push({ el: makeLabel(t, 'ctx'), pos: V(p), layer: 'bones' }));
 }
 
 function buildArteries() {
   const g = groups.artery = new THREE.Group();
   const mat = mats.artery = new THREE.MeshStandardMaterial({ color: C.artery, emissive: C.arteryEmissive, roughness: 0.5, transparent: true, opacity: C.arteryOpacity });
-  ARTERIES.forEach(a => g.add(tubeMesh(a.path, a.r, mat).mesh));
+  G.ARTERIES.forEach(a => g.add(tubeMesh(a.path, a.r, mat).mesh));
   scene.add(g);
-  ctxLabels.push({ el: makeLabel('腋动脉', 'ctx artery'), pos: V([13.4, -7.4, 0.9]), layer: 'artery' });
+}
+
+// 骨骼、动脉、肌肉的固定标签，跟随各自图层显示
+function buildCtxLabels() {
+  G.CTX_LABELS.forEach(l => ctxLabels.push({ el: makeLabel(l.text, 'ctx' + (l.cls ? ' ' + l.cls : '')), pos: V(l.pos), layer: l.layer }));
 }
 
 function buildNerves() {
@@ -152,18 +204,24 @@ function buildNerves() {
     const ng = new THREE.Group();
     const r = NODE_R[n.stage];
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), mat);
-    sphere.position.copy(V(ANCHORS[n.id]));
+    sphere.position.copy(V(G.ANCHORS[n.id]));
     sphere.userData.nodeId = n.id;
     ng.add(sphere);
     pickables.push(sphere);
     let labelPos = sphere.position;
-    if (COURSES[n.id]) {
-      const { mesh: t, curve } = tubeMesh(COURSES[n.id], TUBE_R[n.stage] || 0.25, mat);
+    if (G.COURSES[n.id]) {
+      const { mesh: t, curve } = tubeMesh(G.COURSES[n.id], TUBE_R[n.stage] || 0.25, mat);
       t.userData.nodeId = n.id;
       ng.add(t);
       pickables.push(t);
       if (LABEL_ALONG[n.stage]) labelPos = curve.getPointAt(LABEL_ALONG[n.stage]);
     }
+    (G.EXTRAS[n.id] || []).forEach(p => {
+      const { mesh: t } = tubeMesh(p, TWIG_R[n.stage] || 0.1, mat);
+      t.userData.nodeId = n.id;
+      ng.add(t);
+      pickables.push(t);
+    });
     const halo = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12),
       new THREE.MeshBasicMaterial({ color: C.accent, transparent: true, opacity: 0.25, depthWrite: false }));
     halo.position.copy(sphere.position);
@@ -176,12 +234,12 @@ function buildNerves() {
   const pulseMat = mats.pulse = new THREE.MeshBasicMaterial({ color: C.pulse, transparent: true, opacity: 0.95, depthWrite: false });
   EDGES.forEach(e => {
     const key = e.from + '>' + e.to;
-    const pts = [EDGE_START[key] || ANCHORS[e.from], ...(EDGE_VIA[key] || []), ANCHORS[e.to]];
+    const pts = G.edgePath(key, e);
     const toNode = NODES.find(x => x.id === e.to);
     const baseOf = () => ['cord', 'branch', 'subbranch'].includes(toNode.stage) ? baseColor(toNode) : edgeColor(e.type);
     const base = baseOf();
     const mat = new THREE.MeshStandardMaterial({ color: base, emissive: base, emissiveIntensity: 0.2, roughness: 0.5, transparent: true });
-    const { mesh, curve } = tubeMesh(pts, EDGE_R[e.type], mat, 24);
+    const { mesh, curve } = tubeMesh(pts, EDGE_R[e.type], mat, G.real ? undefined : 24);
     const pulse = new THREE.Mesh(new THREE.SphereGeometry(EDGE_R[e.type] * 1.25, 10, 8), pulseMat);
     pulse.visible = false;
     g.add(mesh, pulse);
@@ -190,26 +248,30 @@ function buildNerves() {
   scene.add(g);
 }
 
-function buildMuscles() {
+// 按运动靶区归并：真实网格用 part.zone；示意模型用纤维管。无靶区的背景肌（斜角肌等）不参与点选
+function buildMuscles(parts) {
   const g = groups.muscles = new THREE.Group();
-  Object.entries(MUSCLE_FIBERS).forEach(([id, parts]) => {
-    const mat = new THREE.MeshStandardMaterial({ color: C.muscle, roughness: 0.7, transparent: true, opacity: 0.3, depthWrite: false });
-    const meshes = [];
-    parts.forEach(({ f, r }) => f.forEach(fiber => {
-      const m = tubeMesh(fiber, r * 0.7, mat, 20).mesh;
-      m.userData.zoneId = id;
-      meshes.push(m);
-      g.add(m);
-    }));
-    muscleObjs[id] = { mat, meshes };
-    pickables.push(...meshes);
+  const zone = id => muscleObjs[id] || (muscleObjs[id] = {
+    mat: new THREE.MeshStandardMaterial({ color: C.muscle, roughness: 0.7, transparent: true, opacity: 0.3, depthWrite: false }), meshes: [],
   });
+  const add = (id, m) => { m.userData.zoneId = id; zone(id).meshes.push(m); g.add(m); pickables.push(m); };
+  if (parts) {
+    mats.bgMuscle = new THREE.MeshStandardMaterial({ color: C.muscle, roughness: 0.75, transparent: true, opacity: 0.18, depthWrite: false });
+    parts.forEach(p => {
+      if (p.kind === 'muscle' && p.zone) add(p.zone, new THREE.Mesh(p.geometry, zone(p.zone).mat));
+      else if (p.kind === 'bg') g.add(new THREE.Mesh(p.geometry, mats.bgMuscle));
+    });
+  } else {
+    Object.entries(SCHEMATIC.MUSCLE_FIBERS).forEach(([id, fibers]) => {
+      fibers.forEach(({ f, r }) => f.forEach(fiber => add(id, tubeMesh(fiber, r * 0.7, zone(id).mat, 20).mesh)));
+    });
+  }
   scene.add(g);
 }
 
 // ---------- 相机 ----------
 function presetGoal(name) {
-  const v = CAMERA_VIEWS[name];
+  const v = G.CAMERA_VIEWS[name];
   const target = V(v.target);
   const dir = V(v.dir).normalize();
   return { target, pos: target.clone().add(dir.multiplyScalar(v.dist)) };
@@ -243,9 +305,9 @@ export function focusCurrent() {
   const pts = [];
   ids.forEach(id => {
     if (!nodeObjs[id] || !nodeObjs[id].group.visible) return;
-    pts.push(V(ANCHORS[id]));
+    pts.push(V(G.ANCHORS[id]));
     // 只有焦点结构自身的走行算进取景范围；邻居只取锚点，免得把整条手臂都框进来
-    if (lastCtx.sites.has(id) && COURSES[id]) COURSES[id].forEach(p => pts.push(V(p)));
+    if (lastCtx.sites.has(id) && G.COURSES[id]) G.COURSES[id].forEach(p => pts.push(V(p)));
   });
   if (!pts.length) return;
   const box = new THREE.Box3().setFromPoints(pts);
@@ -288,10 +350,13 @@ function bindPointer() {
     const id = hit && hit.object.userData.nodeId;
     const zone = hit && !id && hit.object.userData.zoneId;
     viewport.style.cursor = hit ? 'pointer' : '';
-    captionEl.textContent = zone ? `${PlexusModel.target(zone).name} · 点击溯源` : DEFAULT_CAPTION;
+    // 补画或调整过位置的结构，悬停时说明一句
+    const note = id && G.drawnNodes.has(id) ? '：这一段在 Z-Anatomy 里缺失或接错，按解剖关系补画'
+      : id && G.adjusted.has(id) ? '：上臂近段按教材移到肱动脉内侧' : '';
+    captionEl.textContent = zone ? `${PlexusModel.target(zone).name} · 点击溯源` : note ? nodeObjs[id].node.label + note : defaultCaption;
     onNodeHover(id || null);
   });
-  canvas.addEventListener('pointerleave', () => { onNodeHover(null); captionEl.textContent = DEFAULT_CAPTION; });
+  canvas.addEventListener('pointerleave', () => { onNodeHover(null); captionEl.textContent = defaultCaption; });
   canvas.addEventListener('pointerup', e => {
     if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) { down = null; return; }
     down = null;
@@ -311,7 +376,8 @@ function resize() {
   camera.updateProjectionMatrix();
 }
 
-function build() {
+async function build() {
+  building = true;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch (err) {
@@ -336,19 +402,33 @@ function build() {
   rim.position.set(30, -10, -40);
   scene.add(key, rim);
 
-  buildBones();
+  captionEl.textContent = '正在加载 3D 网格…';
+  let real = null;
+  try {
+    real = await loadReal();
+  } catch (err) {
+    console.warn('3D 真实走行加载失败，改用示意模型', err);
+  }
+  G = real ? realGeometry(real.data) : schematicGeometry();
+  defaultCaption = real ? REAL_CAPTION : SCHEMATIC_CAPTION;
+  captionEl.textContent = defaultCaption;
+
+  buildBones(real && real.parts);
   buildArteries();
   buildNerves();
-  buildMuscles();
+  buildMuscles(real && real.parts);
+  buildCtxLabels();
   bindPointer();
   new ResizeObserver(resize).observe(viewport);
 
   ready = true;
+  building = false;
   resize();
   const goal = presetGoal(activePreset || 'front');
   camera.position.copy(goal.pos);
   controls.target.copy(goal.target);
   controls.update();
+  update(getActiveNodeContext());
 }
 
 // ---------- 样式（每次状态变化调用） ----------
@@ -477,6 +557,7 @@ function updateLabels() {
 function frame(ts) {
   if (!running) return;
   requestAnimationFrame(frame);
+  if (!ready) return; // 网格还在加载
   const time = ts * 0.001;
   if (camTween) {
     const k = Math.min(1, (performance.now() - camTween.t0) / 650);
@@ -515,6 +596,7 @@ export function setTheme(dark) {
   mats.artery.emissive.set(C.arteryEmissive);
   mats.artery.opacity = C.arteryOpacity;
   mats.pulse.color.set(C.pulse);
+  if (mats.bgMuscle) mats.bgMuscle.color.set(C.muscle);
   update(lastCtx);
 }
 
@@ -523,7 +605,7 @@ export function init() {
 }
 
 export function show() {
-  if (!ready && !failed) build();
+  if (!ready && !failed && !building) build();
   if (failed) return;
   update(getActiveNodeContext());
   resize();

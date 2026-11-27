@@ -45,7 +45,7 @@ const TARGET_PARTS = {
   m_ext_digits: ['right extensor digitorum', 'right extensor indicis', 'right extensor digiti minimi',
     'right extensor carpi ulnaris', 'right extensor pollicis longus', 'right extensor pollicis brevis',
     'right abductor pollicis longus'],
-  // m_latissimus：BodyParts3D 4.0 没有背阔肌，界面上用文字按钮代替
+  // m_latissimus：BodyParts3D 4.0 没有背阔肌，「肌肉」页改用 assets/plexus/ 里 Z-Anatomy 的网格
 };
 // 蚓状肌是一个合并文件：按连通块拆成 4 条，从桡侧到尺侧分给两个靶区
 const LUMBRICALS = { name: 'set of lumbricals of right hand', split: ['m_lumb_lat', 'm_lumb_lat', 'm_lumb_med', 'm_lumb_med'] };

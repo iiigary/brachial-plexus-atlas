@@ -4,9 +4,9 @@
 
 ![2D 通路图：选中桡神经，沿纤维路径回溯到 C5–T1，右侧同步高亮所支配的肌肉](docs/screenshots/pathway.png)
 
-| 损伤模拟：上臂丛 C5–C6 根性撕脱 | 3D 解剖示意：正中神经 |
+| 损伤模拟：上臂丛 C5–C6 根性撕脱 | 3D 解剖：正中神经 |
 | :---: | :---: |
-| ![损伤模拟](docs/screenshots/lesion.png) | ![3D 解剖示意](docs/screenshots/anatomy-3d.png) |
+| ![损伤模拟](docs/screenshots/lesion.png) | ![3D 解剖](docs/screenshots/anatomy-3d.png) |
 | **皮节：C6** | **深色主题：桡神经沟损伤** |
 | ![皮节](docs/screenshots/dermatome.png) | ![深色主题](docs/screenshots/dark.png) |
 
@@ -16,7 +16,7 @@
 - **上肢联动图**：肌肉、皮区、皮节三种模式；肌肉页是可旋转的真实网格，点肌肉或皮区可反向溯源到神经。
 - **损伤模拟**：上/下臂丛、桡、正中、尺、腋、胸长神经，按损伤平面给出瘫痪、部分受累、保留的肌肉和体征。
 - **自由切断**：切断任意一处或多处结构，实时推算运动、感觉缺失和 Horner 征。
-- **3D 解剖示意**：骨骼、动脉、神经走行，用来看位置与毗邻。
+- **3D 解剖**：真实的神经走行（Z-Anatomy）叠在 BodyParts3D 骨骼、肌肉上，用来看位置与毗邻；外侧束、内侧束等少数段为补画。
 - **自测**：定位题、反向题、病例题、自动生成的选择题和错题本。
 - 另有搜索、查体卡片、投影模式、打印版式、深色主题；页面状态记在网址里，可直接分享链接。
 
@@ -49,14 +49,16 @@ npm test
 
 右上肢网格已生成在 `assets/limb/`。要重新生成，把 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html) 的 `isa_BP3D_4.0_obj_99.zip` 和 `isa_element_parts.txt` 解压到 `raw/`，再运行 `npm run build:limb`。
 
+3D 解剖视图的神经走行已生成在 `assets/plexus/`。要重新生成，需要 Blender 和 Z-Anatomy 的 `Startup.blend`，步骤见 [tools/zanatomy/README.md](tools/zanatomy/README.md)。
+
 ## 许可
 
 本项目的原创内容采用 [MIT 许可证](LICENSE)：可以自由使用、修改和分发，保留版权声明和许可声明即可。
 
-下面列出的第三方内容仍按各自的许可证使用，其中 CC BY 4.0 的数据在分发时须保留署名。
+下面列出的第三方内容仍按各自的许可证使用，其中 CC BY 4.0 的数据在分发时须保留署名。`assets/plexus/` 采用 CC BY-SA 4.0：修改后再分发须保留署名，并沿用同样的许可证。
 
 ## 署名
 
-3D 骨骼、动脉、神经走行坐标改编自 [prathusa/anatomy](https://github.com/prathusa/anatomy)（CC BY 4.0）；右上肢肌肉网格来自 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html)（© The Database Center for Life Science，CC BY 4.0）；部分病例改编自 [rjg/brachialplexus](https://github.com/rjg/brachialplexus)（MIT）。详见 [CREDITS.md](CREDITS.md)。
+3D 解剖视图的神经与动脉走行、两个 3D 视图里的背阔肌来自 [Z-Anatomy](https://github.com/Z-Anatomy/Models-of-human-anatomy)（CC BY-SA 4.0），备用示意模型改编自 [prathusa/anatomy](https://github.com/prathusa/anatomy)（CC BY 4.0）；骨骼、肌肉网格来自 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html)（© The Database Center for Life Science，CC BY 4.0）；部分病例改编自 [rjg/brachialplexus](https://github.com/rjg/brachialplexus)（MIT）。详见 [CREDITS.md](CREDITS.md)。
 
 仅供解剖学习，不用于临床诊断。节段按常用教材取值，教材间可相差约一个节段。

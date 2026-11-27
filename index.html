@@ -45,7 +45,7 @@
             <span id="themeLabel">深色主题</span>
           </button>
           <footer class="credits">
-            仅供学习 · 3D 改编自 <a href="https://github.com/prathusa/anatomy" target="_blank" rel="noopener">prathusa/anatomy</a>（CC BY 4.0）· 上肢肌肉网格 <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noopener">BodyParts3D</a> © DBCLS（CC BY 4.0）· <a href="CREDITS.md" target="_blank">许可</a>
+            仅供学习 · 3D 神经走行 <a href="https://github.com/Z-Anatomy/Models-of-human-anatomy" target="_blank" rel="noopener">Z-Anatomy</a>（CC BY-SA 4.0）· 骨骼与肌肉网格 <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noopener">BodyParts3D</a> © DBCLS（CC BY 4.0）· 备用示意模型改编自 <a href="https://github.com/prathusa/anatomy" target="_blank" rel="noopener">prathusa/anatomy</a>（CC BY 4.0）· <a href="CREDITS.md" target="_blank">许可</a>
           </footer>
         </div>
       </div>
@@ -89,7 +89,7 @@
       <div class="stage-bar">
         <div class="seg-group seg-solid" id="viewTabs">
           <button class="seg-btn active" data-view="2d" title="追踪连接关系：谁发出谁、纤维怎么走 · V">2D 通路图</button>
-          <button class="seg-btn" data-view="3d" title="看位置与毗邻：前后、内外、与骨和动脉的关系 · V">3D 解剖示意</button>
+          <button class="seg-btn" data-view="3d" title="看位置与毗邻：前后、内外、与骨和动脉的关系 · V">3D 解剖</button>
         </div>
         <div class="lesion-bar">
           <span class="lesion-label">损伤模拟</span>
@@ -168,7 +168,7 @@
 
       <div class="limb-svg-box">
         <svg id="limbSvg" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg"></svg>
-        <!-- 「肌肉」页：BodyParts3D 真实网格（js/limb3d.js）；加载失败或无 WebGL 时仍用上面的示意图 -->
+        <!-- 「肌肉」页：BodyParts3D 真实网格，背阔肌取自 Z-Anatomy（js/limb3d.js）；加载失败或无 WebGL 时仍用上面的示意图 -->
         <div class="limb3d is-hidden" id="limb3d"></div>
         <div class="l3-extra is-hidden" id="limb3dExtra"></div>
       </div>

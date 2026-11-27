@@ -4,8 +4,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "node tests/check-model.mjs && node tests/check-limb-meshes.mjs",
+    "test": "node tests/check-model.mjs && node tests/check-limb-meshes.mjs && node tests/check-plexus3d.mjs",
     "build:limb": "node tools/build-limb-meshes.mjs --source raw/isa_BP3D_4.0_obj_99 --parts raw/isa_element_parts.txt",
+    "build:plexus": "node tools/zanatomy/build-plexus3d.mjs",
     "start": "python3 serve.py 8765"
   }
 }

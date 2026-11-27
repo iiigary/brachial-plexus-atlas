@@ -1,0 +1,215 @@
+{
+ "source": "Z-Anatomy – The libre 3D atlas of anatomy (CC BY-SA 4.0), derived from BodyParts3D © The Database Center for Life Science (CC BY 4.0)",
+ "units": "cm",
+ "axes": "与 assets/limb/meshes.json 相同",
+ "qMin": [
+  -1.9324,
+  -15.7953,
+  -12.2349
+ ],
+ "qRange": [
+  21.9408,
+  56.8692,
+  19.589
+ ],
+ "parts": [
+  {
+   "key": "vertebra C3",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra C3"
+   ],
+   "posOffset": 0,
+   "vCount": 1216,
+   "idxOffset": 7296,
+   "iCount": 7320,
+   "wide": false,
+   "c": [
+    16.45,
+    40,
+    -2.58
+   ]
+  },
+  {
+   "key": "vertebra C4",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra C4"
+   ],
+   "posOffset": 21936,
+   "vCount": 972,
+   "idxOffset": 27768,
+   "iCount": 5820,
+   "wide": false,
+   "c": [
+    16.41,
+    38.55,
+    -2.64
+   ]
+  },
+  {
+   "key": "vertebra C5",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra C5"
+   ],
+   "posOffset": 39408,
+   "vCount": 1164,
+   "idxOffset": 46392,
+   "iCount": 7008,
+   "wide": false,
+   "c": [
+    16.36,
+    37.11,
+    -2.92
+   ]
+  },
+  {
+   "key": "vertebra C6",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra C6"
+   ],
+   "posOffset": 60408,
+   "vCount": 1148,
+   "idxOffset": 67296,
+   "iCount": 6912,
+   "wide": false,
+   "c": [
+    16.32,
+    35.69,
+    -3.07
+   ]
+  },
+  {
+   "key": "vertebra C7",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra C7"
+   ],
+   "posOffset": 81120,
+   "vCount": 1078,
+   "idxOffset": 87588,
+   "iCount": 6492,
+   "wide": false,
+   "c": [
+    16.27,
+    34.43,
+    -3.81
+   ]
+  },
+  {
+   "key": "vertebra T1",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra T1"
+   ],
+   "posOffset": 100572,
+   "vCount": 973,
+   "idxOffset": 106412,
+   "iCount": 5838,
+   "wide": false,
+   "c": [
+    16.23,
+    33.14,
+    -4.42
+   ]
+  },
+  {
+   "key": "vertebra T2",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Vertebra T2"
+   ],
+   "posOffset": 118088,
+   "vCount": 1071,
+   "idxOffset": 124516,
+   "iCount": 6426,
+   "wide": false,
+   "c": [
+    16.17,
+    31.58,
+    -5.34
+   ]
+  },
+  {
+   "key": "manubrium of sternum",
+   "zone": null,
+   "kind": "bone",
+   "files": [
+    "Manubrium of sternum"
+   ],
+   "posOffset": 137368,
+   "vCount": 1336,
+   "idxOffset": 145384,
+   "iCount": 7986,
+   "wide": false,
+   "c": [
+    16.15,
+    27.32,
+    4.56
+   ]
+  },
+  {
+   "key": "right latissimus dorsi",
+   "zone": "m_latissimus",
+   "kind": "muscle",
+   "files": [
+    "Latissimus dorsi muscle.r"
+   ],
+   "posOffset": 161356,
+   "vCount": 10796,
+   "idxOffset": 226132,
+   "iCount": 64740,
+   "wide": false,
+   "c": [
+    7.49,
+    6.06,
+    -7.55
+   ]
+  },
+  {
+   "key": "right scalenus anterior",
+   "zone": null,
+   "kind": "bg",
+   "files": [
+    "Scalenus anterior muscle.r"
+   ],
+   "posOffset": 355612,
+   "vCount": 700,
+   "idxOffset": 359812,
+   "iCount": 4158,
+   "wide": false,
+   "c": [
+    13.07,
+    34.9,
+    -0.86
+   ]
+  },
+  {
+   "key": "right scalenus medius",
+   "zone": null,
+   "kind": "bg",
+   "files": [
+    "Scalenus medius muscle.r"
+   ],
+   "posOffset": 368128,
+   "vCount": 1037,
+   "idxOffset": 374352,
+   "iCount": 6234,
+   "wide": false,
+   "c": [
+    12.89,
+    35.89,
+    -1.91
+   ]
+  }
+ ]
+}

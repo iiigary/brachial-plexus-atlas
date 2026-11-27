@@ -6,7 +6,7 @@ import { PlexusModel as M } from '../js/model.js';
 
 const meta = JSON.parse(readFileSync(new URL('../assets/limb/meshes.json', import.meta.url), 'utf8'));
 const bin = readFileSync(new URL('../assets/limb/meshes.bin', import.meta.url));
-// BodyParts3D 4.0 没有背阔肌：界面上用图下方的文字按钮代替
+// BodyParts3D 4.0 没有背阔肌：「肌肉」页改用 assets/plexus/ 里 Z-Anatomy 的网格，由 check-plexus3d.mjs 检查
 const NO_MESH = new Set(['m_latissimus']);
 let n = 0;
 const check = (name, fn) => {

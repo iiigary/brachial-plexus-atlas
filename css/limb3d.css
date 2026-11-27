@@ -28,7 +28,7 @@
 
 svg#limbSvg.is-hidden { display: none; }
 
-/* 没有网格的靶区（背阔肌）：放在图下方的文字按钮，状态类与 SVG 分区相同 */
+/* 没有网格的靶区（补充网格包加载失败时的背阔肌）：放在图下方的文字按钮，状态类与 SVG 分区相同 */
 .l3-extra { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; flex-wrap: wrap; z-index: 2; }
 .l3-extra.is-hidden { display: none; }
 .l3-extra .mini-chip { background: var(--surface); }

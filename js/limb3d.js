@@ -1,13 +1,26 @@
 // 右上肢「肌肉」页的真实网格视图（BodyParts3D 4.0，CC BY 4.0）。
-// 网格由 tools/build-limb-meshes.mjs 生成到 assets/limb/。
+// 网格由 tools/build-limb-meshes.mjs 生成到 assets/limb/。BodyParts3D 没有的肌肉（背阔肌）
+// 取自 assets/plexus/ 的 Z-Anatomy 网格（CC BY-SA 4.0，与「3D 解剖」视图共用，坐标系相同）。
 // 状态沿用 SVG 分区的同一套类名（active-motor、active-lesion…），由 limb.js 每次高亮时传进来，
 // 所以图上的说法和下方摘要始终一致。按需渲染：只有拖动、补间、状态变化时才画。
 import * as THREE from 'three';
 import { OrbitControls } from '../vendor/OrbitControls.js';
 import { PlexusModel } from './model.js';
+import { loadMeshPack } from './meshpack.js';
 
 const ASSET = 'assets/limb/meshes';
+const EXTRA_ASSET = 'assets/plexus/meshes';
 const FOV = 30;
+
+// 补充包只取主包里没有的肌肉；加载失败时照常显示，缺的肌肉由 limb.js 在图下方放文字按钮代替
+async function loadParts() {
+  const [main, extra] = await Promise.all([
+    loadMeshPack(ASSET),
+    loadMeshPack(EXTRA_ASSET).catch(err => { console.warn('补充肌肉网格加载失败', err); return []; }),
+  ]);
+  const have = new Set(main.map(p => p.zone).filter(Boolean));
+  return [...main, ...extra.filter(p => p.zone && !have.has(p.zone))];
+}
 
 let root, canvas, labelBox, renderer, scene, camera, controls;
 let ready = false, visible = false, raf = 0, tween = null;
@@ -53,27 +66,6 @@ const LOOKS = [
   ['active-part', () => ({ color: C.rest.clone().lerp(C.active, 0.5), opacity: 0.9 })],
 ];
 const STATUS_CLASS = new Set(LOOKS.map(([k]) => k));
-
-// ---------- 加载 ----------
-async function loadMeshes() {
-  const [meta, buf] = await Promise.all([
-    fetch(`${ASSET}.json`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-    fetch(`${ASSET}.bin`).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }),
-  ]);
-  const { qMin, qRange } = meta;
-  return meta.parts.map(p => {
-    const q = new Uint16Array(buf, p.posOffset, p.vCount * 3);
-    const pos = new Float32Array(q.length);
-    for (let i = 0; i < q.length; i++) pos[i] = q[i] / 65535 * qRange[i % 3] + qMin[i % 3];
-    const idx = p.wide ? new Uint32Array(buf, p.idxOffset, p.iCount) : new Uint16Array(buf, p.idxOffset, p.iCount);
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setIndex(new THREE.BufferAttribute(idx, 1));
-    g.computeVertexNormals();
-    g.computeBoundingSphere();
-    return { ...p, geometry: g };
-  });
-}
 
 function buildScene(parts) {
   const mk = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, ...extra });
@@ -349,7 +341,7 @@ export async function init(container, handlers = {}) {
     fill.position.set(50, 10, -70);
     camera.add(key, fill); // 灯跟着镜头转，前后面观的明暗一致
     scene.add(camera);
-    buildScene(await loadMeshes());
+    buildScene(await loadParts());
   } catch (err) {
     console.warn('右上肢网格加载失败，改用示意图', err);
     renderer.dispose();

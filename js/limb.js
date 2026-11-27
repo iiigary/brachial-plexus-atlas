@@ -30,7 +30,7 @@ limb3d.init(l3Box, {
   applyLimbHighlights(lastCtx);
 });
 
-// 没有网格的肌肉（背阔肌）：在 3D 图下方放文字按钮，状态类与 SVG 分区相同
+// 没有网格的肌肉（现在只在补充网格包加载失败时出现，即背阔肌）：在 3D 图下方放文字按钮，状态类与 SVG 分区相同
 function renderExtras() {
   l3Extra.innerHTML = '';
   if (!use3d()) return;

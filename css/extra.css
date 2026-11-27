@@ -109,14 +109,20 @@ svg#plexus.cut-mode .node-group:hover .node-rect { stroke: var(--lesion-color); 
 .hud-bottom { background: color-mix(in srgb, var(--hud-bg) 72%, transparent); border-color: var(--hud-border); color: var(--hud-muted); }
 
 .labels3d { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+/* 标签可点（神经名 = 选中）；容器本身不挡画布 */
 .label3d {
   position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; visibility: hidden;
   font-size: var(--fs-caption); font-weight: 600; line-height: var(--lh-base); color: var(--label-text);
   background: var(--label-bg); border: 1px solid var(--label-border); border-radius: 4px; padding: 0 6px;
+  pointer-events: auto; cursor: pointer;
 }
 .label3d.focal { color: var(--label-focal); font-weight: 700; box-shadow: 0 0 0 1.5px var(--label-focal-ring); }
 .label3d.lesion { color: var(--label-lesion); }
-.label3d.ctx { background: transparent; border-color: transparent; color: var(--label-ctx); font-weight: 500; }
+.label3d.ctx { background: transparent; border-color: transparent; color: var(--label-ctx); font-weight: 500; pointer-events: none; cursor: default; }
+/* 3D 里损伤部位的名称：可点，点了切换部位 */
+.label3d.site { border-style: dashed; border-color: var(--label-lesion); color: var(--label-lesion); }
+.label3d.site.current { background: var(--label-lesion); border-style: solid; color: #fff; }
+.label3d.site.current::before { content: '✂ '; }
 .label3d.ctx.artery { color: var(--label-artery); }
 .hud-fallback {
   position: absolute; inset: 0; display: grid; place-items: center; color: var(--hud-text); font-size: var(--fs-title);

@@ -3,7 +3,8 @@
 import { PlexusModel } from './model.js';
 import { nodeMap } from './data/nodes.js';
 
-export const DEFAULT_3D = { artery: true, bones: true, muscles: false, labels: true, auto: false };
+// isolate：选中或损伤时只显示相关通路与肌肉（自测、手动切断时不隔离）
+export const DEFAULT_3D = { artery: true, bones: true, muscles: false, labels: true, auto: false, isolate: true };
 
 export const state = {
   // ---- 浏览：当前看的是什么 ----

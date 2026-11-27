@@ -197,6 +197,10 @@ const viewHandlers = {
     if (state.quizMode) { quiz.togglePick(zoneId); applyAllHighlights(); return; }
     selectZone(zoneId);
   },
+  // 3D 走行上的损伤部位标记
+  onLevelClick(key, level) {
+    if (!state.quizMode) setLesion(key, level);
+  },
   // 上肢图下方摘要里的名称
   onChipClick(zoneId) {
     if (!state.quizMode) selectZone(zoneId);

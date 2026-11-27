@@ -253,6 +253,36 @@ check('尺神经：肘部累及指深屈肌与手背/手掌感觉；腕部（默
   assert.strictEqual(PlexusModel.lesion('ulnar').level, 'wrist');
 });
 
+check('新增部位：前臂中段、桡浅支、肌皮神经各平面', () => {
+  // 正中神经前臂中段：比腕管多丢手掌桡侧感觉；前臂屈肌和骨间前神经保留
+  assert.strictEqual(set(PlexusModel.lesion('median', 'forearm').severity.keys()), set(['m_thenar', 'm_lumb_lat', 's_fingers_med', 's_med_tips', 's_palm_cut']));
+  for (const id of ['m_pronator', 'm_flexor_med', 'm_palmaris', 'm_ain', 'm_pq']) assert(PlexusModel.lesion('median', 'forearm').spared.includes(id), id);
+  // 尺神经前臂中段：比腕部多丢手背尺侧和手掌尺侧感觉；尺侧腕屈肌/指深屈肌保留
+  assert.strictEqual(set(PlexusModel.lesion('ulnar', 'forearm').severity.keys()),
+    set(['m_hypothenar', 'm_interossei', 'm_adductor', 'm_lumb_med', 's_fingers_uln', 's_hypo_palm', 's_uln_back']));
+  assert.deepStrictEqual(PlexusModel.lesion('ulnar', 'forearm').spared, ['m_flexor_uln']);
+  // 桡浅支：只有感觉障碍
+  assert.strictEqual(set(PlexusModel.lesion('radial', 'srn').severity.keys()), 's_rad_hand');
+  assert(PlexusModel.lesion('radial', 'srn').spared.includes('m_ext_digits'));
+  // 肌皮神经：近端全部受累 → 穿喙肱肌后保留喙肱肌 → 肘部只剩前臂外侧感觉
+  expectSev('musculocutaneous', 'proximal', 'full', ['m_coraco', 'm_biceps', 's_lat_forearm']);
+  expectSev('musculocutaneous', 'proximal', 'partial', ['m_brachialis']);
+  expectSev('musculocutaneous', 'arm', 'none', ['m_coraco']);
+  expectSev('musculocutaneous', 'arm', 'full', ['m_biceps', 's_lat_forearm']);
+  assert.strictEqual(set(PlexusModel.lesion('musculocutaneous', 'elbow').severity.keys()), 's_lat_forearm');
+});
+
+check('同一神经上的部位按近端→远端排列，越远受累越少', () => {
+  for (const [key, preset] of Object.entries(PlexusModel.LESION_PRESETS)) {
+    const chain = preset.levels.filter(l => l.plane != null && l.sites.join() === preset.levels.find(x => x.plane != null)?.sites.join());
+    for (let i = 1; i < chain.length; i++) {
+      assert(chain[i].plane > chain[i - 1].plane, `${key}：${chain[i].key} 应在 ${chain[i - 1].key} 远端`);
+      const a = PlexusModel.lesion(key, chain[i - 1].key).severity, b = PlexusModel.lesion(key, chain[i].key).severity;
+      for (const id of b.keys()) assert(a.has(id), `${key}/${chain[i].key} 的 ${id} 在更近端的 ${chain[i - 1].key} 反而不受累`);
+    }
+  }
+});
+
 check('腋神经、胸长神经', () => {
   assert.strictEqual(set(PlexusModel.lesion('axillary').severity.keys()), set(['m_deltoid', 'm_teres_minor', 's_axil']));
   assert.strictEqual(set(PlexusModel.lesion('long_thoracic').severity.keys()), 'm_serratus');

@@ -54,7 +54,8 @@ export const PlexusModel = (() => {
 
   // 支配靶区（id 与页面里的图形区域一一对应）。
   // F(神经, 主要节段, 分出平面 plane)
-  // plane：0 腋窝/起始处 · 1 上臂 · 2 肘/前臂近端 · 2.5 前臂近段（旋后肌以远）· 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
+  // plane：0 腋窝/起始处 · 0.5 上臂近段（穿喙肱肌后）· 1 上臂 · 1.5 肘 · 2 肘/前臂近端 · 2.5 前臂近段（旋后肌以远）·
+  //        2.6 前臂中段 · 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
   // 节段取常用教材值（Moore、Prometheus）；教材间常相差约一个节段。
   // part：这条纤维只支配该肌的一部分（如桡神经只管肱肌外侧小部分）。有 part 的纤维算「部分参与」，
   // 页面上与主要支配分开表达。
@@ -125,16 +126,23 @@ export const PlexusModel = (() => {
     radial: { defaultLevel: 'groove', levels: [
       { key: 'axilla', name: '腋部', sites: ['radial'], plane: 0 },
       { key: 'groove', name: '桡神经沟', sites: ['radial'], plane: 1 },
-      { key: 'pin', name: '骨间后神经', sites: ['pin'], plane: 2.5 }] },
+      { key: 'pin', name: '骨间后神经', sites: ['pin'], plane: 2.5 },
+      { key: 'srn', name: '桡浅支', sites: ['srn'] }] },
     median: { defaultLevel: 'carpal', levels: [
       { key: 'high', name: '肘部以上', sites: ['median'], plane: 1 },
       { key: 'ain', name: '骨间前神经', sites: ['ain'] },
+      { key: 'forearm', name: '前臂中段', sites: ['median'], plane: 2.6 },
       { key: 'carpal', name: '腕管', sites: ['median'], plane: 3 }] },
     ulnar: { defaultLevel: 'wrist', levels: [
       { key: 'elbow', name: '肘管', sites: ['ulnar'], plane: 2 },
+      { key: 'forearm', name: '前臂中段', sites: ['ulnar'], plane: 2.6 },
       { key: 'wrist', name: '腕部 Guyon 管', sites: ['ulnar'], plane: 3 }] },
     axillary: { defaultLevel: 'main', levels: [{ key: 'main', name: '四边孔', sites: ['axillary'] }] },
     long_thoracic: { defaultLevel: 'main', levels: [{ key: 'main', name: '胸侧壁', sites: ['long_thoracic'] }] },
+    musculocutaneous: { defaultLevel: 'proximal', levels: [
+      { key: 'proximal', name: '近端（穿喙肱肌前）', sites: ['musculocutaneous'], plane: 0 },
+      { key: 'arm', name: '上臂（穿喙肱肌后）', sites: ['musculocutaneous'], plane: 0.5 },
+      { key: 'elbow', name: '肘部（前臂外侧皮神经）', sites: ['musculocutaneous'], plane: 1.5 }] },
   };
 
   const outLinks = {}, inLinks = {};

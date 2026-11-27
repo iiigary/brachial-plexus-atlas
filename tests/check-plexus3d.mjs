@@ -3,6 +3,7 @@
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { PlexusModel } from '../js/model.js';
+import { LESION_SITES } from '../js/data/lesion-sites.js';
 
 const read = f => readFileSync(new URL(`../${f}`, import.meta.url));
 const D = JSON.parse(read('assets/plexus/plexus3d.json'));
@@ -98,6 +99,29 @@ check('网格包的偏移与长度在 meshes.bin 范围内', () => {
     assert.ok(p.idxOffset + p.iCount * (p.wide ? 4 : 2) <= size, `${p.key} 索引越界`);
     assert.ok(p.iCount % 3 === 0 && p.posOffset % 2 === 0 && p.idxOffset % 4 === 0, `${p.key} 对齐`);
   });
+});
+
+check('损伤部位落在走行上，与模型的平面一致', () => {
+  const presets = PlexusModel.LESION_PRESETS;
+  for (const [key, levels] of Object.entries(LESION_SITES)) {
+    assert.ok(presets[key], `部位位置 ${key} 不是损伤预设`);
+    for (const [lk, e] of Object.entries(levels)) {
+      const level = presets[key].levels.find(l => l.key === lk);
+      assert.ok(level, `${key}/${lk} 不是该预设的部位`);
+      assert.ok(level.sites.includes(e.node), `${key}/${lk} 的位置不在切断结构 ${level.sites} 上`);
+      const ys = (D.courses[e.node] || []).map(p => p[1]);
+      assert.ok(ys.length && e.y <= Math.max(...ys) && e.y >= Math.min(...ys), `${key}/${lk} 的高度 ${e.y} 不在 ${e.node} 走行范围内`);
+    }
+  }
+  // 母神经内的平面损伤必须有位置，否则 3D 里画不出近端保留、远端受累
+  for (const [key, p] of Object.entries(presets)) for (const l of p.levels)
+    if (l.plane > 0) assert.ok(LESION_SITES[key] && LESION_SITES[key][l.key], `${key}/${l.key} 有平面但没有 3D 位置`);
+  // 同一结构上，平面越远端，位置越低
+  for (const [key, levels] of Object.entries(LESION_SITES)) {
+    const ls = presets[key].levels.filter(l => levels[l.key]).map(l => ({ ...levels[l.key], plane: l.plane || 0, key: l.key }));
+    for (const a of ls) for (const b of ls)
+      if (a.node === b.node && a.plane < b.plane) assert.ok(a.y > b.y, `${key}：${a.key} 应比 ${b.key} 高`);
+  }
 });
 
 console.log(`✓ 3D 真实走行 ${n} 项检查通过（${PlexusModel.NODE_IDS.length} 个节点，${PlexusModel.LINKS.length} 条连线，补画 ${D.drawn.edges.length} 条）`);

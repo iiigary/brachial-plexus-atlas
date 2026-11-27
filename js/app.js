@@ -294,7 +294,7 @@ function updateInspector(ctx) {
       const s = lesionSummary(ctx);
       const notes = [];
       if (ctx.horner) notes.push('T1 根在发出白交通支之前受损，伴同侧 Horner 综合征。');
-      if (ctx.preganglionic) notes.push('全部切断点都在根部，属节前损伤：感觉神经动作电位保留，不能自行恢复。');
+      if (ctx.preganglionic) notes.push('全部切断点都在根部，按根性撕脱（节前）演示：麻木区的感觉神经动作电位保留，不能自行恢复。根部附近的节后断裂也会有同样的瘫痪范围，要靠肌电图和影像区分。');
       if (ctx.spared.length) notes.push(`同一神经上未受累的分支：${s.spared}。`);
       if (!notes.length) notes.push('切断点都在节后（干、股、束或周围神经）。');
       // 切断点已在标题和节段里列出，标签只留判断性信息

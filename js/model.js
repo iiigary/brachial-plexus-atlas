@@ -49,17 +49,17 @@ export const PlexusModel = (() => {
   // 次要/变异参与的节段：不计入主要成分（不参与损伤推导），通路图上画成「部分」（虚线），节段写成「(C5) C6–T1」
   const MINOR = { median: ['c5'] };
 
-  // 具名分支从母神经上分出的平面（lv 的含义见下方 TARGETS 注释）
-  const BRANCH_LV = { pin: 2, srn: 2, ain: 2 };
+  // 具名分支从母神经上分出的平面（plane 的含义见下方 ZONES 注释）
+  const SUBBRANCH_PLANE = { pin: 2, srn: 2, ain: 2 };
 
   // 支配靶区（id 与页面里的图形区域一一对应）。
-  // F(神经, 主要节段, 分出平面 lv)
-  // lv：0 腋窝/起始处 · 1 上臂 · 2 肘/前臂近端 · 2.5 前臂近段（旋后肌以远）· 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
+  // F(神经, 主要节段, 分出平面 plane)
+  // plane：0 腋窝/起始处 · 1 上臂 · 2 肘/前臂近端 · 2.5 前臂近段（旋后肌以远）· 2.8 前臂远端（腕的近侧）· 3 腕 · 4 手
   // 节段取常用教材值（Moore、Prometheus）；教材间常相差约一个节段。
   // part：这条纤维只支配该肌的一部分（如桡神经只管肱肌外侧小部分）。有 part 的纤维算「部分参与」，
   // 页面上与主要支配分开表达。
-  const F = (nerve, roots, lv = 0, part = '') => ({ nerve, roots: roots.split(' '), lv, part });
-  const TARGETS = [
+  const F = (nerve, roots, plane = 0, part = '') => ({ nerve, roots: roots.split(' '), plane, part });
+  const ZONES = [
     { id: 'm_deltoid', kind: 'motor', name: '三角肌', fibers: [F('axillary', 'c5 c6')] },
     { id: 'm_teres_minor', kind: 'motor', name: '小圆肌', fibers: [F('axillary', 'c5 c6')] },
     { id: 'm_subclavius', kind: 'motor', name: '锁骨下肌', fibers: [F('subclavius_n', 'c5 c6')] },
@@ -114,27 +114,27 @@ export const PlexusModel = (() => {
 
   // 损伤预设。每个预设有一个或多个可选「部位」：
   //   sites = 被切断的结构（可多个，如 C5+C6 根性撕脱）
-  //   lv    = 损伤平面：同一神经上在更近端（lv 更小）已分出的分支不受累
-  const LESION_SITES = {
-    erb: { def: 'trunk', levels: [
+  //   plane = 损伤平面：同一神经上在更近端（plane 更小）已分出的分支不受累
+  const LESION_PRESETS = {
+    erb: { defaultLevel: 'trunk', levels: [
       { key: 'trunk', name: '上干（节后）', sites: ['upper_trunk'] },
       { key: 'root', name: 'C5–C6 根性撕脱（节前）', sites: ['c5', 'c6'] }] },
-    klumpke: { def: 'trunk', levels: [
+    klumpke: { defaultLevel: 'trunk', levels: [
       { key: 'trunk', name: '下干（节后）', sites: ['lower_trunk'] },
       { key: 'root', name: 'C8–T1 根性撕脱（节前）', sites: ['c8', 't1'] }] },
-    radial: { def: 'groove', levels: [
-      { key: 'axilla', name: '腋部', sites: ['radial'], lv: 0 },
-      { key: 'groove', name: '桡神经沟', sites: ['radial'], lv: 1 },
-      { key: 'pin', name: '骨间后神经', sites: ['pin'], lv: 2.5 }] },
-    median: { def: 'carpal', levels: [
-      { key: 'high', name: '肘部以上', sites: ['median'], lv: 1 },
+    radial: { defaultLevel: 'groove', levels: [
+      { key: 'axilla', name: '腋部', sites: ['radial'], plane: 0 },
+      { key: 'groove', name: '桡神经沟', sites: ['radial'], plane: 1 },
+      { key: 'pin', name: '骨间后神经', sites: ['pin'], plane: 2.5 }] },
+    median: { defaultLevel: 'carpal', levels: [
+      { key: 'high', name: '肘部以上', sites: ['median'], plane: 1 },
       { key: 'ain', name: '骨间前神经', sites: ['ain'] },
-      { key: 'carpal', name: '腕管', sites: ['median'], lv: 3 }] },
-    ulnar: { def: 'wrist', levels: [
-      { key: 'elbow', name: '肘管', sites: ['ulnar'], lv: 2 },
-      { key: 'wrist', name: '腕部 Guyon 管', sites: ['ulnar'], lv: 3 }] },
-    axillary: { def: 'main', levels: [{ key: 'main', name: '四边孔', sites: ['axillary'] }] },
-    long_thoracic: { def: 'main', levels: [{ key: 'main', name: '胸侧壁', sites: ['long_thoracic'] }] },
+      { key: 'carpal', name: '腕管', sites: ['median'], plane: 3 }] },
+    ulnar: { defaultLevel: 'wrist', levels: [
+      { key: 'elbow', name: '肘管', sites: ['ulnar'], plane: 2 },
+      { key: 'wrist', name: '腕部 Guyon 管', sites: ['ulnar'], plane: 3 }] },
+    axillary: { defaultLevel: 'main', levels: [{ key: 'main', name: '四边孔', sites: ['axillary'] }] },
+    long_thoracic: { defaultLevel: 'main', levels: [{ key: 'main', name: '胸侧壁', sites: ['long_thoracic'] }] },
   };
 
   const outLinks = {}, inLinks = {};
@@ -142,7 +142,7 @@ export const PlexusModel = (() => {
     (outLinks[a] = outLinks[a] || []).push(b);
     (inLinks[b] = inLinks[b] || []).push(a);
   });
-  const targetMap = Object.fromEntries(TARGETS.map(t => [t.id, t]));
+  const zoneMap = Object.fromEntries(ZONES.map(t => [t.id, t]));
   const NODE_IDS = [...new Set(LINKS.flat())];
 
   function allPaths(from, to, acc = [from], out = []) {
@@ -192,8 +192,8 @@ export const PlexusModel = (() => {
   }
 
   // 单个靶区自己的路由（例如大鱼际肌只走 C8/T1 → 内侧束 → 正中神经）
-  function traceTarget(targetId) {
-    const t = targetMap[targetId];
+  function traceZone(zoneId) {
+    const t = zoneMap[zoneId];
     if (t.kind === 'dermatome') { const tr = trace(t.fibers[0].nerve); return { nodes: tr.nodes, edges: tr.edges }; }
     const nodes = new Set(), edges = new Set();
     t.fibers.forEach(f => f.roots.forEach(r => addPath(pathOf(r, f.nerve), 0, nodes, edges)));
@@ -206,9 +206,9 @@ export const PlexusModel = (() => {
   }
 
   // 有纤维流经 id 的全部靶区
-  function targetsFor(id) {
+  function zonesFor(id) {
     const rs = rootsOf(id), out = new Set();
-    TARGETS.forEach(t => {
+    ZONES.forEach(t => {
       const hit = t.kind === 'dermatome' ? rs.includes(t.fibers[0].nerve) : t.fibers.some(f => fiberHits(f, [id]));
       if (hit) out.add(t.id);
     });
@@ -216,20 +216,20 @@ export const PlexusModel = (() => {
   }
 
   // 结构 id 与靶区的关系：'main' 主要支配 | 'part' 只经「部分参与」的纤维相连 | null 无关
-  function relation(targetId, id) {
-    const t = targetMap[targetId];
+  function relation(zoneId, id) {
+    const t = zoneMap[zoneId];
     if (t.kind === 'dermatome') return rootsOf(id).includes(t.fibers[0].nerve) ? 'main' : null;
     const through = t.fibers.filter(f => fiberHits(f, [id]));
     if (!through.length) return null;
     return through.every(f => f.part) ? 'part' : 'main';
   }
 
-  // 纤维在 site 处离开 site 的平面：site 就是纤维的终点神经 → f.lv；
+  // 纤维在 site 处离开 site 的平面：site 就是纤维的终点神经 → f.plane；
   // site 是母神经、纤维走它的具名分支 → 该分支的分出平面；其余（根/干/股/束）→ 0
-  function exitLv(f, path, site) {
+  function exitPlane(f, path, site) {
     const i = path.indexOf(site);
-    if (i === path.length - 1) return f.lv;
-    return BRANCH_LV[path[i + 1]] ?? 0;
+    if (i === path.length - 1) return f.plane;
+    return SUBBRANCH_PLANE[path[i + 1]] ?? 0;
   }
 
   // 任意一组切断点的受累范围。
@@ -237,13 +237,13 @@ export const PlexusModel = (() => {
   // spared = 与损伤在同一神经上、但从损伤点近端或另一条分支走的靶区
   function lesionAt(siteList, opts = {}) {
     const sites = [...new Set(siteList)];
-    const lv = opts.lv || 0;
+    const plane = opts.plane || 0;
     const isNerve = sites.length > 0 && sites.every(s => s in COMPOSITION);
     const dermatomal = sites.filter(s => ROOTS.includes(s) || TRUNKS.includes(s));
-    const branch = sites.some(s => s in BRANCH_LV);
+    const involvesSubbranch = sites.some(s => s in SUBBRANCH_PLANE);
     // detail：靶区 id → { hit, kept }，各为 [{ nerve, roots, part }]，说明「部分受累」具体断了哪些、留了哪些
     const severity = new Map(), spared = [], detail = new Map();
-    TARGETS.forEach(t => {
+    ZONES.forEach(t => {
       if (t.kind === 'dermatome') {
         // 皮节只对根/干水平的损伤有意义；束和周围神经的损伤按周围皮区分布
         if (dermatomal.some(s => rootsOf(s).includes(t.fibers[0].nerve))) severity.set(t.id, 'full');
@@ -257,7 +257,7 @@ export const PlexusModel = (() => {
           const p = pathOf(r, f.nerve);
           const on = p ? sites.filter(s => p.includes(s)) : [];
           if (!on.length) return false;
-          if (on.some(s => exitLv(f, p, s) >= lv)) return true;
+          if (on.some(s => exitPlane(f, p, s) >= plane)) return true;
           bypass = true;
           return false;
         });
@@ -270,9 +270,9 @@ export const PlexusModel = (() => {
       else if (bypass) spared.push(t.id);
     });
     // 只伤到具名分支（骨间前/后神经、桡浅支）：同一母神经的其余分支照常工作
-    sites.filter(s => s in BRANCH_LV).forEach(s => {
+    sites.filter(s => s in SUBBRANCH_PLANE).forEach(s => {
       const parent = inLinks[s][0];
-      TARGETS.forEach(t => {
+      ZONES.forEach(t => {
         if (t.kind === 'dermatome' || severity.has(t.id) || spared.includes(t.id)) return;
         if (t.fibers.some(f => fiberHits(f, [parent]))) spared.push(t.id);
       });
@@ -281,7 +281,7 @@ export const PlexusModel = (() => {
     sites.forEach(s => { const one = trace(s); Object.keys(tr).forEach(k => one[k].forEach(v => tr[k].add(v))); });
     return {
       key: opts.key || null, level: opts.level || null, levelName: opts.levelName || '',
-      sites: new Set(sites), isNerve, dermatomal: dermatomal.length > 0, branch,
+      marked: new Set(sites), isNerve, dermatomal: dermatomal.length > 0, involvesSubbranch,
       // 节前 = 全部损伤点都在根；Horner 征 = T1 根在发出白交通支之前受损
       preganglionic: sites.length > 0 && sites.every(s => ROOTS.includes(s)), horner: sites.includes('t1'),
       severity, spared, detail, ...tr,
@@ -290,9 +290,9 @@ export const PlexusModel = (() => {
 
   // 预设损伤
   function lesion(key, levelKey) {
-    const def = LESION_SITES[key];
-    const level = def.levels.find(l => l.key === levelKey) || def.levels.find(l => l.key === def.def);
-    return lesionAt(level.sites, { lv: level.lv, key, level: level.key, levelName: level.name });
+    const preset = LESION_PRESETS[key];
+    const level = preset.levels.find(l => l.key === levelKey) || preset.levels.find(l => l.key === preset.defaultLevel);
+    return lesionAt(level.sites, { plane: level.plane, key, level: level.key, levelName: level.name });
   }
 
   function segLabel(id) {
@@ -307,14 +307,9 @@ export const PlexusModel = (() => {
     return (MINOR[id] || []).map(r => r.toUpperCase()).join(', ');
   }
 
-  // 某靶区的纤维沿途经过的全部结构（用来排除「同一通路上的」干扰项）
-  function routeOf(targetId) {
-    return traceTarget(targetId).nodes;
-  }
-
   return {
-    ROOTS, TRUNKS, LINKS, COMPOSITION, MINOR, TARGETS, LESION_SITES, BRANCH_LV, NODE_IDS,
-    target: id => targetMap[id], parentsOf: id => inLinks[id] || [], childrenOf: id => outLinks[id] || [],
-    pathOf, rootsOf, trace, traceTarget, targetsFor, relation, lesion, lesionAt, segLabel, minorLabel, routeOf,
+    ROOTS, TRUNKS, LINKS, COMPOSITION, MINOR, ZONES, LESION_PRESETS, SUBBRANCH_PLANE, NODE_IDS,
+    zone: id => zoneMap[id], parentsOf: id => inLinks[id] || [], childrenOf: id => outLinks[id] || [],
+    pathOf, rootsOf, trace, traceZone, zonesFor, relation, lesion, lesionAt, segLabel, minorLabel,
   };
 })();

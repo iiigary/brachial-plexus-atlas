@@ -1,12 +1,15 @@
 // 左侧 2D 通路图：一次性画出节点和连线，之后只切换 class。
 import { PlexusModel } from './model.js';
 import { STAGES, NODES, EDGES, nodeMap } from './data/nodes.js';
-import { state } from './state.js';
-import { onNodeHover, onNodeClick, onBackgroundClick, labelsHidden } from './app.js';
+import { state, labelsHidden } from './state.js';
 import { sweep, columnsIn } from './motion.js';
 
 const svg = document.getElementById('plexus');
 const VIEW_W = 1060, VIEW_H = 620;
+
+// 用户操作交给 app.js：{ onNodeHover, onNodeClick, onBackgroundClick }
+let on = {};
+export function initPlexus(handlers) { on = handlers; }
 
 export function createSvgEl(tag, attrs = {}) {
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -68,7 +71,7 @@ function buildCurve(fromNode, toNode, isCollateral) {
 export function renderPlexusSVG() {
   svg.innerHTML = '';
   const bgRect = createSvgEl('rect', { x: 0, y: 0, width: VIEW_W, height: VIEW_H, fill: 'transparent' });
-  bgRect.addEventListener('click', onBackgroundClick);
+  bgRect.addEventListener('click', () => on.onBackgroundClick());
   svg.appendChild(bgRect);
 
   STAGES.forEach((s, idx) => {
@@ -142,9 +145,9 @@ export function renderPlexusSVG() {
     cut.appendChild(ct);
     g.appendChild(cut);
 
-    g.addEventListener('mouseenter', () => onNodeHover(n.id));
-    g.addEventListener('mouseleave', () => onNodeHover(null));
-    g.addEventListener('click', ev => { ev.stopPropagation(); onNodeClick(n.id); });
+    g.addEventListener('mouseenter', () => on.onNodeHover(n.id));
+    g.addEventListener('mouseleave', () => on.onNodeHover(null));
+    g.addEventListener('click', ev => { ev.stopPropagation(); on.onNodeClick(n.id); });
     nodeLayer.appendChild(g);
   });
   svg.appendChild(nodeLayer);
@@ -172,8 +175,8 @@ export function applyPlexusHighlights(ctx) {
     const partial = !ctx.isLesion && !!ctx.minorNodes && ctx.minorNodes.has(id);
     el.classList.toggle('partial', partial);
     el.classList.toggle('dim', !ctx.nodes.has(id) && !partial);
-    el.classList.toggle('lesion-site', ctx.isLesion && ctx.sites.has(id));
-    el.classList.toggle('selected', !ctx.isLesion && ctx.sites.has(id));
+    el.classList.toggle('lesion-site', ctx.isLesion && ctx.marked.has(id));
+    el.classList.toggle('selected', !ctx.isLesion && ctx.marked.has(id));
   });
 
   if (ctx.isLesion) {

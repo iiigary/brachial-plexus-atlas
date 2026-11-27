@@ -1,4 +1,4 @@
-// 损伤说明文字。levels 的键与模型 LESION_SITES 里各预设的部位一一对应。
+// 损伤说明文字。levels 的键与模型 LESION_PRESETS 里各预设的部位一一对应。
 export const LESIONS = {
   erb: {
     title: '上臂丛损伤',

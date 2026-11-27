@@ -2,7 +2,7 @@
 // 每个运动靶区都有肌肉网格。用法：node tests/check-plexus3d.mjs
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
-import { PlexusModel as M } from '../js/model.js';
+import { PlexusModel } from '../js/model.js';
 
 const read = f => readFileSync(new URL(`../${f}`, import.meta.url));
 const D = JSON.parse(read('assets/plexus/plexus3d.json'));
@@ -29,19 +29,19 @@ function distToPoly(x, poly) {
 // 节点的几何：有走行用走行，没有就是锚点；根还包括它通往干的那一段（侧支可以从那里发出）
 const geom = id => {
   const g = [D.courses[id] || [D.anchors[id], D.anchors[id]]];
-  if (M.ROOTS.includes(id)) g.push(...Object.entries(D.edges).filter(([k]) => k.startsWith(id + '>') && M.TRUNKS.includes(k.split('>')[1])).map(([, p]) => p));
+  if (PlexusModel.ROOTS.includes(id)) g.push(...Object.entries(D.edges).filter(([k]) => k.startsWith(id + '>') && PlexusModel.TRUNKS.includes(k.split('>')[1])).map(([, p]) => p));
   return g;
 };
 const near = (x, id) => Math.min(...geom(id).map(p => distToPoly(x, p)));
 
 check('每个节点都有锚点', () => {
-  for (const id of M.NODE_IDS) assert.ok(isPt(D.anchors[id]), `${id} 缺少锚点`);
-  for (const id of Object.keys(D.anchors)) assert.ok(M.NODE_IDS.includes(id), `锚点 ${id} 不是节点`);
+  for (const id of PlexusModel.NODE_IDS) assert.ok(isPt(D.anchors[id]), `${id} 缺少锚点`);
+  for (const id of Object.keys(D.anchors)) assert.ok(PlexusModel.NODE_IDS.includes(id), `锚点 ${id} 不是节点`);
 });
 
 check('走行、细枝都是合法折线，且属于已有节点', () => {
-  for (const [id, p] of Object.entries(D.courses)) { assert.ok(M.NODE_IDS.includes(id), id); assert.ok(isPoly(p), `${id} 走行`); }
-  for (const [id, ps] of Object.entries(D.extras)) { assert.ok(M.NODE_IDS.includes(id), id); ps.forEach((p, i) => assert.ok(isPoly(p), `${id} 细枝 ${i}`)); }
+  for (const [id, p] of Object.entries(D.courses)) { assert.ok(PlexusModel.NODE_IDS.includes(id), id); assert.ok(isPoly(p), `${id} 走行`); }
+  for (const [id, ps] of Object.entries(D.extras)) { assert.ok(PlexusModel.NODE_IDS.includes(id), id); ps.forEach((p, i) => assert.ok(isPoly(p), `${id} 细枝 ${i}`)); }
 });
 
 check('锚点落在自身走行上', () => {
@@ -49,12 +49,12 @@ check('锚点落在自身走行上', () => {
 });
 
 check('每条连线都有路径，且只有模型里的连线', () => {
-  for (const [a, b] of M.LINKS) assert.ok(isPoly(D.edges[`${a}>${b}`]), `缺少连线 ${a}>${b}`);
-  for (const k of Object.keys(D.edges)) assert.ok(M.LINKS.some(([a, b]) => `${a}>${b}` === k), `连线 ${k} 不在模型里`);
+  for (const [a, b] of PlexusModel.LINKS) assert.ok(isPoly(D.edges[`${a}>${b}`]), `缺少连线 ${a}>${b}`);
+  for (const k of Object.keys(D.edges)) assert.ok(PlexusModel.LINKS.some(([a, b]) => `${a}>${b}` === k), `连线 ${k} 不在模型里`);
 });
 
 check('连线起点在母神经上，终点在子节点上', () => {
-  for (const [a, b] of M.LINKS) {
+  for (const [a, b] of PlexusModel.LINKS) {
     const p = D.edges[`${a}>${b}`];
     assert.ok(near(p[0], a) < 0.2, `${a}>${b} 起点离 ${a} ${near(p[0], a).toFixed(2)} cm`);
     assert.ok(near(p.at(-1), b) < 0.2, `${a}>${b} 终点离 ${b} ${near(p.at(-1), b).toFixed(2)} cm`);
@@ -72,9 +72,9 @@ check('细枝从本神经的走行或其他细枝上发出', () => {
 });
 
 check('补画与调整清单只引用已有的节点和连线', () => {
-  D.drawn.nodes.forEach(id => assert.ok(M.NODE_IDS.includes(id), id));
+  D.drawn.nodes.forEach(id => assert.ok(PlexusModel.NODE_IDS.includes(id), id));
   D.drawn.edges.forEach(k => assert.ok(D.edges[k], k));
-  D.adjusted.forEach(id => assert.ok(M.NODE_IDS.includes(id), id));
+  D.adjusted.forEach(id => assert.ok(PlexusModel.NODE_IDS.includes(id), id));
 });
 
 check('动脉、预设视角、结构标签格式正确', () => {
@@ -88,7 +88,7 @@ check('动脉、预设视角、结构标签格式正确', () => {
 
 check('每个运动靶区都有肌肉网格（含 Z-Anatomy 背阔肌）', () => {
   const zones = new Set([...limb.parts, ...extra.parts].map(p => p.zone).filter(Boolean));
-  M.TARGETS.filter(t => t.kind === 'motor').forEach(t => assert.ok(zones.has(t.id), `${t.id} 没有网格`));
+  PlexusModel.ZONES.filter(t => t.kind === 'motor').forEach(t => assert.ok(zones.has(t.id), `${t.id} 没有网格`));
 });
 
 check('网格包的偏移与长度在 meshes.bin 范围内', () => {
@@ -100,4 +100,4 @@ check('网格包的偏移与长度在 meshes.bin 范围内', () => {
   });
 });
 
-console.log(`✓ 3D 真实走行 ${n} 项检查通过（${M.NODE_IDS.length} 个节点，${M.LINKS.length} 条连线，补画 ${D.drawn.edges.length} 条）`);
+console.log(`✓ 3D 真实走行 ${n} 项检查通过（${PlexusModel.NODE_IDS.length} 个节点，${PlexusModel.LINKS.length} 条连线，补画 ${D.drawn.edges.length} 条）`);

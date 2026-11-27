@@ -2,7 +2,7 @@
 // 用法：node tests/check-limb-meshes.mjs
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
-import { PlexusModel as M } from '../js/model.js';
+import { PlexusModel } from '../js/model.js';
 
 const meta = JSON.parse(readFileSync(new URL('../assets/limb/meshes.json', import.meta.url), 'utf8'));
 const bin = readFileSync(new URL('../assets/limb/meshes.bin', import.meta.url));
@@ -13,7 +13,7 @@ const check = (name, fn) => {
   try { fn(); n++; } catch (e) { console.error(`✗ ${name}`); throw e; }
 };
 
-const motor = M.TARGETS.filter(t => t.kind === 'motor').map(t => t.id);
+const motor = PlexusModel.ZONES.filter(t => t.kind === 'motor').map(t => t.id);
 const zones = new Set(meta.parts.map(p => p.zone).filter(Boolean));
 
 check('网格里的靶区都是运动靶区', () => {

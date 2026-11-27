@@ -13,11 +13,11 @@ function buildIndex() {
     label: n.label, tag: STAGE_NAMES[n.stage], sub: `${n.en} · ${PlexusModel.segLabel(n.id)}`,
     names: [n.label, n.en, n.sub, n.id], text: [n.motor, n.sensory].join(' '), action: { node: n.id },
   }));
-  PlexusModel.TARGETS.forEach(t => out.push({
+  PlexusModel.ZONES.forEach(t => out.push({
     label: t.name, tag: KIND_NAMES[t.kind], sub: '在上肢图上反向溯源',
     names: [t.name, ...t.name.split(/[/（）()·]/)], text: '', action: { zone: t.id },
   }));
-  Object.entries(PlexusModel.LESION_SITES).forEach(([key, def]) => def.levels.forEach(l => out.push({
+  Object.entries(PlexusModel.LESION_PRESETS).forEach(([key, preset]) => preset.levels.forEach(l => out.push({
     label: `${LESIONS[key].title} · ${l.name}`, tag: '损伤', sub: LESIONS[key].sub,
     names: [LESIONS[key].title, LESIONS[key].sub, l.name], text: LESIONS[key].levels[l.key].clinical, action: { lesion: key, level: l.key },
   })));

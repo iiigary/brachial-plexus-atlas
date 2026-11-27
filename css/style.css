@@ -180,7 +180,7 @@ header {
   min-height: 0;
   background: var(--surface);
 }
-body.quiz-zones .workbench { --limb-w: max(var(--limb-user, 0px), 54vw); }
+body.quiz-reverse .workbench { --limb-w: max(var(--limb-user, 0px), 54vw); }
 .splitter {
   position: relative; cursor: col-resize; touch-action: none; outline: none;
   border-left: 1px solid var(--border); background: transparent; transition: background 0.16s;
@@ -751,11 +751,11 @@ svg#limbSvg {
 }
 @media screen and (max-width: 860px) {
   body { height: auto; min-height: 100dvh; overflow: visible; }
-  .workbench, body.quiz-zones .workbench { grid-template-columns: 1fr; flex: none; }
+  .workbench, body.quiz-reverse .workbench { grid-template-columns: 1fr; flex: none; }
   .splitter { display: none; }
   .limb-summary { max-height: none; }
   /* 反向题：作答的上肢图排在通路图前面，紧接题目 */
-  body.quiz-zones .limb-pane { order: -1; }
+  body.quiz-reverse .limb-pane { order: -1; }
   .quiz-box { position: sticky; top: 0; z-index: 15; grid-template-columns: 1fr; }
   .quiz-actions { flex-direction: row; }
   .stage { height: min(62vh, 560px); border-bottom: 1px solid var(--border); }

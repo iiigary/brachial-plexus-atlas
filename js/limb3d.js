@@ -1,7 +1,7 @@
 // 右上肢「肌肉」页的真实网格视图（BodyParts3D 4.0，CC BY 4.0）。
 // 网格由 tools/build-limb-meshes.mjs 生成到 assets/limb/。BodyParts3D 没有的肌肉（背阔肌）
 // 取自 assets/plexus/ 的 Z-Anatomy 网格（CC BY-SA 4.0，与「3D 解剖」视图共用，坐标系相同）。
-// 状态沿用 SVG 分区的同一套类名（active-motor、active-lesion…），由 limb.js 每次高亮时传进来，
+// 每块肌肉的状态（与 SVG 分区的类名相同：active-motor、active-lesion…）由 limb.js 每次高亮时传进来，
 // 所以图上的说法和下方摘要始终一致。按需渲染：只有拖动、补间、状态变化时才画。
 import * as THREE from 'three';
 import { OrbitControls } from '../vendor/OrbitControls.js';
@@ -53,19 +53,18 @@ function readColors() {
   };
 }
 
-// 类名 → 外观。顺序即优先级：同一块肌肉有多个类时取靠前的
-const LOOKS = [
-  ['quiz-ok', () => ({ color: C.keep, opacity: 1 })],
-  ['quiz-missed', () => ({ color: C.lesion, opacity: 0.55 })],
-  ['quiz-extra', () => ({ color: C.muted, opacity: 1 })],
-  ['picked', () => ({ color: C.accent, opacity: 1 })],
-  ['active-lesion', () => ({ color: C.lesion, opacity: 1 })],
-  ['active-lesion-partial', () => ({ color: C.rest.clone().lerp(C.lesion, 0.55), opacity: 1 })],
-  ['spared', () => ({ color: C.rest.clone().lerp(C.keep, 0.6), opacity: 0.6 })],
-  ['active-motor', () => ({ color: C.active, opacity: 1 })],
-  ['active-part', () => ({ color: C.rest.clone().lerp(C.active, 0.5), opacity: 0.9 })],
-];
-const STATUS_CLASS = new Set(LOOKS.map(([k]) => k));
+// 状态 → 外观
+const LOOKS = {
+  'quiz-ok': () => ({ color: C.keep, opacity: 1 }),
+  'quiz-missed': () => ({ color: C.lesion, opacity: 0.55 }),
+  'quiz-extra': () => ({ color: C.muted, opacity: 1 }),
+  picked: () => ({ color: C.accent, opacity: 1 }),
+  'active-lesion': () => ({ color: C.lesion, opacity: 1 }),
+  'active-lesion-partial': () => ({ color: C.rest.clone().lerp(C.lesion, 0.55), opacity: 1 }),
+  spared: () => ({ color: C.rest.clone().lerp(C.keep, 0.6), opacity: 0.6 }),
+  'active-motor': () => ({ color: C.active, opacity: 1 }),
+  'active-part': () => ({ color: C.rest.clone().lerp(C.active, 0.5), opacity: 0.9 }),
+};
 
 function buildScene(parts) {
   const mk = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, ...extra });
@@ -103,7 +102,7 @@ function buildScene(parts) {
   zones.forEach(z => {
     const el = document.createElement('span');
     el.className = 'l3-label';
-    el.textContent = PlexusModel.target(z.id).name;
+    el.textContent = PlexusModel.zone(z.id).name;
     labelBox.appendChild(el);
     z.label = el;
   });
@@ -194,7 +193,7 @@ function restyle() {
   const anyStatus = [...zones.values()].some(z => z.status);
   const now = performance.now();
   zones.forEach(z => {
-    const look = z.status ? LOOKS.find(([k]) => k === z.status)[1]() : null;
+    const look = z.status ? LOOKS[z.status]() : null;
     const hot = z.id === hoverId || z.linked || z.flashUntil > now;
     const color = look ? look.color : C.rest;
     const opacity = look ? look.opacity : anyStatus ? 0.13 : 1;
@@ -211,11 +210,10 @@ function restyle() {
   invalidate();
 }
 
-// classes：Map(zoneId → 该分区当前的类名数组)，即 SVG 上同一分区会带的类
-export function setZoneStates(classes) {
+// status：Map(分区 id → 状态)，没有列出的肌肉回到默认外观
+export function setZoneStates(status) {
   zones.forEach((z, id) => {
-    const list = classes.get(id) || [];
-    z.status = LOOKS.map(([k]) => k).find(k => list.includes(k)) || null;
+    z.status = LOOKS[status.get(id)] ? status.get(id) : null;
   });
   restyle();
 }

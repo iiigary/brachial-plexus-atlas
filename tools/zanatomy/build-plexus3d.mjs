@@ -34,7 +34,7 @@ const lerp = (a, b, t) => add(a, mul(sub(b, a), t));
 const smooth = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 
 // ---------- 坐标 ----------
-// Z-Anatomy（three 坐标，cm）→ 网格坐标（assets/limb：右臂在 −X）→ 数据坐标（右臂外侧为 +X，与 anatomy3d.js 相同；
+// Z-Anatomy（three 坐标，cm）→ 网格坐标（assets/limb：右臂在 −X）→ 数据坐标（右臂外侧为 +X；
 // view3d 渲染时再把 x 取反，网格则直接放进场景）
 const toMesh = p => [0, 1, 2].map(k => AL.s * (AL.R[k][0] * p[0] + AL.R[k][1] * p[1] + AL.R[k][2] * p[2]) + AL.t[k]);
 const toData = p => { const m = toMesh(p); return [-m[0], m[1], m[2]]; };
@@ -468,7 +468,7 @@ const data = {
   source: 'Z-Anatomy – The libre 3D atlas of anatomy (https://github.com/Z-Anatomy/Models-of-human-anatomy, CC BY-SA 4.0), derived from BodyParts3D © The Database Center for Life Science (CC BY 4.0); 配准与拆分见 tools/zanatomy/',
   license: 'CC BY-SA 4.0',
   units: 'cm',
-  axes: 'x: 右臂外侧为正，y: 上，z: 前（与 js/data/anatomy3d.js 相同；渲染时 x 取反）',
+  axes: 'x: 右臂外侧为正，y: 上，z: 前（渲染时 x 取反）',
   anchors, courses, extras, edges,
   arteries: ARTERIES.map(a => ({ id: a.id, name: a.name, path: simplify(a.path, 0.02).map(r2), r: a.r })),
   cameraViews, ctxLabels,

@@ -14,11 +14,6 @@
   - 把尺神经和臂、前臂内侧皮神经的上臂近段移到肱动脉内侧。
 
   完整清单见 `assets/plexus/LICENSE.md`，生成脚本见 `tools/zanatomy/`。
-- **3D 解剖视图的备用示意模型**（`js/data/anatomy3d.js`，只在上面的真实走行加载失败时使用）
-  改编自 [prathusa/anatomy](https://github.com/prathusa/anatomy) 的 `js/regions/upper-limb.js`，
-  作者 "Anatomy contributors"，许可证 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
-  改动：只取上肢部分；把神经走行按本页的节点拆分；新增 6 个股、臂/前臂内侧皮神经、颈胸椎椎体与第 1 肋的示意坐标；
-  把肌肉归并到本页的运动靶区；结构名称译为中文。
 - **右上肢「肌肉」页与 3D 解剖视图的骨骼、肌肉网格**（`assets/limb/meshes.bin`、`meshes.json`）
   来自 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html) 4.0（`isa_BP3D_4.0_obj_99`）。
   署名：BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International。

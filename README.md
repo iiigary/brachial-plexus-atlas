@@ -47,6 +47,28 @@ npm test
 
 校验纤维路由模型、损伤推导、题库与模型的一致性。纤维路由的唯一数据源是 `js/model.js`。
 
+### 代码结构
+
+没有构建步骤，`js/` 下的 ES 模块由浏览器直接加载。数据单向流动：
+
+```
+state.js（选了什么）→ context.js（经 model.js 推导出该高亮什么）→ 各视图与检查器
+```
+
+| 文件 | 职责 |
+| --- | --- |
+| `js/model.js` | 纤维路由模型：拓扑、各神经的节段、支配靶区（zone）、损伤预设与受累推导。纯逻辑，Node 里也能跑 |
+| `js/data/` | 节点坐标与说明、上肢图形状、损伤与查体文字、题库 |
+| `js/state.js` | 全部交互状态，以及 `clearSelection`、`currentQuiz` 等只读状态的小函数 |
+| `js/context.js` | 把 state 翻译成高亮上下文，字段说明见文件里的 `HighlightContext` |
+| `js/app.js` | 入口：用户操作 → 改 state → `updateUI()`；事件绑定与快捷键 |
+| `js/plexus2d.js`、`js/limb.js`（+ `limb3d.js`）、`js/view3d.js` | 通路图、上肢图（「肌肉」页的网格）、3D 解剖 |
+| `js/inspector.js`、`js/quiz.js`、`js/urlstate.js`、`js/search.js` | 底部详情、自测、网址状态、搜索 |
+
+改代码时只有一条规则：改完 state 调 `updateUI()`。SVG 什么时候需要整体重建由 `updateUI` 自己判断，视图不直接改 state，用户操作通过 `init(handlers)` 传回 `app.js`。
+
+几个容易混的词：**zone** 是肌肉、皮区或皮节（上肢图上的一块），`kind` 为 `motor | cutaneous | dermatome`；**level** 是损伤预设里的「部位」（如桡神经的 `groove`）；**plane** 是数字化的平面（0 腋窝 … 4 手），用来判断哪些分支在损伤点近端已经分出。
+
 右上肢网格已生成在 `assets/limb/`。要重新生成，把 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html) 的 `isa_BP3D_4.0_obj_99.zip` 和 `isa_element_parts.txt` 解压到 `raw/`，再运行 `npm run build:limb`。
 
 3D 解剖视图的神经走行已生成在 `assets/plexus/`。要重新生成，需要 Blender 和 Z-Anatomy 的 `Startup.blend`，步骤见 [tools/zanatomy/README.md](tools/zanatomy/README.md)。
@@ -59,6 +81,6 @@ npm test
 
 ## 署名
 
-3D 解剖视图的神经与动脉走行、两个 3D 视图里的背阔肌来自 [Z-Anatomy](https://github.com/Z-Anatomy/Models-of-human-anatomy)（CC BY-SA 4.0），备用示意模型改编自 [prathusa/anatomy](https://github.com/prathusa/anatomy)（CC BY 4.0）；骨骼、肌肉网格来自 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html)（© The Database Center for Life Science，CC BY 4.0）；部分病例改编自 [rjg/brachialplexus](https://github.com/rjg/brachialplexus)（MIT）。详见 [CREDITS.md](CREDITS.md)。
+3D 解剖视图的神经与动脉走行、两个 3D 视图里的背阔肌来自 [Z-Anatomy](https://github.com/Z-Anatomy/Models-of-human-anatomy)（CC BY-SA 4.0）；骨骼、肌肉网格来自 [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html)（© The Database Center for Life Science，CC BY 4.0）；部分病例改编自 [rjg/brachialplexus](https://github.com/rjg/brachialplexus)（MIT）。详见 [CREDITS.md](CREDITS.md)。
 
 仅供解剖学习，不用于临床诊断。节段按常用教材取值，教材间可相差约一个节段。

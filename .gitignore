@@ -6,3 +6,5 @@ __pycache__/
 raw/
 # tools/make-usb.sh 生成的离线文件夹
 臂丛神经图谱-U盘版/
+# 演示录屏（体积大，不进仓库）
+docs/video/
